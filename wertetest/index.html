@@ -327,9 +327,9 @@ const RESULTS_KEY = "valueverse-results";
    SHARED COMPONENTS
    ═══════════════════════════════════════════ */
 
-function ValueInfo({ value, onClose }) {
+function ValueInfo({ value, onClose, descs }) {
   var c = CAT[value.cat];
-  var desc = VALUE_DESC[value.name] || "Keine Beschreibung verfügbar.";
+  var desc = (descs && descs[value.name]) || VALUE_DESC[value.name] || "Keine Beschreibung verfügbar.";
   return (
     <div onClick={onClose} style={{
       position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)",
@@ -366,7 +366,7 @@ function ValueInfo({ value, onClose }) {
   );
 }
 
-function VCard({value,size="normal",onClick,selected,dimmed,badge,hideLabel,showInfo}){
+function VCard({value,size="normal",onClick,selected,dimmed,badge,hideLabel,showInfo,descs}){
   const c=CAT[value.cat];
   const sz=size==="tiny"?{p:"6px 12px",f:13,r:10}:size==="small"?{p:"10px 16px",f:15,r:12}:{p:"28px 20px",f:22,r:18};
   const [infoOpen, setInfoOpen] = useState(false);
@@ -398,7 +398,7 @@ function VCard({value,size="normal",onClick,selected,dimmed,badge,hideLabel,show
           boxShadow: "0 2px 8px rgba(0,0,0,0.1)", zIndex: 2,
         }}>?</button>
       )}
-      {infoOpen && <ValueInfo value={value} onClose={function() { setInfoOpen(false); }} />}
+      {infoOpen && <ValueInfo value={value} onClose={function() { setInfoOpen(false); }} descs={descs} />}
     </div>
   );
 }
@@ -644,7 +644,7 @@ function DemographicsForm({ onSubmit }) {
    ADMIN PANEL
    ═══════════════════════════════════════════ */
 
-function AdminPanel({ values, setValues, onClose, onDashboard, typeDescs, setTypeDescs }) {
+function AdminPanel({ values, setValues, onClose, onDashboard, typeDescs, setTypeDescs, valueDescs, setValueDescs }) {
   const [newName, setNewName] = useState("");
   const [newCat, setNewCat] = useState("orange");
   const [editIdx, setEditIdx] = useState(null);
@@ -832,6 +832,7 @@ function AdminPanel({ values, setValues, onClose, onDashboard, typeDescs, setTyp
 
       {/* Wertetypen-Texte bearbeiten */}
       <TypeDescEditor typeDescs={typeDescs} setTypeDescs={setTypeDescs} />
+      <ValueDescEditor valueDescs={valueDescs} setValueDescs={setValueDescs} />
     </div>
   );
 }
@@ -938,6 +939,106 @@ function TypeDescEditor({ typeDescs, setTypeDescs }) {
 
       <div style={{ marginTop: 10, textAlign: "center" }}>
         <button onClick={function() { setOpen(false); setEditing(null); }} style={{
+          background: "none", border: "none", color: "#9ca3af", fontSize: 12, cursor: "pointer",
+        }}>Schließen</button>
+      </div>
+    </div>
+  );
+}
+
+function ValueDescEditor({ valueDescs, setValueDescs }) {
+  const [open, setOpen] = useState(false);
+  const [editing, setEditing] = useState(null);
+  const [editText, setEditText] = useState("");
+  const [saveMsg, setSaveMsg] = useState("");
+  const [search, setSearch] = useState("");
+
+  const startEdit = (name) => {
+    setEditText(valueDescs[name] || "");
+    setEditing(name);
+    setSaveMsg("");
+  };
+
+  const saveEdit = async () => {
+    if (!editing) return;
+    setSaveMsg("Speichert...");
+    try {
+      if (USE_SUPABASE) {
+        await supa.update("werte_beschreibungen", "name", editing, { beschreibung: editText });
+      }
+      const merged = {...valueDescs};
+      merged[editing] = editText;
+      setValueDescs(merged);
+      setSaveMsg("✅ Gespeichert");
+      setTimeout(() => { setSaveMsg(""); setEditing(null); }, 1200);
+    } catch (e) {
+      setSaveMsg("⚠️ Fehler: " + e.message);
+    }
+  };
+
+  if (!open) return (
+    <div style={{ marginTop: 16, textAlign: "center" }}>
+      <button onClick={() => setOpen(true)} style={{
+        background: "none", border: "none", color: "#9ca3af", fontSize: 13,
+        cursor: "pointer", textDecoration: "underline",
+      }}>📖 Werte-Beschreibungen bearbeiten</button>
+    </div>
+  );
+
+  const allNames = Object.keys(valueDescs).sort();
+  const filtered = search ? allNames.filter(n => n.toLowerCase().includes(search.toLowerCase())) : allNames;
+
+  return (
+    <div style={{ marginTop: 16, background: "#f8fafc", borderRadius: 14, padding: 16 }}>
+      <div style={{ fontSize: 14, fontWeight: 800, color: "#1e1b4b", marginBottom: 12 }}>📖 Werte-Beschreibungen</div>
+
+      {!editing && (
+        <div style={{ marginBottom: 12 }}>
+          <input value={search} onChange={function(e) { setSearch(e.target.value); }}
+            placeholder="🔍 Wert suchen..."
+            style={{ width: "100%", padding: "8px 12px", fontSize: 14, borderRadius: 10, border: "1px solid #e5e7eb", outline: "none", boxSizing: "border-box" }}
+          />
+        </div>
+      )}
+
+      {!editing && (
+        <div style={{ maxHeight: 250, overflowY: "auto" }}>
+          {filtered.map(function(name) {
+            var c = CAT[DEFAULT_VALUES.find(v => v.name === name)?.cat] || { bg: "#6b7280" };
+            return (
+              <div key={name} onClick={function() { startEdit(name); }} style={{
+                background: "#fff", borderRadius: 8, padding: "8px 12px", marginBottom: 4,
+                cursor: "pointer", borderLeft: "3px solid " + c.bg, fontSize: 13,
+              }}>
+                <span style={{ fontWeight: 700, color: c.bg }}>{name}</span>
+                <span style={{ color: "#9ca3af", marginLeft: 8 }}>{(valueDescs[name] || "").substring(0, 50)}...</span>
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      {editing && (
+        <div style={{ background: "#fff", borderRadius: 12, padding: 14 }}>
+          <div style={{ fontSize: 14, fontWeight: 700, color: "#1e1b4b", marginBottom: 8 }}>
+            Beschreibung für: <strong>{editing}</strong>
+          </div>
+          <textarea value={editText} onChange={function(e) { setEditText(e.target.value); }}
+            rows={3} style={{
+              width: "100%", padding: "8px 12px", fontSize: 14, borderRadius: 8,
+              border: "1px solid #e5e7eb", outline: "none", boxSizing: "border-box", resize: "vertical",
+            }}
+          />
+          <div style={{ display: "flex", gap: 8, alignItems: "center", marginTop: 8 }}>
+            <Btn small primary onClick={saveEdit}>Speichern</Btn>
+            <Btn small onClick={function() { setEditing(null); setSaveMsg(""); }}>Abbrechen</Btn>
+            {saveMsg && <span style={{ fontSize: 12, fontWeight: 600, color: saveMsg.startsWith("✅") ? "#166534" : "#92400e" }}>{saveMsg}</span>}
+          </div>
+        </div>
+      )}
+
+      <div style={{ marginTop: 10, textAlign: "center" }}>
+        <button onClick={function() { setOpen(false); setEditing(null); setSearch(""); }} style={{
           background: "none", border: "none", color: "#9ca3af", fontSize: 12, cursor: "pointer",
         }}>Schließen</button>
       </div>
@@ -1304,7 +1405,7 @@ Wenn du einen Wert nicht sicher lesen kannst, lass ihn weg. Antworte NUR mit dem
   );
 }
 
-function Compare({ pile, roundNum, onDone }) {
+function Compare({ pile, roundNum, onDone, valueDescs }) {
   const [pairs, setPairs] = useState([]);
   const [idx, setIdx] = useState(0);
   const [displayW, setDisplayW] = useState(0);
@@ -1406,7 +1507,7 @@ function Compare({ pile, roundNum, onDone }) {
             display: "flex", position: "relative",
           }}>
             <VCard value={v} onClick={() => pick(i)} hideLabel />
-            {VALUE_DEF[v.name] && <button onClick={function(e) { e.stopPropagation(); setInfoValue(infoValue === v.name ? null : v.name); }} style={{
+            {(valueDescs || VALUE_DEF)[v.name] && <button onClick={function(e) { e.stopPropagation(); setInfoValue(infoValue === v.name ? null : v.name); }} style={{
               position: "absolute", top: -6, right: -6, width: 24, height: 24, borderRadius: 99,
               background: "#fff", border: "2px solid #e5e7eb", color: "#6b7280",
               fontSize: 13, fontWeight: 800, cursor: "pointer", display: "flex",
@@ -1417,7 +1518,7 @@ function Compare({ pile, roundNum, onDone }) {
         ))}
       </div>
 
-      {infoValue && VALUE_DEF[infoValue] && (
+      {infoValue && (valueDescs || VALUE_DEF)[infoValue] && (
         <div style={{
           marginTop: 16, background: "#f8fafc", borderRadius: 16, padding: "16px 20px",
           border: "1px solid #e5e7eb", textAlign: "left", maxWidth: 360, margin: "16px auto 0",
@@ -1428,7 +1529,7 @@ function Compare({ pile, roundNum, onDone }) {
             fontSize: 18, color: "#9ca3af", cursor: "pointer",
           }}>×</button>
           <div style={{ fontWeight: 800, color: "#2E2D8E", fontSize: 16, marginBottom: 6 }}>{infoValue}</div>
-          <p style={{ fontSize: 14, color: "#4b5563", lineHeight: 1.6, margin: "0 0 10px" }}>{VALUE_DEF[infoValue]}</p>
+          <p style={{ fontSize: 14, color: "#4b5563", lineHeight: 1.6, margin: "0 0 10px" }}>{(valueDescs || VALUE_DEF)[infoValue]}</p>
           <p style={{ fontSize: 11, color: "#9ca3af", lineHeight: 1.4, margin: 0, fontStyle: "italic" }}>
             Das ist nur ein Anhaltspunkt. Es ist völlig ok, wenn dieser Wert für dich persönlich etwas anderes bedeutet — Werte sind so individuell wie wir Menschen.
           </p>
@@ -2808,6 +2909,7 @@ function App() {
   const [demographics, setDemographics] = useState(null);
   const [saveError, setSaveError] = useState(null);
   const [typeDescs, setTypeDescs] = useState(TYPE_DESC);
+  const [valueDescs, setValueDescs] = useState(VALUE_DESC);
 
   useEffect(() => {
     (async () => {
@@ -2818,8 +2920,8 @@ function App() {
           if (Array.isArray(parsed) && parsed.length > 0) setValues(parsed);
         }
       } catch (e) {}
-      // Load wertetypen from Supabase
       if (USE_SUPABASE) {
+        // Load wertetypen
         try {
           const rows = await supa.selectTable("wertetypen");
           if (rows && rows.length > 0) {
@@ -2837,6 +2939,17 @@ function App() {
             setTypeDescs(merged);
           }
         } catch (e) { console.error("Wertetypen load error:", e); }
+        // Load werte_beschreibungen
+        try {
+          const rows = await supa.selectTable("werte_beschreibungen");
+          if (rows && rows.length > 0) {
+            const merged = {...VALUE_DESC};
+            rows.forEach(function(row) {
+              if (row.name && row.beschreibung) merged[row.name] = row.beschreibung;
+            });
+            setValueDescs(merged);
+          }
+        } catch (e) { console.error("Werte-Beschreibungen load error:", e); }
       }
       setLoaded(true);
     })();
@@ -2874,6 +2987,7 @@ function App() {
           superkraefte: k.superkraefte.map(v => ({ name: v.name, cat: v.cat })),
           grundwerte: k.grundwerte.map(v => ({ name: v.name, cat: v.cat })),
           all_values: all.map(v => ({ name: v.name, cat: v.cat })),
+          ranking: all.map((v, i) => ({ pos: i + 1, name: v.name, cat: v.cat })),
           dominant: dom,
           vcode: vc,
         });
@@ -3012,7 +3126,7 @@ function App() {
       {phase === "intro" && <Intro onStart={() => { setPhase("demographics"); }} valueCount={values.length} onAdmin={() => setPhase("admin-login")} onScan={() => { setPhase("scan"); }} />}
       {phase === "demographics" && <DemographicsForm onSubmit={handleDemoSubmit} />}
       {phase === "admin-login" && <AdminLogin onSuccess={function() { setPhase("admin"); }} onBack={function() { setPhase("intro"); }} />}
-      {phase === "admin" && <AdminPanel values={values} setValues={setValues} onClose={() => setPhase("intro")} onDashboard={() => setPhase("dashboard")} typeDescs={typeDescs} setTypeDescs={setTypeDescs} />}
+      {phase === "admin" && <AdminPanel values={values} setValues={setValues} onClose={() => setPhase("intro")} onDashboard={() => setPhase("dashboard")} typeDescs={typeDescs} setTypeDescs={setTypeDescs} valueDescs={valueDescs} setValueDescs={setValueDescs} />}
       {phase === "dashboard" && <AdminDashboard onBack={() => setPhase("admin")} />}
       {phase === "scan" && <PhotoScan
         onResult={(scanned) => {
@@ -3027,7 +3141,7 @@ function App() {
         }}
         onBack={() => setPhase("intro")}
       />}
-      {phase === "compare" && <Compare key={"r" + roundNum} pile={pile} roundNum={roundNum} onDone={onCompare} />}
+      {phase === "compare" && <Compare key={"r" + roundNum} pile={pile} roundNum={roundNum} onDone={onCompare} valueDescs={valueDescs} />}
       {phase === "joker" && <JokerPick losers={lastLosers} winnerCount={pile.length} onDone={onJoker} />}
       {phase === "adjust" && <FinalAdjust values8={pile} lastDiscards={lastLosers} onDone={onAdjust} />}
       {phase === "ranking" && <RankValues values8={pile} onDone={onRankDone} />}
