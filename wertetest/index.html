@@ -1,0 +1,3044 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Valueverse Wertetest</title>
+  <meta name="description" content="Finde deinen V-Code — entdecke deine Werte mit dem Valueverse Wertetest">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700;800;900&display=swap" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Outfit', 'Segoe UI', system-ui, sans-serif; background: #fff; -webkit-font-smoothing: antialiased; }
+    #root { max-width: 500px; margin: 0 auto; min-height: 100vh; }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.9/babel.min.js"></script>
+  <script>
+    // Polyfill for window.storage (not available outside Claude artifacts)
+    if (!window.storage) {
+      window.storage = {
+        async get(key) {
+          var v = localStorage.getItem('vs_' + key);
+          return v ? { key: key, value: v } : null;
+        },
+        async set(key, value) {
+          localStorage.setItem('vs_' + key, typeof value === 'string' ? value : JSON.stringify(value));
+          return { key: key, value: value };
+        },
+        async delete(key) {
+          localStorage.removeItem('vs_' + key);
+          return { key: key, deleted: true };
+        },
+        async list(prefix) {
+          var keys = [];
+          for (var i = 0; i < localStorage.length; i++) {
+            var k = localStorage.key(i);
+            if (k.indexOf('vs_' + (prefix || '')) === 0) keys.push(k.replace('vs_', ''));
+          }
+          return { keys: keys };
+        }
+      };
+    }
+  </script>
+  <script type="text/babel">
+const { useState, useEffect, useRef } = React;
+
+/* ═══════════════════════════════════════════
+   SUPABASE CONFIG — Hier deine Werte eintragen!
+   ═══════════════════════════════════════════ */
+const SUPABASE_URL = "https://iwsgkwmtsrqpqlahvrhl.supabase.co";
+const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Iml3c2drd210c3JxcHFsYWh2cmhsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ2MjM4ODMsImV4cCI6MjA5MDE5OTg4M30.elfrwQNUhw75rFQ6eRCrXQdKidt3T1WIQmdodyHbzMg";
+const USE_SUPABASE = SUPABASE_URL && SUPABASE_KEY;
+
+/* Simple Supabase REST helper (kein SDK nötig) */
+const supa = {
+  async insert(table, data) {
+    if (!USE_SUPABASE) return null;
+    const r = await fetch(`${SUPABASE_URL}/rest/v1/${table}`, {
+      method: "POST", headers: {
+        "Content-Type": "application/json", "apikey": SUPABASE_KEY,
+        "Authorization": `Bearer ${SUPABASE_KEY}`, "Prefer": "return=minimal",
+      }, body: JSON.stringify(data),
+    });
+    if (!r.ok) {
+      const errText = await r.text().catch(() => "unknown");
+      throw new Error(`Supabase ${r.status}: ${errText}`);
+    }
+    return true;
+  },
+  async select(table) {
+    if (!USE_SUPABASE) return [];
+    const r = await fetch(`${SUPABASE_URL}/rest/v1/${table}?select=*&order=created_at.desc`, {
+      headers: { "apikey": SUPABASE_KEY, "Authorization": `Bearer ${SUPABASE_KEY}` },
+    });
+    if (!r.ok) {
+      const errText = await r.text().catch(() => "unknown");
+      console.error(`Supabase select error ${r.status}: ${errText}`);
+      return [];
+    }
+    return await r.json();
+  },
+  async remove(table, id) {
+    if (!USE_SUPABASE) return;
+    await fetch(`${SUPABASE_URL}/rest/v1/${table}?id=eq.${id}`, {
+      method: "DELETE", headers: { "apikey": SUPABASE_KEY, "Authorization": `Bearer ${SUPABASE_KEY}` },
+    });
+  },
+  async removeAll(table) {
+    if (!USE_SUPABASE) return;
+    await fetch(`${SUPABASE_URL}/rest/v1/${table}?id=neq.impossible`, {
+      method: "DELETE", headers: { "apikey": SUPABASE_KEY, "Authorization": `Bearer ${SUPABASE_KEY}` },
+    });
+  },
+  async selectTable(table) {
+    if (!USE_SUPABASE) return [];
+    const r = await fetch(`${SUPABASE_URL}/rest/v1/${table}?select=*`, {
+      headers: { "apikey": SUPABASE_KEY, "Authorization": `Bearer ${SUPABASE_KEY}` },
+    });
+    if (!r.ok) return [];
+    return await r.json();
+  },
+  async update(table, key, keyVal, data) {
+    if (!USE_SUPABASE) return null;
+    const r = await fetch(`${SUPABASE_URL}/rest/v1/${table}?${key}=eq.${keyVal}`, {
+      method: "PATCH", headers: {
+        "Content-Type": "application/json", "apikey": SUPABASE_KEY,
+        "Authorization": `Bearer ${SUPABASE_KEY}`, "Prefer": "return=minimal",
+      }, body: JSON.stringify(data),
+    });
+    return r.ok;
+  },
+};
+
+/* ═══════════════════════════════════════════
+   DEFAULT VALUES & CONFIG
+   ═══════════════════════════════════════════ */
+
+const DEFAULT_VALUES = [
+  {name:"Achtsamkeit",cat:"orange"},{name:"Disziplin",cat:"orange"},{name:"Erfolg",cat:"orange"},
+  {name:"Gerechtigkeit",cat:"orange"},{name:"Gesundheit",cat:"orange"},{name:"Leistung",cat:"orange"},
+  {name:"Respekt",cat:"orange"},{name:"Sicherheit",cat:"orange"},{name:"Tradition",cat:"orange"},
+  {name:"Zuverlässigkeit",cat:"orange"},{name:"Ästhetik",cat:"orange"},
+  {name:"Anerkennung",cat:"pink"},{name:"Bildung",cat:"pink"},{name:"Ehre",cat:"pink"},
+  {name:"Ehrlichkeit",cat:"pink"},{name:"Empathie",cat:"pink"},{name:"Familie",cat:"pink"},
+  {name:"Freude",cat:"pink"},{name:"Freundschaft",cat:"pink"},{name:"Geselligkeit",cat:"pink"},
+  {name:"Harmonie",cat:"pink"},{name:"Humor",cat:"pink"},{name:"Loyalität",cat:"pink"},
+  {name:"Mitgefühl",cat:"pink"},{name:"Nähe",cat:"pink"},{name:"Rücksichtnahme",cat:"pink"},
+  {name:"Toleranz",cat:"pink"},{name:"Treue",cat:"pink"},{name:"Zugehörigkeit",cat:"pink"},
+  {name:"Zärtlichkeit",cat:"pink"},
+  {name:"Abenteuer",cat:"blue"},{name:"Andersartigkeit",cat:"blue"},{name:"Ausgeglichenheit",cat:"blue"},
+  {name:"Authentizität",cat:"blue"},{name:"Freiheit",cat:"blue"},{name:"Gelassenheit",cat:"blue"},
+  {name:"Glaube",cat:"blue"},{name:"Ruhe",cat:"blue"},{name:"Selbstverwirklichung",cat:"blue"},
+  {name:"Spiritualität",cat:"blue"},{name:"Unabhängigkeit",cat:"blue"},
+  {name:"Abwechslung",cat:"green"},{name:"Aufgeschlossenheit",cat:"green"},{name:"Begeisterung",cat:"green"},
+  {name:"Einfluss",cat:"green"},{name:"Entwicklung",cat:"green"},{name:"Innovation",cat:"green"},
+  {name:"Kreativität",cat:"green"},{name:"Mut",cat:"green"},{name:"Nachhaltigkeit",cat:"green"},
+  {name:"Spontaneität",cat:"green"},{name:"Verantwortung",cat:"green"},
+];
+
+/* Werte-Erklärungen für junge Menschen */
+const VALUE_DESC = {
+  "Achtsamkeit": "Bewusst im Moment sein. Aufmerksam wahrnehmen, was gerade passiert — in dir und um dich herum.",
+  "Disziplin": "Auch dann dranzubleiben, wenn es schwer wird. Dinge durchziehen, die dir wichtig sind.",
+  "Erfolg": "Ziele erreichen, die dir wirklich etwas bedeuten. Stolz auf das sein, was du geschafft hast.",
+  "Gerechtigkeit": "Fairness. Dass alle die gleichen Chancen bekommen und niemand benachteiligt wird.",
+  "Gesundheit": "Gut auf deinen Körper und deine Psyche achten. Dich wohlfühlen in deiner Haut.",
+  "Leistung": "Dein Bestes geben. Zeigen, was in dir steckt — nicht für andere, sondern für dich.",
+  "Respekt": "Andere so behandeln, wie du behandelt werden möchtest. Auch wenn ihr unterschiedlich seid.",
+  "Sicherheit": "Dich geborgen fühlen. Wissen, dass du einen sicheren Ort hast — physisch und emotional.",
+  "Tradition": "Bräuche und Werte weitergeben, die dir und deiner Familie wichtig sind.",
+  "Zuverlässigkeit": "Halten, was du versprichst. Jemand sein, auf den andere zählen können.",
+  "Ästhetik": "Schönheit erkennen und schätzen — in Kunst, Natur, Design oder im Alltag.",
+  "Anerkennung": "Gesehen und wertgeschätzt werden für das, was du bist und tust.",
+  "Bildung": "Neues lernen und verstehen wollen. Wissen als etwas Wertvolles sehen.",
+  "Ehre": "Zu deinem Wort stehen. Würdevoll handeln, auch wenn niemand zuschaut.",
+  "Ehrlichkeit": "Die Wahrheit sagen, auch wenn es unbequem ist. Echt sein.",
+  "Empathie": "Dich in andere hineinversetzen können. Fühlen, was sie fühlen.",
+  "Familie": "Die Menschen, die dir am nächsten sind — egal ob verwandt oder gewählt.",
+  "Freude": "Glückliche Momente erleben und teilen. Das Leben genießen.",
+  "Freundschaft": "Tiefe Verbindungen mit Menschen, denen du vertraust und die dir vertrauen.",
+  "Geselligkeit": "Gerne unter Menschen sein. Gemeinsam lachen, reden, erleben.",
+  "Harmonie": "Frieden und Einklang. Dass es zwischen dir und anderen stimmig ist.",
+  "Humor": "Lachen können — über die Welt und über dich selbst. Leichtigkeit.",
+  "Loyalität": "Zu Menschen stehen, die dir wichtig sind. Auch in schwierigen Zeiten.",
+  "Mitgefühl": "Für andere da sein, wenn sie es brauchen. Anteilnahme zeigen.",
+  "Nähe": "Emotionale Verbundenheit. Dich jemandem wirklich zeigen können.",
+  "Rücksichtnahme": "Auf andere achten. Ihre Bedürfnisse und Grenzen respektieren.",
+  "Toleranz": "Andere Meinungen und Lebensweisen akzeptieren, auch wenn sie anders sind als deine.",
+  "Treue": "Treu sein zu Menschen und Überzeugungen, die dir wichtig sind.",
+  "Zugehörigkeit": "Teil einer Gemeinschaft sein. Irgendwo dazugehören.",
+  "Zärtlichkeit": "Sanft und liebevoll sein. Zuneigung zeigen und empfangen.",
+  "Abenteuer": "Neues erleben, Risiken eingehen, raus aus der Komfortzone.",
+  "Andersartigkeit": "Anders sein dürfen. Deine Einzigartigkeit als Stärke sehen.",
+  "Ausgeglichenheit": "Innere Balance. Nicht zu viel von einer Sache, nicht zu wenig von einer anderen.",
+  "Authentizität": "Echt sein. Dich nicht verstellen, sondern zeigen wer du wirklich bist.",
+  "Freiheit": "Selbst entscheiden können. Nicht eingeengt werden. Deinen eigenen Weg gehen.",
+  "Gelassenheit": "Ruhig bleiben, auch wenn es stressig wird. Dinge nehmen, wie sie kommen.",
+  "Glaube": "An etwas Größeres glauben — ob Religion, Spiritualität oder eine tiefe Überzeugung.",
+  "Ruhe": "Stille Momente. Zeit für dich selbst, ohne Ablenkung.",
+  "Selbstverwirklichung": "Das aus deinem Leben machen, was DU willst. Dein Potenzial leben.",
+  "Spiritualität": "Verbindung zu etwas, das über den Alltag hinausgeht. Sinn suchen.",
+  "Unabhängigkeit": "Auf eigenen Beinen stehen. Nicht von anderen abhängig sein.",
+  "Abwechslung": "Langeweile? Nein danke. Neue Dinge ausprobieren, Routine durchbrechen.",
+  "Aufgeschlossenheit": "Offen sein für Neues. Neugierig auf andere Perspektiven.",
+  "Begeisterung": "Feuer und Leidenschaft für Dinge, die dich bewegen.",
+  "Einfluss": "Dinge verändern können. Einen Unterschied machen in der Welt.",
+  "Entwicklung": "Wachsen und besser werden. An dir arbeiten, dich weiterentwickeln.",
+  "Innovation": "Neue Ideen haben und umsetzen. Dinge anders denken als alle anderen.",
+  "Kreativität": "Erschaffen. Malen, schreiben, bauen, erfinden — deiner Fantasie freien Lauf lassen.",
+  "Mut": "Dich trauen, auch wenn du Angst hast. Für dich und andere einstehen.",
+  "Nachhaltigkeit": "An morgen denken. Verantwortung für die Zukunft übernehmen.",
+  "Spontaneität": "Im Moment entscheiden. Nicht alles planen, sondern einfach machen.",
+  "Verantwortung": "Für dein Handeln geradestehen. Dich um Dinge kümmern, die wichtig sind.",
+};
+
+const CAT = {
+  orange: { bg:"#F97316", glow:"rgba(249,115,22,0.25)", label:"Struktur · Sicherheit · Ordnung" },
+  pink:   { bg:"#EC4899", glow:"rgba(236,72,153,0.25)", label:"Beziehung · Verbindung · Gemeinschaft" },
+  blue:   { bg:"#3B82F6", glow:"rgba(59,130,246,0.25)", label:"Veränderung in die Welt bringen" },
+  green:  { bg:"#22C55E", glow:"rgba(34,197,94,0.25)", label:"Sich selbst finden" },
+};
+
+const CAT_OPTIONS = [
+  { id:"orange", label:"🟠 Orange — Struktur, Sicherheit, Ordnung" },
+  { id:"pink",   label:"🩷 Pink — Beziehung, Verbindung" },
+  { id:"blue",   label:"🔵 Blau — Veränderung in die Welt bringen" },
+  { id:"green",  label:"🟢 Grün — Sich selbst finden" },
+];
+
+const DNA_LANES = [
+  { cat: "orange", title: "Sicherheit", subtitle: "Ordnung herstellen & erhalten" },
+  { cat: "pink", title: "Verbindung", subtitle: "Beziehungen herstellen & erhalten" },
+  { cat: "blue", title: "Veränderung", subtitle: "In die Welt bringen" },
+  { cat: "green", title: "Selbstfindung", subtitle: "Sich selbst finden" },
+];
+
+const ALL_VALUES_BY_CAT = {
+  orange: ["Achtsamkeit","Disziplin","Erfolg","Gerechtigkeit","Gesundheit","Leistung","Respekt","Sicherheit","Tradition","Zuverlässigkeit","Ästhetik"],
+  pink: ["Anerkennung","Bildung","Ehre","Ehrlichkeit","Empathie","Familie","Freude","Freundschaft","Geselligkeit","Harmonie","Humor","Loyalität","Mitgefühl","Nähe","Rücksichtnahme","Toleranz","Treue","Zugehörigkeit","Zärtlichkeit"],
+  blue: ["Abenteuer","Andersartigkeit","Ausgeglichenheit","Authentizität","Freiheit","Gelassenheit","Glaube","Ruhe","Selbstverwirklichung","Spiritualität","Unabhängigkeit"],
+  green: ["Abwechslung","Aufgeschlossenheit","Begeisterung","Einfluss","Entwicklung","Innovation","Kreativität","Mut","Nachhaltigkeit","Spontaneität","Verantwortung"],
+};
+
+const VALUE_ABBR = {
+  "Achtsamkeit":"Ach","Disziplin":"Di","Erfolg":"Er","Gerechtigkeit":"Ger","Gesundheit":"Ges",
+  "Leistung":"Lei","Respekt":"Re","Sicherheit":"Si","Tradition":"Tra","Zuverlässigkeit":"Zuv","Ästhetik":"Äs",
+  "Anerkennung":"An","Bildung":"Bi","Ehre":"Ere","Ehrlichkeit":"Ehr","Empathie":"Em",
+  "Familie":"Fam","Freude":"Fru","Freundschaft":"Fri","Geselligkeit":"Gsl","Harmonie":"Har",
+  "Humor":"Hum","Loyalität":"Loy","Mitgefühl":"Mit","Nähe":"Nä","Rücksichtnahme":"Rü",
+  "Toleranz":"Tol","Treue":"Tre","Zugehörigkeit":"Zug","Zärtlichkeit":"Zär",
+  "Abenteuer":"Ab","Andersartigkeit":"And","Ausgeglichenheit":"Aus","Authentizität":"Au",
+  "Freiheit":"Fre","Gelassenheit":"Gel","Glaube":"Gl","Ruhe":"Ru","Selbstverwirklichung":"Sel",
+  "Spiritualität":"Sp","Unabhängigkeit":"Un",
+  "Abwechslung":"Abw","Aufgeschlossenheit":"Auf","Begeisterung":"Beg","Einfluss":"Ei",
+  "Entwicklung":"Ent","Innovation":"Inn","Kreativität":"Kre","Mut":"Mut","Nachhaltigkeit":"Na",
+  "Spontaneität":"Spo","Verantwortung":"Ver",
+};
+
+const VALUE_DEF = {
+  "Achtsamkeit": "Bewusst im Moment sein. Wahrnehmen was gerade ist — ohne zu bewerten.",
+  "Disziplin": "Dranbleiben, auch wenn es schwer wird. Sich selbst Struktur geben.",
+  "Erfolg": "Ziele erreichen, die dir wichtig sind. Stolz auf das sein, was du geschafft hast.",
+  "Gerechtigkeit": "Fair sein und fair behandelt werden. Dass alle die gleichen Chancen bekommen.",
+  "Gesundheit": "Auf deinen Körper und Geist achten. Dich gut fühlen — physisch und mental.",
+  "Leistung": "Dein Bestes geben. Zeigen was du kannst und dich weiterentwickeln.",
+  "Respekt": "Andere so behandeln, wie du behandelt werden möchtest. Grenzen achten.",
+  "Sicherheit": "Dich geschützt und geborgen fühlen. Wissen, dass alles gut wird.",
+  "Tradition": "Bräuche und Werte weitergeben, die schon lange wichtig sind.",
+  "Zuverlässigkeit": "Halten was du versprichst. Jemand sein, auf den man zählen kann.",
+  "Ästhetik": "Schönheit erkennen und erschaffen. Dass Dinge gut aussehen und sich gut anfühlen.",
+  "Anerkennung": "Gesehen und geschätzt werden für das, was du bist und tust.",
+  "Bildung": "Neues lernen und verstehen wollen. Wissen als Weg zu mehr Möglichkeiten.",
+  "Ehre": "Zu deinen Prinzipien stehen. Integer handeln, auch wenn niemand zuschaut.",
+  "Ehrlichkeit": "Die Wahrheit sagen, auch wenn es unbequem ist. Offen und aufrichtig sein.",
+  "Empathie": "Spüren was andere fühlen. Dich in jemanden hineinversetzen können.",
+  "Familie": "Die Menschen, die bedingungslos für dich da sind — ob verwandt oder gewählt.",
+  "Freude": "Glückliche Momente erleben und genießen. Spaß am Leben haben.",
+  "Freundschaft": "Tiefe Verbindungen zu Menschen, die dich kennen und mögen wie du bist.",
+  "Geselligkeit": "Gerne mit anderen zusammen sein. Menschen um dich herum haben.",
+  "Harmonie": "Dass es friedlich zugeht. Konflikte lösen statt sie eskalieren lassen.",
+  "Humor": "Lachen können — über die Welt und über dich selbst. Leichtigkeit.",
+  "Loyalität": "Zu jemandem stehen, auch in schwierigen Zeiten. Nicht einfach aufgeben.",
+  "Mitgefühl": "Das Leid anderer ernst nehmen und helfen wollen.",
+  "Nähe": "Emotionale und körperliche Verbundenheit zu Menschen, die dir wichtig sind.",
+  "Rücksichtnahme": "An andere denken, bevor du handelst. Nicht nur an dich selbst.",
+  "Toleranz": "Akzeptieren, dass andere anders denken und leben. Vielfalt wertschätzen.",
+  "Treue": "Bei jemandem bleiben und zu ihm stehen. Beständig in deinen Beziehungen sein.",
+  "Zugehörigkeit": "Teil von etwas sein. Dich irgendwo zuhause fühlen.",
+  "Zärtlichkeit": "Sanft und liebevoll sein. Zuneigung zeigen und empfangen.",
+  "Abenteuer": "Neues erleben und wagen. Raus aus der Komfortzone.",
+  "Andersartigkeit": "Dich trauen, anders zu sein als die Masse. Deinen eigenen Weg gehen.",
+  "Ausgeglichenheit": "In deiner Mitte sein. Nicht zu viel und nicht zu wenig von allem.",
+  "Authentizität": "Echt sein. Nicht so tun als wärst du jemand anderes.",
+  "Freiheit": "Selbst entscheiden können, wie du lebst. Nicht eingeschränkt werden.",
+  "Gelassenheit": "Ruhig bleiben, auch wenn es stressig wird. Dinge annehmen können.",
+  "Glaube": "An etwas Größeres glauben — ob Religion, Spiritualität oder eine Überzeugung.",
+  "Ruhe": "Stille und Frieden finden. Einen Ort der Erholung haben.",
+  "Selbstverwirklichung": "Werden wer du wirklich bist. Dein Potenzial ausleben.",
+  "Spiritualität": "Eine tiefere Verbindung zum Leben spüren. Nach Sinn suchen.",
+  "Unabhängigkeit": "Auf eigenen Beinen stehen. Nicht von anderen abhängig sein.",
+  "Abwechslung": "Keine Langeweile! Immer wieder Neues entdecken und ausprobieren.",
+  "Aufgeschlossenheit": "Offen sein für neue Ideen, Menschen und Erfahrungen.",
+  "Begeisterung": "Voller Energie und Leidenschaft sein. Dich für etwas begeistern können.",
+  "Einfluss": "Etwas bewirken können. Dass deine Stimme zählt.",
+  "Entwicklung": "Wachsen und besser werden. Aus Fehlern lernen.",
+  "Innovation": "Neue Wege finden. Dinge anders und besser machen.",
+  "Kreativität": "Eigene Ideen haben und umsetzen. Etwas Neues erschaffen.",
+  "Mut": "Dich trauen, obwohl du Angst hast. Für dich und andere einstehen.",
+  "Nachhaltigkeit": "So handeln, dass auch nach dir noch eine gute Welt existiert.",
+  "Spontaneität": "Im Moment entscheiden. Nicht alles planen müssen.",
+  "Verantwortung": "Für dein Handeln einstehen. Dich um Dinge kümmern, die wichtig sind.",
+};
+
+const TYPE_DESC = {
+  orange: {
+    title:"Der Anker", emoji:"⚓",
+    short:"Du stellst Ordnung her — für dich und andere.",
+    text:"Du brauchst Verlässlichkeit und klare Strukturen. Für dich ist nicht egal, wie Dinge laufen — du willst, dass sie richtig laufen. Disziplin ist für dich kein Zwang, sondern Freiheit durch Ordnung. Menschen in deinem Umfeld wissen: Auf dich kann man zählen. Deine Stärke ist Stabilität. Deine Herausforderung? Loszulassen, wenn der Plan nicht aufgeht.",
+  },
+  pink: {
+    title:"Der Brückenbauer", emoji:"🌉",
+    short:"Du stellst Verbindung her — zwischen Menschen.",
+    text:"Beziehungen sind für dich nicht Beiwerk — sie sind der Kern. Du spürst, was andere brauchen, oft bevor sie es selbst wissen. Harmonie ist dir wichtiger als Rechthaben. Du bist der Mensch, der eine Gruppe zusammenhält, der zuhört, der da ist. Deine Stärke ist Empathie. Deine Herausforderung? Dich selbst dabei nicht zu vergessen.",
+  },
+  blue: {
+    title:"Der Katalysator", emoji:"⚡",
+    short:"Du bringst Veränderung in die Welt.",
+    text:"Du siehst die Welt nicht wie sie ist, sondern wie sie sein könnte. Stillstand ist für dich ein Signal, dass etwas passieren muss. Du hinterfragst Bestehendes — nicht um zu zerstören, sondern um Besseres zu ermöglichen. Deine Stärke ist dein Mut, Dinge anders zu machen. Deine Herausforderung? Die Geduld, dass Veränderung Zeit braucht.",
+  },
+  green: {
+    title:"Der Kompass", emoji:"🧭",
+    short:"Du findest dich selbst — immer tiefer.",
+    text:"Du willst nicht einfach funktionieren — du willst verstehen, wer du wirklich bist. Persönliches Wachstum ist für dich kein Trend, sondern Lebensgrundlage. Du brauchst Raum für Reflexion, für die innere Reise. Entwicklung bedeutet für dich: näher an dein wahres Selbst zu kommen. Deine Stärke ist Selbsterkenntnis. Deine Herausforderung? Nicht im ewigen Suchen zu verharren, sondern auch mal anzukommen.",
+  },
+};
+
+const shuffle = a => { const b=[...a]; for(let i=b.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[b[i],b[j]]=[b[j],b[i]];} return b; };
+const STORAGE_KEY = "valueverse-werte";
+const RESULTS_KEY = "valueverse-results";
+
+/* ═══════════════════════════════════════════
+   SHARED COMPONENTS
+   ═══════════════════════════════════════════ */
+
+function ValueInfo({ value, onClose }) {
+  var c = CAT[value.cat];
+  var desc = VALUE_DESC[value.name] || "Keine Beschreibung verfügbar.";
+  return (
+    <div onClick={onClose} style={{
+      position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)",
+      display: "flex", alignItems: "center", justifyContent: "center",
+      zIndex: 9999, padding: 20,
+    }}>
+      <div onClick={function(e) { e.stopPropagation(); }} style={{
+        background: "#fff", borderRadius: 20, padding: "28px 24px",
+        maxWidth: 320, width: "100%", textAlign: "center",
+        boxShadow: "0 20px 60px rgba(0,0,0,0.3)",
+      }}>
+        <div style={{
+          display: "inline-block", padding: "12px 28px", borderRadius: 14,
+          background: "linear-gradient(140deg, " + c.bg + "ee, " + c.bg + ")",
+          color: "#fff", fontSize: 22, fontWeight: 800, marginBottom: 16,
+        }}>{value.name}</div>
+        <p style={{ fontSize: 15, color: "#374151", lineHeight: 1.7, marginBottom: 16 }}>
+          {desc}
+        </p>
+        <div style={{
+          background: "#f8fafc", borderRadius: 12, padding: "12px 14px",
+          fontSize: 12, color: "#9ca3af", lineHeight: 1.5, marginBottom: 20,
+          textAlign: "left",
+        }}>
+          💡 Diese Erklärung ist nur ein Anhaltspunkt. Es ist völlig OK, wenn dieser Wert für dich persönlich etwas anderes bedeutet — Werte sind so individuell wie wir Menschen.
+        </div>
+        <button onClick={onClose} style={{
+          background: "linear-gradient(135deg, #2E2D8E, #3b2d8e)",
+          color: "#fff", border: "none", borderRadius: 99, padding: "12px 32px",
+          fontSize: 15, fontWeight: 700, cursor: "pointer",
+        }}>Verstanden</button>
+      </div>
+    </div>
+  );
+}
+
+function VCard({value,size="normal",onClick,selected,dimmed,badge,hideLabel,showInfo}){
+  const c=CAT[value.cat];
+  const sz=size==="tiny"?{p:"6px 12px",f:13,r:10}:size==="small"?{p:"10px 16px",f:15,r:12}:{p:"28px 20px",f:22,r:18};
+  const [infoOpen, setInfoOpen] = useState(false);
+  return(
+    <div style={{ position: "relative", width: "100%", flex: 1 }}>
+      <div onClick={onClick} style={{
+        background:dimmed?"#f0f0f0":`linear-gradient(140deg,${c.bg}ee,${c.bg})`,
+        borderRadius:sz.r,padding:sz.p,color:dimmed?"#aaa":"#fff",
+        cursor:onClick?"pointer":"default",userSelect:"none",
+        transition:"all 0.2s cubic-bezier(.4,0,.2,1)",
+        border:selected?"3px solid #1e1b4b":"3px solid transparent",
+        transform:selected?"scale(1.06)":"scale(1)",
+        textAlign:"center",minWidth:size==="tiny"?50:size==="small"?70:undefined,
+        boxShadow:dimmed?"none":`0 6px 24px ${c.glow}`,position:"relative",
+        display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",
+        minHeight:size==="normal"?110:undefined,
+        wordBreak:"break-word",
+      }}>
+        <div style={{fontSize:sz.f,fontWeight:800,letterSpacing:"-0.03em",lineHeight:1.2,hyphens:"auto",WebkitHyphens:"auto",MozHyphens:"auto"}} lang="de">{value.name}</div>
+        {size==="normal"&&!hideLabel&&<div style={{fontSize:11,opacity:0.75,marginTop:6}}>{c.label}</div>}
+        {badge&&<div style={{position:"absolute",top:-8,right:-8,background:"#1e1b4b",color:"#fff",fontSize:10,padding:"2px 8px",borderRadius:20,fontWeight:700}}>{badge}</div>}
+      </div>
+      {showInfo && !dimmed && (
+        <button onClick={function(e) { e.stopPropagation(); setInfoOpen(true); }} style={{
+          position: "absolute", bottom: -8, right: -8, width: 28, height: 28,
+          borderRadius: 99, background: "#fff", border: "2px solid #e5e7eb",
+          display: "flex", alignItems: "center", justifyContent: "center",
+          cursor: "pointer", fontSize: 14, fontWeight: 800, color: "#6b7280",
+          boxShadow: "0 2px 8px rgba(0,0,0,0.1)", zIndex: 2,
+        }}>?</button>
+      )}
+      {infoOpen && <ValueInfo value={value} onClose={function() { setInfoOpen(false); }} />}
+    </div>
+  );
+}
+
+function Bar({pct,label,sub}){
+  return(<div style={{marginBottom:20,width:"100%"}}>
+    <div style={{display:"flex",justifyContent:"space-between",fontSize:13,color:"#6b7280",marginBottom:5}}>
+      <span style={{fontWeight:600}}>{label}</span><span>{sub}</span>
+    </div>
+    <div style={{height:5,background:"#e5e7eb",borderRadius:99,overflow:"hidden"}}>
+      <div style={{height:"100%",width:`${pct}%`,borderRadius:99,transition:"width 0.3s ease",background:"linear-gradient(90deg,#6366f1,#a78bfa)"}}/>
+    </div>
+  </div>);
+}
+
+function Btn({children,onClick,primary,disabled,small,danger}){
+  return(<button onClick={onClick} disabled={disabled} style={{
+    background:disabled?"#e5e7eb":danger?"#ef4444":primary?"linear-gradient(135deg,#6366f1,#8b5cf6)":"#f3f4f6",
+    color:disabled?"#aaa":(primary||danger)?"#fff":"#374151",
+    border:(primary||danger)?"none":"2px solid #e5e7eb",borderRadius:99,
+    padding:small?"8px 18px":"14px 36px",fontSize:small?13:16,
+    fontWeight:700,cursor:disabled?"not-allowed":"pointer",
+    boxShadow:primary&&!disabled?"0 4px 20px rgba(99,102,241,0.35)":"none",
+  }}>{children}</button>);
+}
+
+/* ═══════════════════════════════════════════
+   ADMIN LOGIN (Supabase Auth)
+   ═══════════════════════════════════════════ */
+
+function AdminLogin({ onSuccess, onBack }) {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  const login = async () => {
+    if (!email || !password) { setError("E-Mail und Passwort eingeben"); return; }
+    setLoading(true);
+    setError("");
+    try {
+      const r = await fetch(SUPABASE_URL + "/auth/v1/token?grant_type=password", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "apikey": SUPABASE_KEY },
+        body: JSON.stringify({ email: email, password: password }),
+      });
+      const data = await r.json();
+      if (!r.ok) {
+        setError(data.error_description || data.msg || "Login fehlgeschlagen");
+        setLoading(false);
+        return;
+      }
+      onSuccess(data.access_token);
+    } catch (e) {
+      setError("Verbindungsfehler. Bist du online?");
+    }
+    setLoading(false);
+  };
+
+  return (
+    <div style={{ textAlign: "center", padding: "60px 24px" }}>
+      <div style={{ fontSize: 48, marginBottom: 12 }}>🔒</div>
+      <h2 style={{ fontSize: 22, fontWeight: 800, color: "#1e1b4b", marginBottom: 8 }}>Admin-Zugang</h2>
+      <p style={{ color: "#6b7280", fontSize: 14, marginBottom: 24 }}>Mit E-Mail und Passwort anmelden.</p>
+      <div style={{ maxWidth: 280, margin: "0 auto 20px" }}>
+        <input
+          type="email"
+          value={email}
+          onChange={function(e) { setEmail(e.target.value); setError(""); }}
+          onKeyDown={function(e) { if (e.key === "Enter") login(); }}
+          placeholder="E-Mail"
+          style={{
+            width: "100%", padding: "12px 16px", fontSize: 16,
+            borderRadius: 12, border: "2px solid #e5e7eb",
+            outline: "none", boxSizing: "border-box", marginBottom: 10,
+          }}
+        />
+        <input
+          type="password"
+          value={password}
+          onChange={function(e) { setPassword(e.target.value); setError(""); }}
+          onKeyDown={function(e) { if (e.key === "Enter") login(); }}
+          placeholder="Passwort"
+          style={{
+            width: "100%", padding: "12px 16px", fontSize: 16,
+            borderRadius: 12, border: error ? "2px solid #ef4444" : "2px solid #e5e7eb",
+            outline: "none", boxSizing: "border-box",
+          }}
+        />
+        {error && <p style={{ color: "#ef4444", fontSize: 13, fontWeight: 600, marginTop: 8 }}>{error}</p>}
+      </div>
+      <div style={{ display: "flex", gap: 10, justifyContent: "center" }}>
+        <Btn primary onClick={login} disabled={loading}>{loading ? "..." : "Anmelden"}</Btn>
+        <Btn small onClick={onBack}>← Zurück</Btn>
+      </div>
+    </div>
+  );
+}
+
+/* ═══════════════════════════════════════════
+   DEMOGRAPHICS FORM
+   ═══════════════════════════════════════════ */
+
+function DemographicsForm({ onSubmit }) {
+  const [geschlecht, setGeschlecht] = useState("");
+  const [klasse, setKlasse] = useState("");
+  const [schulform, setSchulform] = useState("");
+  const [consent, setConsent] = useState(false);
+
+  const canSubmit = geschlecht && klasse && schulform;
+  var VS_BLUE = "#2E2D8E";
+
+  return (
+    <div style={{ textAlign: "center", padding: "32px 20px 40px", position: "relative", overflow: "hidden" }}>
+      {/* Background rays */}
+      <div style={{ position: "absolute", inset: 0, pointerEvents: "none", zIndex: 0 }}>
+        <div style={{ position: "absolute", top: "-50%", right: "-15%", width: "50%", height: "200%", background: "#00BCD4", opacity: 0.03, transform: "rotate(15deg)" }} />
+        <div style={{ position: "absolute", bottom: "-40%", left: "-10%", width: "45%", height: "180%", background: "#F7941D", opacity: 0.03, transform: "rotate(-18deg)" }} />
+      </div>
+
+      <div style={{ position: "relative", zIndex: 1 }}>
+        <div style={{ fontSize: 40, marginBottom: 10 }}>👋</div>
+        <h2 style={{ fontSize: 24, fontWeight: 900, color: VS_BLUE, marginBottom: 4 }}>Kurz über dich</h2>
+        <p style={{ color: "#6b7280", fontSize: 14, marginBottom: 6, lineHeight: 1.5, maxWidth: 300, margin: "0 auto" }}>
+          Drei kurze Fragen für die Schulauswertung — danach geht's direkt los!
+        </p>
+        <div style={{
+          display: "inline-flex", alignItems: "center", gap: 6, marginTop: 10, marginBottom: 24,
+          background: "#f0fdf4", borderRadius: 99, padding: "6px 14px",
+          border: "1px solid rgba(124,193,66,0.2)",
+        }}>
+          <span style={{ fontSize: 14 }}>🔒</span>
+          <span style={{ fontSize: 12, fontWeight: 600, color: "#166534" }}>Komplett anonym — niemand weiß, dass du das bist 😎</span>
+        </div>
+
+        <div style={{ maxWidth: 320, margin: "0 auto", display: "flex", flexDirection: "column", gap: 20 }}>
+          {/* Geschlecht */}
+          <div>
+            <label style={{ fontSize: 14, fontWeight: 700, color: VS_BLUE, marginBottom: 8, display: "block", textAlign: "left" }}>
+              Geschlecht
+            </label>
+            <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+              {[
+                { id: "m", label: "männlich", emoji: "👦" },
+                { id: "w", label: "weiblich", emoji: "👧" },
+                { id: "d", label: "divers", emoji: "🌈" },
+                { id: "k", label: "keine Angabe", emoji: "🤷" },
+              ].map(function(opt) {
+                var sel = geschlecht === opt.id;
+                return (
+                  <button key={opt.id} onClick={function() { setGeschlecht(opt.id); }} style={{
+                    flex: 1, minWidth: 70, padding: "10px 6px", borderRadius: 12, fontSize: 13,
+                    fontWeight: 700, cursor: "pointer", border: "2px solid",
+                    borderColor: sel ? VS_BLUE : "#e5e7eb",
+                    background: sel ? "#f0f0ff" : "#fff",
+                    color: sel ? VS_BLUE : "#6b7280",
+                    transition: "all 0.15s ease",
+                  }}>
+                    <div style={{ fontSize: 18, marginBottom: 2 }}>{opt.emoji}</div>
+                    {opt.label}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Klassenstufe — Dropdown */}
+          <div>
+            <label style={{ fontSize: 14, fontWeight: 700, color: VS_BLUE, marginBottom: 8, display: "block", textAlign: "left" }}>
+              In welcher Klasse bist du?
+            </label>
+            <select value={klasse} onChange={function(e) { setKlasse(e.target.value); }} style={{
+              width: "100%", padding: "14px 18px", fontSize: 16, fontWeight: 600,
+              borderRadius: 14, border: klasse ? "2px solid " + VS_BLUE : "2px solid #e5e7eb",
+              outline: "none", boxSizing: "border-box", background: klasse ? "#f0f0ff" : "#fff",
+              color: klasse ? VS_BLUE : "#9ca3af", appearance: "none",
+              backgroundImage: "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%236b7280' d='M6 8L1 3h10z'/%3E%3C/svg%3E\")",
+              backgroundRepeat: "no-repeat", backgroundPosition: "right 16px center",
+            }}>
+              <option value="" disabled>Klassenstufe wählen</option>
+              {["1","2","3","4","5","6","7","8","9","10","11","12","13"].map(function(k) {
+                return <option key={k} value={k}>{"Klasse " + k}</option>;
+              })}
+            </select>
+          </div>
+
+          {/* Schulform — Dropdown */}
+          <div>
+            <label style={{ fontSize: 14, fontWeight: 700, color: VS_BLUE, marginBottom: 8, display: "block", textAlign: "left" }}>
+              Welche Schulform?
+            </label>
+            <select value={schulform} onChange={function(e) { setSchulform(e.target.value); }} style={{
+              width: "100%", padding: "14px 18px", fontSize: 16, fontWeight: 600,
+              borderRadius: 14, border: schulform ? "2px solid " + VS_BLUE : "2px solid #e5e7eb",
+              outline: "none", boxSizing: "border-box", background: schulform ? "#f0f0ff" : "#fff",
+              color: schulform ? VS_BLUE : "#9ca3af", appearance: "none",
+              backgroundImage: "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%236b7280' d='M6 8L1 3h10z'/%3E%3C/svg%3E\")",
+              backgroundRepeat: "no-repeat", backgroundPosition: "right 16px center",
+            }}>
+              <option value="" disabled>Schulform wählen</option>
+              <option value="grundschule">Grundschule</option>
+              <option value="hauptschule">Hauptschule</option>
+              <option value="realschule">Realschule</option>
+              <option value="gymnasium">Gymnasium</option>
+              <option value="gesamtschule">Gesamtschule</option>
+              <option value="sekundarschule">Sekundarschule</option>
+              <option value="gemeinschaftsschule">Gemeinschaftsschule</option>
+              <option value="oberschule">Oberschule</option>
+              <option value="stadtteilschule">Stadtteilschule</option>
+              <option value="foerderschule">Förderschule</option>
+              <option value="berufsschule">Berufsschule</option>
+              <option value="andere">Andere</option>
+            </select>
+          </div>
+        </div>
+
+        {/* Datenschutz-Zustimmung */}
+        <div style={{ maxWidth: 320, margin: "20px auto 0", textAlign: "left" }}>
+          <label style={{ display: "flex", gap: 10, cursor: "pointer", alignItems: "flex-start" }}>
+            <input type="checkbox" checked={consent} onChange={function(e) { setConsent(e.target.checked); }}
+              style={{ marginTop: 3, width: 20, height: 20, flexShrink: 0, cursor: "pointer", accentColor: VS_BLUE }} />
+            <span style={{ fontSize: 12, color: "#9ca3af", lineHeight: 1.5 }}>
+              Ich bin einverstanden, dass meine anonymen Angaben zusammen mit meinem Ergebnis gespeichert werden. Keine Namen, keine persönlichen Daten — nur für die Schulauswertung.
+            </span>
+          </label>
+        </div>
+
+        <div style={{ marginTop: 24, display: "flex", gap: 10, justifyContent: "center" }}>
+          <button onClick={function() { onSubmit({ geschlecht: geschlecht, klasse: klasse, schulform: schulform }); }} disabled={!canSubmit || !consent} style={{
+            background: (!canSubmit || !consent) ? "#e5e7eb" : "linear-gradient(135deg, " + VS_BLUE + ", #3b2d8e)",
+            color: (!canSubmit || !consent) ? "#aaa" : "#fff",
+            border: "none", borderRadius: 99, padding: "14px 36px", fontSize: 16,
+            fontWeight: 800, cursor: (!canSubmit || !consent) ? "not-allowed" : "pointer",
+            boxShadow: (canSubmit && consent) ? "0 4px 20px rgba(46,45,142,0.3)" : "none",
+          }}>Weiter zum Spiel →</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ═══════════════════════════════════════════
+   ADMIN PANEL
+   ═══════════════════════════════════════════ */
+
+function AdminPanel({ values, setValues, onClose, onDashboard, typeDescs, setTypeDescs }) {
+  const [newName, setNewName] = useState("");
+  const [newCat, setNewCat] = useState("orange");
+  const [editIdx, setEditIdx] = useState(null);
+  const [editName, setEditName] = useState("");
+  const [editCat, setEditCat] = useState("orange");
+  const [filter, setFilter] = useState("all");
+  const [saving, setSaving] = useState(false);
+  const [msg, setMsg] = useState("");
+
+  const save = async (newVals) => {
+    setValues(newVals);
+    setSaving(true);
+    try {
+      await window.storage.set(STORAGE_KEY, JSON.stringify(newVals));
+      setMsg(`✅ Gespeichert · ${newVals.length} Werte`);
+    } catch(e) {
+      setMsg("⚠️ Speichern fehlgeschlagen");
+    }
+    setSaving(false);
+    setTimeout(() => setMsg(""), 2000);
+  };
+
+  const addValue = () => {
+    if (!newName.trim()) return;
+    if (values.find(v => v.name.toLowerCase() === newName.trim().toLowerCase())) {
+      setMsg("⚠️ Wert existiert bereits"); setTimeout(() => setMsg(""), 2000); return;
+    }
+    save([...values, { name: newName.trim(), cat: newCat }]);
+    setNewName("");
+  };
+
+  const deleteValue = (idx) => {
+    const nv = values.filter((_, i) => i !== idx);
+    save(nv);
+  };
+
+  const startEdit = (idx) => {
+    setEditIdx(idx);
+    setEditName(values[idx].name);
+    setEditCat(values[idx].cat);
+  };
+
+  const saveEdit = () => {
+    const nv = [...values];
+    nv[editIdx] = { name: editName.trim(), cat: editCat };
+    save(nv);
+    setEditIdx(null);
+  };
+
+  const resetDefaults = () => {
+    if (confirm("Alle Werte auf Standard zurücksetzen? Änderungen gehen verloren.")) {
+      save([...DEFAULT_VALUES]);
+    }
+  };
+
+  const filtered = filter === "all" ? values : values.filter(v => v.cat === filter);
+  const counts = { orange: 0, pink: 0, blue: 0, green: 0 };
+  values.forEach(v => { if (counts[v.cat] !== undefined) counts[v.cat]++; });
+
+  const selectStyle = {
+    padding: "8px 12px", borderRadius: 8, border: "2px solid #e5e7eb",
+    fontSize: 14, background: "#fff", cursor: "pointer", outline: "none",
+  };
+  const inputStyle = {
+    padding: "10px 14px", borderRadius: 10, border: "2px solid #e5e7eb",
+    fontSize: 15, outline: "none", width: "100%", boxSizing: "border-box",
+  };
+
+  return (
+    <div style={{ padding: "20px 16px", maxWidth: 500, margin: "0 auto" }}>
+      {/* Header */}
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
+        <div>
+          <h2 style={{ fontSize: 22, fontWeight: 800, color: "#1e1b4b", margin: 0 }}>⚙️ Admin</h2>
+          <p style={{ fontSize: 13, color: "#6b7280", margin: "4px 0 0" }}>{values.length} Werte gesamt</p>
+        </div>
+        <div style={{ display: "flex", gap: 8 }}>
+          <Btn small primary onClick={onDashboard}>📊 Dashboard</Btn>
+          <Btn small onClick={onClose}>← Zurück</Btn>
+        </div>
+      </div>
+
+      {msg && (
+        <div style={{
+          background: msg.startsWith("✅") ? "#f0fdf4" : "#fef3c7",
+          color: msg.startsWith("✅") ? "#166534" : "#92400e",
+          padding: "8px 16px", borderRadius: 10, fontSize: 13, fontWeight: 600, marginBottom: 16, textAlign: "center",
+        }}>{msg}</div>
+      )}
+
+      {/* Stats */}
+      <div style={{ display: "flex", gap: 8, marginBottom: 20, flexWrap: "wrap" }}>
+        {Object.entries(counts).map(([cat, n]) => (
+          <div key={cat} onClick={() => setFilter(filter === cat ? "all" : cat)} style={{
+            background: filter === cat ? CAT[cat].bg : "#f8fafc",
+            color: filter === cat ? "#fff" : "#374151",
+            padding: "6px 14px", borderRadius: 99, fontSize: 13, fontWeight: 600,
+            cursor: "pointer", border: `2px solid ${CAT[cat].bg}30`,
+          }}>
+            {cat === "orange" ? "🟠" : cat === "pink" ? "🩷" : cat === "blue" ? "🔵" : "🟢"} {n}
+          </div>
+        ))}
+        <div onClick={() => setFilter("all")} style={{
+          background: filter === "all" ? "#1e1b4b" : "#f8fafc",
+          color: filter === "all" ? "#fff" : "#374151",
+          padding: "6px 14px", borderRadius: 99, fontSize: 13, fontWeight: 600, cursor: "pointer",
+        }}>Alle</div>
+      </div>
+
+      {/* Add new */}
+      <div style={{ background: "#f8fafc", borderRadius: 14, padding: 16, marginBottom: 20 }}>
+        <div style={{ fontSize: 13, fontWeight: 700, color: "#1e1b4b", marginBottom: 10 }}>Neuen Wert hinzufügen</div>
+        <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+          <input
+            value={newName} onChange={e => setNewName(e.target.value)}
+            onKeyDown={e => e.key === "Enter" && addValue()}
+            placeholder="Name des Werts..."
+            style={{ ...inputStyle, flex: 1, minWidth: 140 }}
+          />
+          <select value={newCat} onChange={e => setNewCat(e.target.value)} style={selectStyle}>
+            {CAT_OPTIONS.map(o => <option key={o.id} value={o.id}>{o.label}</option>)}
+          </select>
+          <Btn small primary onClick={addValue}>+ Hinzufügen</Btn>
+        </div>
+      </div>
+
+      {/* Values list */}
+      <div style={{ marginBottom: 20 }}>
+        {filtered.map((v, displayIdx) => {
+          const realIdx = values.findIndex(val => val.name === v.name && val.cat === v.cat);
+          const isEditing = editIdx === realIdx;
+
+          return (
+            <div key={`${v.name}-${realIdx}`} style={{
+              display: "flex", alignItems: "center", gap: 8, padding: "10px 12px",
+              borderBottom: "1px solid #f3f4f6", background: isEditing ? "#f0f0ff" : "transparent",
+            }}>
+              <div style={{
+                width: 10, height: 10, borderRadius: 3, background: CAT[v.cat].bg, flexShrink: 0,
+              }} />
+
+              {isEditing ? (
+                <>
+                  <input value={editName} onChange={e => setEditName(e.target.value)}
+                    style={{ ...inputStyle, flex: 1, padding: "6px 10px", fontSize: 14 }}
+                    onKeyDown={e => e.key === "Enter" && saveEdit()}
+                  />
+                  <select value={editCat} onChange={e => setEditCat(e.target.value)}
+                    style={{ ...selectStyle, padding: "6px 8px", fontSize: 12 }}>
+                    {CAT_OPTIONS.map(o => <option key={o.id} value={o.id}>{o.label}</option>)}
+                  </select>
+                  <Btn small primary onClick={saveEdit}>✓</Btn>
+                  <Btn small onClick={() => setEditIdx(null)}>✕</Btn>
+                </>
+              ) : (
+                <>
+                  <div style={{ flex: 1, fontSize: 15, fontWeight: 600, color: "#1e1b4b" }}>{v.name}</div>
+                  <span style={{ fontSize: 11, color: "#9ca3af" }}>{CAT[v.cat].label}</span>
+                  <button onClick={() => startEdit(realIdx)} style={{
+                    background: "none", border: "none", cursor: "pointer", fontSize: 16, padding: 4,
+                  }}>✏️</button>
+                  <button onClick={() => deleteValue(realIdx)} style={{
+                    background: "none", border: "none", cursor: "pointer", fontSize: 16, padding: 4,
+                  }}>🗑️</button>
+                </>
+              )}
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Actions */}
+      <div style={{ display: "flex", gap: 10, justifyContent: "center", flexWrap: "wrap" }}>
+        <Btn small danger onClick={resetDefaults}>Standard wiederherstellen</Btn>
+      </div>
+
+      {values.length % 2 !== 0 && (
+        <div style={{
+          background: "#fef3c7", color: "#92400e", padding: "10px 16px",
+          borderRadius: 10, fontSize: 13, fontWeight: 600, marginTop: 16, textAlign: "center",
+        }}>
+          ⚠️ Ungerade Anzahl ({values.length}) — das Spiel braucht eine gerade Anzahl Werte!
+        </div>
+      )}
+
+      {/* Wertetypen-Texte bearbeiten */}
+      <TypeDescEditor typeDescs={typeDescs} setTypeDescs={setTypeDescs} />
+    </div>
+  );
+}
+
+function TypeDescEditor({ typeDescs, setTypeDescs }) {
+  const [open, setOpen] = useState(false);
+  const [editing, setEditing] = useState(null);
+  const [form, setForm] = useState({ title: "", emoji: "", short: "", text: "" });
+  const [saveMsg, setSaveMsg] = useState("");
+
+  const startEdit = (cat) => {
+    const d = typeDescs[cat];
+    setForm({ title: d.title, emoji: d.emoji, short: d.short, text: d.text });
+    setEditing(cat);
+    setSaveMsg("");
+  };
+
+  const saveEdit = async () => {
+    if (!editing) return;
+    setSaveMsg("Speichert...");
+    try {
+      if (USE_SUPABASE) {
+        await supa.update("wertetypen", "cat", editing, {
+          title: form.title,
+          emoji: form.emoji,
+          short_desc: form.short,
+          long_desc: form.text,
+        });
+      }
+      const merged = {...typeDescs};
+      merged[editing] = { title: form.title, emoji: form.emoji, short: form.short, text: form.text };
+      setTypeDescs(merged);
+      setSaveMsg("✅ Gespeichert");
+      setTimeout(() => { setSaveMsg(""); setEditing(null); }, 1200);
+    } catch (e) {
+      setSaveMsg("⚠️ Fehler: " + e.message);
+    }
+  };
+
+  if (!open) return (
+    <div style={{ marginTop: 24, textAlign: "center" }}>
+      <button onClick={() => setOpen(true)} style={{
+        background: "none", border: "none", color: "#9ca3af", fontSize: 13,
+        cursor: "pointer", textDecoration: "underline",
+      }}>📝 Wertetypen-Texte bearbeiten</button>
+    </div>
+  );
+
+  return (
+    <div style={{ marginTop: 24, background: "#f8fafc", borderRadius: 14, padding: 16 }}>
+      <div style={{ fontSize: 14, fontWeight: 800, color: "#1e1b4b", marginBottom: 12 }}>📝 Wertetypen-Texte</div>
+
+      {!editing && ["orange", "pink", "blue", "green"].map(function(cat) {
+        var d = typeDescs[cat];
+        return (
+          <div key={cat} onClick={function() { startEdit(cat); }} style={{
+            background: "#fff", borderRadius: 10, padding: "10px 14px", marginBottom: 8,
+            cursor: "pointer", borderLeft: "4px solid " + CAT[cat].bg,
+          }}>
+            <div style={{ fontSize: 13, fontWeight: 700, color: CAT[cat].bg }}>{d.emoji} {d.title}</div>
+            <div style={{ fontSize: 12, color: "#6b7280", marginTop: 2 }}>{d.short}</div>
+          </div>
+        );
+      })}
+
+      {editing && (
+        <div style={{ background: "#fff", borderRadius: 12, padding: 16, borderLeft: "4px solid " + CAT[editing].bg }}>
+          <div style={{ fontSize: 13, fontWeight: 700, color: CAT[editing].bg, marginBottom: 10 }}>
+            Bearbeite: {typeDescs[editing].title}
+          </div>
+          {[
+            { key: "title", label: "Titel", ph: "z.B. Der Anker" },
+            { key: "emoji", label: "Emoji", ph: "z.B. ⚓" },
+            { key: "short", label: "Kurzbeschreibung", ph: "Ein Satz" },
+          ].map(function(f) {
+            return (
+              <div key={f.key} style={{ marginBottom: 8 }}>
+                <label style={{ fontSize: 11, fontWeight: 600, color: "#6b7280" }}>{f.label}</label>
+                <input value={form[f.key]} onChange={function(e) { var n = {}; n[f.key] = e.target.value; setForm(Object.assign({}, form, n)); }}
+                  placeholder={f.ph} style={{
+                    width: "100%", padding: "8px 12px", fontSize: 14, borderRadius: 8,
+                    border: "1px solid #e5e7eb", outline: "none", boxSizing: "border-box",
+                  }}
+                />
+              </div>
+            );
+          })}
+          <div style={{ marginBottom: 8 }}>
+            <label style={{ fontSize: 11, fontWeight: 600, color: "#6b7280" }}>Langtext</label>
+            <textarea value={form.text} onChange={function(e) { setForm(Object.assign({}, form, { text: e.target.value })); }}
+              rows={4} style={{
+                width: "100%", padding: "8px 12px", fontSize: 13, borderRadius: 8,
+                border: "1px solid #e5e7eb", outline: "none", boxSizing: "border-box", resize: "vertical",
+              }}
+            />
+          </div>
+          <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+            <Btn small primary onClick={saveEdit}>Speichern</Btn>
+            <Btn small onClick={function() { setEditing(null); setSaveMsg(""); }}>Abbrechen</Btn>
+            {saveMsg && <span style={{ fontSize: 12, fontWeight: 600, color: saveMsg.startsWith("✅") ? "#166534" : "#92400e" }}>{saveMsg}</span>}
+          </div>
+        </div>
+      )}
+
+      <div style={{ marginTop: 10, textAlign: "center" }}>
+        <button onClick={function() { setOpen(false); setEditing(null); }} style={{
+          background: "none", border: "none", color: "#9ca3af", fontSize: 12, cursor: "pointer",
+        }}>Schließen</button>
+      </div>
+    </div>
+  );
+}
+
+/* ═══════════════════════════════════════════
+   GAME SCREENS
+   ═══════════════════════════════════════════ */
+
+function Intro({ onStart, valueCount, onAdmin, onScan }) {
+  const [scanPin, setScanPin] = useState("");
+  const [scanPinOpen, setScanPinOpen] = useState(false);
+  const [scanPinError, setScanPinError] = useState(false);
+  const SCAN_PIN = "TIEFER";
+
+  const tryScanPin = () => {
+    if (scanPin.toUpperCase() === SCAN_PIN) { setScanPinOpen(false); setScanPinError(false); onScan(); }
+    else { setScanPinError(true); setScanPin(""); }
+  };
+  return (
+    <div style={{ textAlign: "center", padding: "32px 20px 40px", position: "relative", overflow: "hidden" }}>
+      {/* Colored background rays */}
+      <div style={{ position: "absolute", inset: 0, pointerEvents: "none", zIndex: 0 }}>
+        <div style={{ position: "absolute", top: "-60%", left: "-20%", width: "60%", height: "200%", background: "#E91E8C", opacity: 0.04, transform: "rotate(-25deg)" }} />
+        <div style={{ position: "absolute", top: "-70%", right: "-15%", width: "50%", height: "220%", background: "#7CC142", opacity: 0.03, transform: "rotate(18deg)" }} />
+        <div style={{ position: "absolute", bottom: "-40%", left: "20%", width: "45%", height: "180%", background: "#00BCD4", opacity: 0.03, transform: "rotate(-12deg)" }} />
+        <div style={{ position: "absolute", bottom: "-30%", right: "5%", width: "40%", height: "160%", background: "#F7941D", opacity: 0.04, transform: "rotate(22deg)" }} />
+      </div>
+
+      <div style={{ position: "relative", zIndex: 1 }}>
+        {/* Logo area */}
+        <div style={{
+          display: "inline-flex", alignItems: "center", justifyContent: "center",
+          width: 80, height: 80, borderRadius: 20,
+          background: "linear-gradient(135deg, #2E2D8E, #3b2d8e)",
+          marginBottom: 16, boxShadow: "0 8px 30px rgba(46,45,142,0.25)",
+        }}>
+          <span style={{ fontSize: 40 }}>🧭</span>
+        </div>
+
+        <h1 style={{ fontSize: 28, fontWeight: 900, color: "#2E2D8E", letterSpacing: "-0.03em", margin: "0 0 4px", lineHeight: 1.2 }}>
+          Entdecke deinen
+        </h1>
+        <h1 style={{ fontSize: 32, fontWeight: 900, letterSpacing: "-0.03em", margin: "0 0 16px", lineHeight: 1.1 }}>
+          <span style={{ color: "#F7941D" }}>Werte</span><span style={{ color: "#2E2D8E" }}>kompass</span>
+        </h1>
+
+        <p style={{ color: "#6b7280", fontSize: 15, maxWidth: 320, margin: "0 auto 8px", lineHeight: 1.65 }}>
+          Welche Werte machen dich aus? In diesem Spiel findest du es heraus — schnell, spielerisch und ehrlich.
+        </p>
+        <p style={{ color: "#9ca3af", fontSize: 13, maxWidth: 300, margin: "0 auto 28px", lineHeight: 1.5 }}>
+          Keine richtigen oder falschen Antworten. Nur du und dein Bauchgefühl.
+        </p>
+
+        {/* How it works */}
+        <div style={{
+          background: "linear-gradient(135deg, #f8fafc, #f0f4ff)",
+          borderRadius: 18, padding: "20px 22px", maxWidth: 340,
+          margin: "0 auto 24px", textAlign: "left",
+          border: "1px solid rgba(46,45,142,0.08)",
+        }}>
+          <div style={{ fontSize: 14, fontWeight: 800, color: "#2E2D8E", marginBottom: 14 }}>So funktioniert's:</div>
+          {[
+            ["🔀", "Immer zwei Werte — welcher ist dir wichtiger? Entscheide aus dem Bauch."],
+            ["😅", "Manche Entscheidungen sind richtig schwer. Das ist normal — und genau der Punkt."],
+            ["🃏", "Du kannst Werte zurückholen, die dir fehlen."],
+            ["🧭", "Am Ende stehen 8 Werte, die zeigen wer du bist — dein persönlicher Wertekompass."],
+          ].map(function(item, i) {
+            return (
+              <div key={i} style={{ display: "flex", gap: 10, marginBottom: i < 3 ? 12 : 0, fontSize: 13, color: "#4b5563", lineHeight: 1.55 }}>
+                <span style={{ fontSize: 17, flexShrink: 0, marginTop: 1 }}>{item[0]}</span>
+                <span>{item[1]}</span>
+              </div>
+            );
+          })}
+        </div>
+
+        <p style={{ color: "#b0b0b0", fontSize: 13, marginBottom: 24 }}>⏱ Dauert ca. 5–10 Minuten</p>
+
+        <div style={{ display: "flex", flexDirection: "column", gap: 12, alignItems: "center" }}>
+          <button onClick={onStart} style={{
+            background: "linear-gradient(135deg, #2E2D8E, #3b2d8e)",
+            color: "#fff", border: "none", borderRadius: 99, padding: "16px 44px",
+            fontSize: 18, fontWeight: 800, cursor: "pointer",
+            boxShadow: "0 6px 24px rgba(46,45,142,0.3)", letterSpacing: "0.02em",
+          }}>Jetzt starten</button>
+          <button onClick={function() { setScanPinOpen(!scanPinOpen); setScanPinError(false); setScanPin(""); }} style={{
+            background: "#d1d5db", color: "#9ca3af",
+            border: "none", borderRadius: 99, padding: "12px 30px",
+            fontSize: 14, fontWeight: 600, cursor: "pointer",
+          }}>🔒 Karten scannen</button>
+        </div>
+
+        {scanPinOpen && (
+          <div style={{ marginTop: 14, background: "#f8fafc", borderRadius: 14, padding: 16, maxWidth: 280, margin: "14px auto 0" }}>
+            <p style={{ fontSize: 12, color: "#6b7280", marginBottom: 10 }}>Code eingeben um Karten-Scan freizuschalten:</p>
+            <div style={{ display: "flex", gap: 8, justifyContent: "center", alignItems: "center" }}>
+              <input type="text" value={scanPin} onChange={function(e) { setScanPin(e.target.value); setScanPinError(false); }}
+                onKeyDown={function(e) { if (e.key === "Enter") tryScanPin(); }}
+                placeholder="Code" style={{
+                  padding: "8px 14px", fontSize: 15, fontWeight: 600, borderRadius: 10,
+                  border: scanPinError ? "2px solid #ef4444" : "2px solid #e5e7eb",
+                  outline: "none", width: 120, textAlign: "center", textTransform: "uppercase",
+                }} />
+              <Btn small primary onClick={tryScanPin}>OK</Btn>
+            </div>
+            {scanPinError && <p style={{ color: "#ef4444", fontSize: 12, marginTop: 6 }}>Falscher Code</p>}
+          </div>
+        )}
+
+        <div style={{ marginTop: 20 }}>
+          <button onClick={onAdmin} style={{
+            background: "none", border: "none", color: "#c7c7c7", fontSize: 12,
+            cursor: "pointer", padding: 8,
+          }}>⚙️ Admin</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ═══════════════════════════════════════════
+   PHOTO SCAN (Card Recognition via Claude API)
+   ═══════════════════════════════════════════ */
+
+const ALL_VALUE_NAMES = Object.values(ALL_VALUES_BY_CAT).flat();
+const VALUE_TO_CAT = {};
+Object.entries(ALL_VALUES_BY_CAT).forEach(([cat, vals]) => {
+  vals.forEach(v => { VALUE_TO_CAT[v.toLowerCase()] = cat; });
+});
+
+function PhotoScan({ onResult, onBack }) {
+  const [img, setImg] = useState(null);
+  const [imgData, setImgData] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const [recognized, setRecognized] = useState(null);
+  const fileRef = useRef(null);
+
+  const handleFile = (file) => {
+    if (!file) return;
+    setError(null); setRecognized(null);
+    const url = URL.createObjectURL(file);
+    setImg(url);
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      const b64 = reader.result.split(",")[1];
+      setImgData({ data: b64, type: file.type || "image/jpeg" });
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleCapture = (e) => {
+    const file = e.target.files?.[0];
+    if (file) handleFile(file);
+  };
+
+  const analyze = async () => {
+    if (!imgData) return;
+    setLoading(true); setError(null);
+
+    const valuesList = ALL_VALUE_NAMES.join(", ");
+
+    try {
+      const resp = await fetch("https://api.anthropic.com/v1/messages", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          model: "claude-sonnet-4-20250514",
+          max_tokens: 1000,
+          messages: [{
+            role: "user",
+            content: [
+              {
+                type: "image",
+                source: { type: "base64", media_type: imgData.type, data: imgData.data }
+              },
+              {
+                type: "text",
+                text: `Du siehst ein Foto von Valueverse-Wertekarten. Jede Karte hat einen Wert-Namen darauf.
+
+Erkenne ALLE Werte-Namen die auf den sichtbaren Karten stehen. Die möglichen Werte sind:
+${valuesList}
+
+Antworte NUR mit einem JSON-Array der erkannten Werte-Namen, exakt wie oben geschrieben. Beispiel:
+["Freiheit", "Mut", "Familie", "Ehrlichkeit", "Kreativität", "Harmonie", "Authentizität", "Empathie"]
+
+Wenn du einen Wert nicht sicher lesen kannst, lass ihn weg. Antworte NUR mit dem JSON-Array, kein anderer Text.`
+              }
+            ]
+          }]
+        })
+      });
+
+      const data = await resp.json();
+      const text = data.content?.map(c => c.text || "").join("") || "";
+      const clean = text.replace(/```json|```/g, "").trim();
+
+      let parsed;
+      try { parsed = JSON.parse(clean); } catch {
+        setError("Konnte die Antwort nicht verarbeiten. Bitte nochmal versuchen.");
+        setLoading(false); return;
+      }
+
+      if (!Array.isArray(parsed) || parsed.length === 0) {
+        setError("Keine Werte erkannt. Bitte ein deutlicheres Foto machen.");
+        setLoading(false); return;
+      }
+
+      // Match to known values
+      const matched = [];
+      parsed.forEach(name => {
+        const lower = name.toLowerCase().trim();
+        const cat = VALUE_TO_CAT[lower];
+        if (cat) {
+          // Find exact name from our list
+          const exact = ALL_VALUE_NAMES.find(v => v.toLowerCase() === lower);
+          if (exact && !matched.find(m => m.name === exact)) {
+            matched.push({ name: exact, cat });
+          }
+        }
+      });
+
+      if (matched.length === 0) {
+        setError("Keine bekannten Valueverse-Werte erkannt. Bitte Karten deutlich fotografieren.");
+      } else {
+        setRecognized(matched);
+      }
+    } catch (e) {
+      setError("API-Fehler: " + (e.message || "Unbekannt"));
+    }
+    setLoading(false);
+  };
+
+  const handleConfirm = () => {
+    if (recognized) onResult(recognized);
+  };
+
+  return (
+    <div style={{ textAlign: "center", padding: "20px 16px" }}>
+      <div style={{ fontSize: 36, marginBottom: 8 }}>📸</div>
+      <h2 style={{ fontSize: 22, fontWeight: 800, color: "#1e1b4b", marginBottom: 4 }}>Wertekompass scannen</h2>
+      <p style={{ color: "#6b7280", fontSize: 14, marginBottom: 20, lineHeight: 1.5 }}>
+        Fotografiere deine 8 Karten (Wertekompass).<br />Die Werte werden automatisch erkannt.
+      </p>
+
+      {!img ? (
+        <div style={{ display: "flex", flexDirection: "column", gap: 16, alignItems: "center" }}>
+          {/* Fully visible native file input */}
+          <div style={{
+            background: "#f8fafc", borderRadius: 16, padding: 24,
+            width: "100%", maxWidth: 320, textAlign: "center",
+          }}>
+            <div style={{ fontSize: 40, marginBottom: 8 }}>📷</div>
+            <p style={{ fontSize: 14, color: "#374151", fontWeight: 600, marginBottom: 12 }}>
+              Foto auswählen:
+            </p>
+            <input
+              type="file"
+              accept="image/*"
+              onChange={handleCapture}
+              style={{
+                fontSize: 15, width: "100%", padding: 8,
+                cursor: "pointer",
+              }}
+            />
+          </div>
+
+          {/* Paste from clipboard area */}
+          <div
+            contentEditable
+            onPaste={(e) => {
+              e.preventDefault();
+              const items = e.clipboardData?.items;
+              if (!items) return;
+              for (let i = 0; i < items.length; i++) {
+                if (items[i].type.startsWith("image/")) {
+                  const file = items[i].getAsFile();
+                  if (file) handleFile(file);
+                  break;
+                }
+              }
+            }}
+            style={{
+              background: "#f0f9ff", border: "2px dashed #93c5fd", borderRadius: 16,
+              padding: "20px 16px", width: "100%", maxWidth: 320,
+              color: "#3b82f6", fontSize: 14, fontWeight: 600, textAlign: "center",
+              outline: "none", cursor: "text", minHeight: 60,
+            }}
+            suppressContentEditableWarning
+          >
+            📋 Oder hier antippen und Bild einfügen (Strg+V)
+          </div>
+
+          <Btn small onClick={onBack}>← Zurück</Btn>
+        </div>
+      ) : !recognized ? (
+        <div>
+          <img src={img} alt="Karten" style={{
+            width: "100%", maxWidth: 400, borderRadius: 16,
+            border: "2px solid #e5e7eb", marginBottom: 16,
+          }} />
+
+          {loading ? (
+            <div style={{ padding: 20 }}>
+              <div style={{
+                width: 40, height: 40, border: "4px solid #e5e7eb",
+                borderTopColor: "#6366f1", borderRadius: "50%",
+                margin: "0 auto 12px",
+                animation: "spin 0.8s linear infinite",
+              }} />
+              <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+              <p style={{ color: "#6b7280", fontSize: 14 }}>Erkenne Werte auf den Karten...</p>
+            </div>
+          ) : (
+            <div style={{ display: "flex", gap: 10, justifyContent: "center", flexWrap: "wrap" }}>
+              <Btn primary onClick={analyze}>🔍 Werte erkennen</Btn>
+              <Btn onClick={() => { setImg(null); setImgData(null); setError(null); }}>🔄 Neues Foto</Btn>
+            </div>
+          )}
+
+          {error && (
+            <div style={{
+              background: "#fef2f2", color: "#b91c1c", padding: "12px 16px",
+              borderRadius: 12, fontSize: 13, fontWeight: 600, marginTop: 16,
+            }}>⚠️ {error}</div>
+          )}
+        </div>
+      ) : (
+        <div>
+          <div style={{
+            background: "#f0fdf4", color: "#166534", padding: "10px 16px",
+            borderRadius: 10, fontSize: 14, fontWeight: 600, marginBottom: 16,
+          }}>✅ {recognized.length} Werte erkannt!</div>
+
+          <div style={{ display: "flex", flexWrap: "wrap", gap: 8, justifyContent: "center", marginBottom: 20 }}>
+            {recognized.map(v => <VCard key={v.name} value={v} size="small" />)}
+          </div>
+
+          {recognized.length !== 8 && (
+            <div style={{
+              background: "#fef3c7", color: "#92400e", padding: "10px 16px",
+              borderRadius: 10, fontSize: 13, fontWeight: 600, marginBottom: 16,
+            }}>
+              ⚠️ {recognized.length} statt 8 Werte erkannt.
+              {recognized.length < 8 ? " Fehlende Werte kannst du im nächsten Schritt ergänzen." : " Entferne überzählige im nächsten Schritt."}
+            </div>
+          )}
+
+          <div style={{ display: "flex", gap: 10, justifyContent: "center", flexWrap: "wrap" }}>
+            <Btn primary onClick={handleConfirm}>
+              Weiter zum Wertekompass →
+            </Btn>
+            <Btn onClick={() => { setImg(null); setImgData(null); setRecognized(null); setError(null); }}>
+              📷 Nochmal scannen
+            </Btn>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function Compare({ pile, roundNum, onDone }) {
+  const [pairs, setPairs] = useState([]);
+  const [idx, setIdx] = useState(0);
+  const [displayW, setDisplayW] = useState(0);
+  const [displayL, setDisplayL] = useState(0);
+  const [anim, setAnim] = useState(null);
+  const [showIntro, setShowIntro] = useState(roundNum === 1);
+  const [infoValue, setInfoValue] = useState(null);
+  const pickLock = useRef(false);
+  const winnersRef = useRef([]);
+  const losersRef = useRef([]);
+
+  useEffect(() => {
+    pickLock.current = false;
+    const sh = shuffle(pile); const p = []; let odd = null;
+    for (let i = 0; i < sh.length; i += 2) {
+      if (i + 1 < sh.length) p.push([sh[i], sh[i + 1]]);
+      else odd = sh[i];
+    }
+    setPairs(p); setIdx(0);
+    winnersRef.current = odd ? [odd] : [];
+    losersRef.current = [];
+    setDisplayW(winnersRef.current.length);
+    setDisplayL(0);
+  }, [pile]);
+
+  const pick = (wi) => {
+    if (pickLock.current) return;
+    const pair = pairs[idx];
+    if (!pair) return;
+    pickLock.current = true;
+    setInfoValue(null);
+    setAnim(wi === 0 ? "L" : "R");
+    const winner = pair[wi];
+    const loser = pair[1 - wi];
+    const currentIdx = idx;
+    setTimeout(() => {
+      setAnim(null);
+      winnersRef.current.push(winner);
+      losersRef.current.push(loser);
+      setDisplayW(winnersRef.current.length);
+      setDisplayL(losersRef.current.length);
+      if (currentIdx + 1 >= pairs.length) {
+        onDone([...winnersRef.current], [...losersRef.current]);
+      } else {
+        setIdx(i => i + 1);
+      }
+      pickLock.current = false;
+    }, 200);
+  };
+
+  if (showIntro) return (
+    <div style={{ textAlign: "center", padding: "40px 24px" }}>
+      <div style={{ fontSize: 48, marginBottom: 12 }}>🎮</div>
+      <h2 style={{ fontSize: 24, fontWeight: 900, color: "#2E2D8E", marginBottom: 12 }}>Bereit? Los geht's!</h2>
+      <div style={{
+        background: "linear-gradient(135deg, #f8fafc, #f0f0ff)", borderRadius: 18,
+        padding: "20px 22px", maxWidth: 340, margin: "0 auto 20px", textAlign: "left",
+        border: "1px solid rgba(46,45,142,0.08)",
+      }}>
+        {[
+          ["🎯", "Dir werden immer zwei Werte gezeigt. Tippe auf den, der dir wichtiger ist."],
+          ["💛", "Entscheide aus dem Bauch heraus — welcher Wert bist du WIRKLICH? Nicht welchen du gerne hättest."],
+          ["😅", "Manche Entscheidungen fühlen sich fast unmöglich an. Das gehört dazu! Gerade dann lernst du am meisten über dich."],
+          ["🎲", "Das hier ist ein Spiel, kein Test. Es gibt keine falschen Antworten — nur deine."],
+        ].map(function(item, i) {
+          return (
+            <div key={i} style={{ display: "flex", gap: 10, marginBottom: i < 3 ? 14 : 0, fontSize: 13, color: "#4b5563", lineHeight: 1.55 }}>
+              <span style={{ fontSize: 17, flexShrink: 0, marginTop: 1 }}>{item[0]}</span>
+              <span>{item[1]}</span>
+            </div>
+          );
+        })}
+      </div>
+      <p style={{ fontSize: 12, color: "#9ca3af", maxWidth: 280, margin: "0 auto 24px", lineHeight: 1.5 }}>
+        Tipp: Wenn du bei einem Wert denkst "den MUSS ich nehmen" — hinterfrage das. Ist es wirklich deiner, oder glaubst du das nur?
+      </p>
+      <button onClick={function() { setShowIntro(false); }} style={{
+        background: "linear-gradient(135deg, #2E2D8E, #3b2d8e)",
+        color: "#fff", border: "none", borderRadius: 99, padding: "16px 44px",
+        fontSize: 18, fontWeight: 800, cursor: "pointer",
+        boxShadow: "0 6px 24px rgba(46,45,142,0.3)",
+      }}>Spiel starten</button>
+    </div>
+  );
+
+  if (!pairs.length || !pairs[idx]) return null;
+  const pair = pairs[idx];
+
+  return (
+    <div style={{ textAlign: "center", padding: "20px 16px" }}>
+      <Bar pct={(idx / pairs.length) * 100} label={"Runde " + roundNum} sub={(idx + 1) + " / " + pairs.length} />
+      <p style={{ color: "#6b7280", fontSize: 15, marginBottom: 28 }}>Welcher Wert ist dir <strong>wichtiger</strong>?</p>
+      <div style={{ display: "flex", gap: 16, justifyContent: "center", alignItems: "stretch", minHeight: 120 }}>
+        {pair.map((v, i) => (
+          <div key={v.name} style={{
+            width: "42%", transition: "all 0.22s ease",
+            transform: anim === "L" && i === 0 ? "scale(1.08)" : anim === "R" && i === 1 ? "scale(1.08)" : anim ? "scale(0.88)" : "none",
+            opacity: (anim === "L" && i === 1) || (anim === "R" && i === 0) ? 0.25 : 1,
+            display: "flex", position: "relative",
+          }}>
+            <VCard value={v} onClick={() => pick(i)} hideLabel />
+            {VALUE_DEF[v.name] && <button onClick={function(e) { e.stopPropagation(); setInfoValue(infoValue === v.name ? null : v.name); }} style={{
+              position: "absolute", top: -6, right: -6, width: 24, height: 24, borderRadius: 99,
+              background: "#fff", border: "2px solid #e5e7eb", color: "#6b7280",
+              fontSize: 13, fontWeight: 800, cursor: "pointer", display: "flex",
+              alignItems: "center", justifyContent: "center", zIndex: 2, padding: 0,
+              boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
+            }}>?</button>}
+          </div>
+        ))}
+      </div>
+
+      {infoValue && VALUE_DEF[infoValue] && (
+        <div style={{
+          marginTop: 16, background: "#f8fafc", borderRadius: 16, padding: "16px 20px",
+          border: "1px solid #e5e7eb", textAlign: "left", maxWidth: 360, margin: "16px auto 0",
+          position: "relative",
+        }}>
+          <button onClick={function() { setInfoValue(null); }} style={{
+            position: "absolute", top: 8, right: 12, background: "none", border: "none",
+            fontSize: 18, color: "#9ca3af", cursor: "pointer",
+          }}>×</button>
+          <div style={{ fontWeight: 800, color: "#2E2D8E", fontSize: 16, marginBottom: 6 }}>{infoValue}</div>
+          <p style={{ fontSize: 14, color: "#4b5563", lineHeight: 1.6, margin: "0 0 10px" }}>{VALUE_DEF[infoValue]}</p>
+          <p style={{ fontSize: 11, color: "#9ca3af", lineHeight: 1.4, margin: 0, fontStyle: "italic" }}>
+            Das ist nur ein Anhaltspunkt. Es ist völlig ok, wenn dieser Wert für dich persönlich etwas anderes bedeutet — Werte sind so individuell wie wir Menschen.
+          </p>
+        </div>
+      )}
+
+      <div style={{ marginTop: 16, fontSize: 12, color: "#b0b0b0" }}>Noch {pairs.length - idx - 1} Vergleiche</div>
+      <div style={{ marginTop: 14, display: "flex", justifyContent: "center", gap: 6 }}>
+        <span style={{ background: "#e0e7ff", color: "#4338ca", padding: "4px 12px", borderRadius: 99, fontSize: 12, fontWeight: 600 }}>✅ {displayW}</span>
+        <span style={{ background: "#fef2f2", color: "#b91c1c", padding: "4px 12px", borderRadius: 99, fontSize: 12, fontWeight: 600 }}>❌ {displayL}</span>
+      </div>
+    </div>
+  );
+}
+
+function JokerPick({ losers, winnerCount, onDone }) {
+  const [sel, setSel] = useState([]);
+  const maxJ = 4;
+  const total = winnerCount + sel.length;
+
+  const toggle = v => {
+    const already = sel.find(s => s.name === v.name);
+    if (already) {
+      setSel(sel.filter(s => s.name !== v.name));
+    } else if (sel.length < maxJ) {
+      setSel([...sel, v]);
+    }
+  };
+
+  return (
+    <div style={{ textAlign: "center", padding: "20px 16px" }}>
+      <div style={{ fontSize: 36, marginBottom: 8 }}>🃏</div>
+      <h2 style={{ fontSize: 22, fontWeight: 800, color: "#2E2D8E", marginBottom: 4 }}>Joker wählen</h2>
+      <p style={{ color: "#6b7280", fontSize: 13, marginBottom: 12, lineHeight: 1.5, maxWidth: 320, margin: "0 auto 12px" }}>
+        Es kann sein, dass zwei deiner wichtigsten Werte gegeneinander angetreten sind. Hol bis zu {maxJ} Werte zurück — oder geh direkt weiter.
+      </p>
+      <div style={{
+        display: "inline-flex", gap: 8, marginBottom: 16, fontSize: 13,
+        background: "#f0fdf4", color: "#166534",
+        padding: "8px 16px", borderRadius: 99, fontWeight: 600,
+      }}>
+        <span>{total} Werte in der nächsten Runde</span>
+        {sel.length > 0 && <span>(+{sel.length} Joker)</span>}
+      </div>
+      <div style={{
+        display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8,
+        marginBottom: 20, padding: "0 4px",
+      }}>
+        {losers.map(function(v) {
+          var isSel = !!sel.find(function(s) { return s.name === v.name; });
+          var blocked = !isSel && sel.length >= maxJ;
+          var c = CAT[v.cat];
+          return (
+            <div key={v.name} onClick={function() { if (!blocked) toggle(v); }}
+              style={{
+                padding: "12px 6px", borderRadius: 12, textAlign: "center",
+                fontSize: 13, fontWeight: 700, cursor: blocked ? "default" : "pointer",
+                background: isSel ? "linear-gradient(140deg," + c.bg + "ee," + c.bg + ")" : blocked ? "#f0f0f0" : "#fff",
+                color: isSel ? "#fff" : blocked ? "#ccc" : c.bg,
+                border: isSel ? "3px solid #1e1b4b" : "2px solid " + (blocked ? "#e5e7eb" : c.bg + "40"),
+                transition: "all 0.15s ease",
+                transform: isSel ? "scale(1.05)" : "scale(1)",
+                opacity: blocked ? 0.4 : 1,
+                hyphens: "auto", WebkitHyphens: "auto",
+              }}
+              lang="de"
+            >
+              {v.name}
+            </div>
+          );
+        })}
+      </div>
+      <div style={{ display: "flex", gap: 12, justifyContent: "center", flexWrap: "wrap" }}>
+        <Btn primary onClick={function() { onDone(sel); }}>
+          {sel.length > 0 ? "Mit " + sel.length + " Joker" + (sel.length > 1 ? "n" : "") + " weiter →" : "Ohne Joker weiter →"}
+        </Btn>
+      </div>
+    </div>
+  );
+}
+
+function FinalAdjust({ values8, lastDiscards, onDone }) {
+  const [cur, setCur] = useState([...values8]);
+  const [pool, setPool] = useState(lastDiscards);
+  const [swapSrc, setSwapSrc] = useState(null);
+
+  const tapCurrent = v => {
+    if (swapSrc && swapSrc.from === "pool") {
+      // Swap
+      setCur(cur.map(c => c.name === v.name ? swapSrc.val : c));
+      setPool(pool.map(p => p.name === swapSrc.val.name ? v : p));
+      setSwapSrc(null);
+    } else if (cur.length > 8) {
+      // Remove from current (too many)
+      setCur(cur.filter(c => c.name !== v.name));
+      setPool([v, ...pool]);
+    } else {
+      setSwapSrc({ from: "current", val: v });
+    }
+  };
+  const tapPool = v => {
+    if (swapSrc && swapSrc.from === "current") {
+      // Swap
+      setCur(cur.map(c => c.name === swapSrc.val.name ? v : c));
+      setPool(pool.map(p => p.name === v.name ? swapSrc.val : p));
+      setSwapSrc(null);
+    } else if (cur.length < 8) {
+      // Add from pool (too few)
+      setCur([...cur, v]);
+      setPool(pool.filter(p => p.name !== v.name));
+    } else {
+      setSwapSrc({ from: "pool", val: v });
+    }
+  };
+
+  const hint = cur.length < 8
+    ? `Noch ${8 - cur.length} Werte hinzufügen — tippe unten auf fehlende Werte.`
+    : cur.length > 8
+    ? `${cur.length - 8} zu viel — tippe oben auf Werte die raus sollen.`
+    : null;
+
+  return (
+    <div style={{ textAlign: "center", padding: "20px 16px" }}>
+      <div style={{ fontSize: 36, marginBottom: 8 }}>🔄</div>
+      <h2 style={{ fontSize: 22, fontWeight: 800, color: "#2E2D8E", marginBottom: 8 }}>Feinschliff</h2>
+      <p style={{ color: "#6b7280", fontSize: 13, marginBottom: 16, lineHeight: 1.6, maxWidth: 320, margin: "0 auto 16px" }}>
+        {cur.length === 8 && !swapSrc
+          ? "Das sind deine Top-Werte! Passt alles? Wenn nicht: Tippe oben einen Wert an, dann unten den Ersatz."
+          : cur.length > 8
+          ? "Noch zu viele! Tippe oben auf Werte die raus sollen."
+          : cur.length < 8
+          ? "Zu wenige! Tippe unten auf Werte die dazu sollen."
+          : "Tippe jetzt " + (swapSrc.from === "current" ? "unten" : "oben") + " den Tauschpartner an."}
+      </p>
+      {swapSrc && (
+        <div style={{ background: "#e0e7ff", color: "#3730a3", padding: "10px 16px", borderRadius: 12, fontSize: 14, marginBottom: 16, fontWeight: 600, display: "inline-flex", alignItems: "center", gap: 8 }}>
+          🔄 <strong>{swapSrc.val.name}</strong> → jetzt {swapSrc.from === "current" ? "Ersatz unten" : "Platz oben"} antippen
+          <span onClick={() => setSwapSrc(null)} style={{ cursor: "pointer", opacity: 0.5, fontSize: 18, lineHeight: 1 }}>✕</span>
+        </div>
+      )}
+      {hint && !swapSrc && (
+        <div style={{ background: "#fef3c7", color: "#92400e", padding: "8px 16px", borderRadius: 10, fontSize: 13, fontWeight: 600, marginBottom: 12 }}>
+          ⚠️ {hint}
+        </div>
+      )}
+      <div style={{ fontSize: 11, textTransform: "uppercase", letterSpacing: 2, color: "#2E2D8E", marginBottom: 10, fontWeight: 700 }}>
+        Deine Werte ({cur.length}/8)
+      </div>
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginBottom: 24 }}>
+        {cur.map(function(v) {
+          var c = CAT[v.cat];
+          var isSel = swapSrc?.from === "current" && swapSrc?.val.name === v.name;
+          var isTarget = swapSrc?.from === "pool";
+          return (
+            <div key={v.name} onClick={function() { tapCurrent(v); }} style={{
+              padding: "14px 10px", borderRadius: 14, textAlign: "center",
+              fontSize: 15, fontWeight: 800, cursor: "pointer",
+              background: isSel ? "#1e1b4b" : "linear-gradient(140deg," + c.bg + "ee," + c.bg + ")",
+              color: "#fff",
+              border: isSel ? "3px solid #1e1b4b" : isTarget ? "3px dashed rgba(255,255,255,0.5)" : "3px solid transparent",
+              transform: isSel ? "scale(1.05)" : "scale(1)",
+              transition: "all 0.15s ease",
+              boxShadow: "0 4px 16px " + c.glow,
+              hyphens: "auto", WebkitHyphens: "auto",
+              animation: isTarget && !isSel ? "pulse 1.5s infinite" : "none",
+            }} lang="de">
+              {v.name}
+            </div>
+          );
+        })}
+      </div>
+      {pool.length > 0 && (<>
+        <div style={{ fontSize: 11, textTransform: "uppercase", letterSpacing: 2, color: "#9ca3af", marginBottom: 10, fontWeight: 600 }}>
+          Abgelegt — antippen zum Tauschen
+        </div>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 6, marginBottom: 28 }}>
+          {pool.map(function(v) {
+            var c = CAT[v.cat];
+            var isSel = swapSrc?.from === "pool" && swapSrc?.val.name === v.name;
+            var isTarget = swapSrc?.from === "current";
+            return (
+              <div key={v.name} onClick={function() { tapPool(v); }} style={{
+                padding: "8px 6px", borderRadius: 10, textAlign: "center",
+                fontSize: 12, fontWeight: 600, cursor: "pointer",
+                background: isSel ? c.bg + "30" : "#f8f8f8",
+                color: c.bg,
+                border: isSel ? "2px solid " + c.bg : isTarget ? "2px dashed " + c.bg + "60" : "2px solid #e5e7eb",
+                transition: "all 0.15s ease",
+                hyphens: "auto", WebkitHyphens: "auto",
+              }} lang="de">
+                {v.name}
+              </div>
+            );
+          })}
+        </div>
+      </>)}
+      <Btn primary onClick={() => onDone(cur)} disabled={cur.length !== 8}>
+        {cur.length === 8 ? "Das sind meine 8 Werte ✓" : `Noch ${Math.abs(8 - cur.length)} ${cur.length < 8 ? "hinzufügen" : "entfernen"}`}
+      </Btn>
+    </div>
+  );
+}
+
+function RankValues({ values8, onDone }) {
+  const [ranked, setRanked] = useState([...values8]);
+  const [dragIdx, setDragIdx] = useState(null);
+  const [overIdx, setOverIdx] = useState(null);
+  const listRef = useRef(null);
+  const touchStartY = useRef(null);
+  const touchStartIdx = useRef(null);
+
+  const moveItem = (from, to) => {
+    if (from === to || from == null || to == null) return;
+    const arr = [...ranked];
+    const item = arr.splice(from, 1)[0];
+    arr.splice(to, 0, item);
+    setRanked(arr);
+  };
+
+  // Mouse drag
+  const onDragStart = (e, idx) => {
+    setDragIdx(idx);
+    e.dataTransfer.effectAllowed = "move";
+  };
+  const onDragOver = (e, idx) => {
+    e.preventDefault();
+    setOverIdx(idx);
+  };
+  const onDragEnd = () => {
+    if (dragIdx != null && overIdx != null) moveItem(dragIdx, overIdx);
+    setDragIdx(null); setOverIdx(null);
+  };
+
+  // Touch drag
+  const onTouchStart = (e, idx) => {
+    touchStartY.current = e.touches[0].clientY;
+    touchStartIdx.current = idx;
+    setDragIdx(idx);
+  };
+  const onTouchMove = (e) => {
+    if (touchStartIdx.current == null || !listRef.current) return;
+    var y = e.touches[0].clientY;
+    var items = listRef.current.children;
+    for (var i = 0; i < items.length; i++) {
+      var rect = items[i].getBoundingClientRect();
+      if (y > rect.top && y < rect.bottom) {
+        setOverIdx(i);
+        break;
+      }
+    }
+  };
+  const onTouchEnd = () => {
+    if (touchStartIdx.current != null && overIdx != null) moveItem(touchStartIdx.current, overIdx);
+    setDragIdx(null); setOverIdx(null);
+    touchStartIdx.current = null; touchStartY.current = null;
+  };
+
+  // Simple up/down fallback
+  const moveUp = (idx) => { if (idx > 0) moveItem(idx, idx - 1); };
+  const moveDown = (idx) => { if (idx < ranked.length - 1) moveItem(idx, idx + 1); };
+
+  return (
+    <div style={{ textAlign: "center", padding: "20px 16px" }}>
+      <div style={{ fontSize: 36, marginBottom: 8 }}>🏆</div>
+      <h2 style={{ fontSize: 22, fontWeight: 800, color: "#2E2D8E", marginBottom: 8 }}>Dein Ranking</h2>
+      <p style={{ color: "#6b7280", fontSize: 13, marginBottom: 20, lineHeight: 1.6, maxWidth: 320, margin: "0 auto 20px" }}>
+        Sortiere deine 8 Werte — welcher ist dir am wichtigsten? Schiebe ihn nach oben. Du kannst die Werte ziehen oder mit den Pfeilen verschieben.
+      </p>
+
+      <div ref={listRef} style={{ maxWidth: 360, margin: "0 auto 24px", touchAction: "none" }}
+        onTouchMove={onTouchMove} onTouchEnd={onTouchEnd}
+      >
+        {ranked.map(function(v, idx) {
+          var c = CAT[v.cat];
+          var isTop = idx === 0;
+          var isDragging = dragIdx === idx;
+          var isOver = overIdx === idx && dragIdx !== idx;
+          return (
+            <div key={v.name}
+              draggable
+              onDragStart={function(e) { onDragStart(e, idx); }}
+              onDragOver={function(e) { onDragOver(e, idx); }}
+              onDragEnd={onDragEnd}
+              onTouchStart={function(e) { onTouchStart(e, idx); }}
+              style={{
+                display: "flex", alignItems: "center", gap: 8, marginBottom: 4,
+                padding: "2px 0",
+                opacity: isDragging ? 0.4 : 1,
+                borderTop: isOver ? "3px solid #2E2D8E" : "3px solid transparent",
+                transition: "border 0.1s ease",
+                cursor: "grab",
+              }}
+            >
+              <div style={{
+                width: 26, height: 26, borderRadius: 99, flexShrink: 0,
+                display: "flex", alignItems: "center", justifyContent: "center",
+                fontSize: 12, fontWeight: 800,
+                background: isTop ? "#2E2D8E" : idx < 4 ? c.bg + "20" : "#f3f4f6",
+                color: isTop ? "#fff" : idx < 4 ? c.bg : "#aaa",
+              }}>
+                {idx + 1}
+              </div>
+              <div style={{
+                flex: 1, padding: "11px 14px", borderRadius: 12,
+                background: isTop
+                  ? "linear-gradient(140deg," + c.bg + "ee," + c.bg + ")"
+                  : idx < 4 ? c.bg + "15" : "#f8f8f8",
+                color: isTop ? "#fff" : c.bg,
+                fontSize: 15, fontWeight: 700, textAlign: "left",
+                border: isTop ? "2px solid " + c.bg : "2px solid transparent",
+                transition: "all 0.15s ease",
+                userSelect: "none",
+              }}>
+                <span style={{ marginRight: 8, opacity: 0.4, fontSize: 12 }}>☰</span>
+                {v.name}
+              </div>
+              <div style={{ display: "flex", flexDirection: "column", gap: 1, flexShrink: 0 }}>
+                <button onClick={function() { moveUp(idx); }} disabled={idx === 0} style={{
+                  width: 26, height: 22, borderRadius: 5, border: "none",
+                  background: idx === 0 ? "#f3f4f6" : "#e0e7ff", color: idx === 0 ? "#ccc" : "#2E2D8E",
+                  cursor: idx === 0 ? "default" : "pointer", fontSize: 11, fontWeight: 800,
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                }}>▲</button>
+                <button onClick={function() { moveDown(idx); }} disabled={idx >= ranked.length - 1} style={{
+                  width: 26, height: 22, borderRadius: 5, border: "none",
+                  background: idx >= ranked.length - 1 ? "#f3f4f6" : "#e0e7ff", color: idx >= ranked.length - 1 ? "#ccc" : "#2E2D8E",
+                  cursor: idx >= ranked.length - 1 ? "default" : "pointer", fontSize: 11, fontWeight: 800,
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                }}>▼</button>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      <div style={{ fontSize: 11, color: "#9ca3af", marginBottom: 16 }}>
+        #1 = wichtigster Wert · #2-4 = Superkräfte · #5-8 = Grundwerte
+      </div>
+
+      <div style={{ display: "flex", flexDirection: "column", gap: 10, alignItems: "center" }}>
+        <button onClick={function() { onDone(ranked, false); }} style={{
+          background: "linear-gradient(135deg, #2E2D8E, #3b2d8e)",
+          color: "#fff", border: "none", borderRadius: 99, padding: "16px 40px",
+          fontSize: 16, fontWeight: 800, cursor: "pointer",
+          boxShadow: "0 6px 24px rgba(46,45,142,0.3)",
+        }}>Das ist mein Ranking ✓</button>
+        <button onClick={function() { onDone(ranked, true); }} style={{
+          background: "none", border: "2px solid #e5e7eb", borderRadius: 99,
+          padding: "10px 24px", fontSize: 13, fontWeight: 600,
+          color: "#6b7280", cursor: "pointer",
+        }}>🔍 Tiefer gehen — Lebenswert & Superkräfte einzeln wählen</button>
+      </div>
+    </div>
+  );
+}
+
+function KompassBuild({ values8, onDone }) {
+  const [step, setStep] = useState("leben");
+  const [lw, setLw] = useState(null);
+  const [sk, setSk] = useState([]);
+
+  if (step === "leben") return (
+    <div style={{ textAlign: "center", padding: "20px 16px" }}>
+      <div style={{ fontSize: 36, marginBottom: 8 }}>⭐</div>
+      <h2 style={{ fontSize: 22, fontWeight: 800, color: "#1e1b4b", marginBottom: 4 }}>Dein Lebenswert</h2>
+      <p style={{ color: "#6b7280", fontSize: 14, marginBottom: 24, lineHeight: 1.5 }}>Welcher Wert steht für dein ganzes Leben?<br />Der, der bei jeder Herausforderung auftaucht.</p>
+      <div style={{ display: "flex", flexWrap: "wrap", gap: 10, justifyContent: "center" }}>
+        {values8.map(v => <VCard key={v.name} value={v} size="small" onClick={() => { setLw(v); setStep("super"); }} />)}
+      </div>
+    </div>
+  );
+
+  const rest = values8.filter(v => v.name !== lw.name);
+  const toggleS = v => {
+    if (sk.find(s => s.name === v.name)) setSk(sk.filter(s => s.name !== v.name));
+    else if (sk.length < 3) setSk([...sk, v]);
+  };
+  const gw = rest.filter(v => !sk.find(s => s.name === v.name));
+
+  return (
+    <div style={{ textAlign: "center", padding: "20px 16px" }}>
+      <div style={{ fontSize: 36, marginBottom: 8 }}>💪</div>
+      <h2 style={{ fontSize: 22, fontWeight: 800, color: "#1e1b4b", marginBottom: 4 }}>Deine Superkräfte</h2>
+      <p style={{ color: "#6b7280", fontSize: 14, marginBottom: 24, lineHeight: 1.5 }}>Was kannst du richtig gut? Wähle 1–3 Superkräfte.<br />Der Rest wird zu deinen Grundwerten.</p>
+      <div style={{ display: "flex", flexWrap: "wrap", gap: 10, justifyContent: "center", marginBottom: 28 }}>
+        {rest.map(v => <VCard key={v.name} value={v} size="small" onClick={() => toggleS(v)} selected={!!sk.find(s => s.name === v.name)} />)}
+      </div>
+      {sk.length >= 1 && <Btn primary onClick={() => onDone({ lebenswert: lw, superkraefte: sk, grundwerte: gw })}>Wertekompass anzeigen →</Btn>}
+    </div>
+  );
+}
+
+/* ═══════════════════════════════════════════
+   SHARE IMAGE
+   ═══════════════════════════════════════════ */
+
+/* roundRect polyfill for older browsers */
+function rRect(ctx, x, y, w, h, r) {
+  if (typeof r === "number") r = { tl: r, tr: r, br: r, bl: r };
+  ctx.beginPath();
+  ctx.moveTo(x + r.tl, y);
+  ctx.lineTo(x + w - r.tr, y);
+  ctx.quadraticCurveTo(x + w, y, x + w, y + r.tr);
+  ctx.lineTo(x + w, y + h - r.br);
+  ctx.quadraticCurveTo(x + w, y + h, x + w - r.br, y + h);
+  ctx.lineTo(x + r.bl, y + h);
+  ctx.quadraticCurveTo(x, y + h, x, y + h - r.bl);
+  ctx.lineTo(x, y + r.tl);
+  ctx.quadraticCurveTo(x, y, x + r.tl, y);
+  ctx.closePath();
+}
+
+function generateShareImage(kompass, dominant, allValues, valHistory, maxRound) {
+  const W = 1080, H = 1080;
+  const canvas = document.createElement("canvas");
+  canvas.width = W; canvas.height = H;
+  const ctx = canvas.getContext("2d");
+
+  const grad = ctx.createLinearGradient(0, 0, W, H);
+  grad.addColorStop(0, "#1e1b4b"); grad.addColorStop(1, "#312e81");
+  ctx.fillStyle = grad; ctx.fillRect(0, 0, W, H);
+
+  ctx.beginPath(); ctx.arc(W * 0.85, H * 0.15, 200, 0, Math.PI * 2);
+  ctx.fillStyle = CAT[dominant].bg + "22"; ctx.fill();
+  ctx.beginPath(); ctx.arc(W * 0.15, H * 0.85, 160, 0, Math.PI * 2);
+  ctx.fillStyle = CAT[dominant].bg + "18"; ctx.fill();
+
+  ctx.fillStyle = "#ffffff80"; ctx.font = "600 18px system-ui"; ctx.textAlign = "center";
+  ctx.fillText("MEIN WERTEKOMPASS", W / 2, 80);
+
+  ctx.fillStyle = "#fff"; ctx.font = "900 56px system-ui";
+  ctx.fillText(kompass.lebenswert.name, W / 2, 170);
+
+  ctx.fillStyle = CAT[kompass.lebenswert.cat].bg;
+  rRect(ctx, W / 2 - 80, 185, 160, 30, 15); ctx.fill();
+  ctx.fillStyle = "#fff"; ctx.font = "700 12px system-ui";
+  ctx.fillText("LEBENSWERT", W / 2, 205);
+
+  ctx.fillStyle = "#ffffff60"; ctx.font = "600 14px system-ui";
+  ctx.fillText("SUPERKRÄFTE", W / 2, 270);
+  ctx.fillStyle = "#fff"; ctx.font = "700 32px system-ui";
+  const skText = kompass.superkraefte.map(v => v.name).join("  ·  ");
+  ctx.fillText(skText.length > 40 ? skText.substring(0, 37) + "…" : skText, W / 2, 310);
+
+  ctx.fillStyle = "#ffffff60"; ctx.font = "600 14px system-ui";
+  ctx.fillText("GRUNDWERTE", W / 2, 380);
+  ctx.fillStyle = "#ffffffcc"; ctx.font = "600 24px system-ui";
+  const gwText = kompass.grundwerte.map(v => v.name).join("  ·  ");
+  ctx.fillText(gwText.length > 50 ? gwText.substring(0, 47) + "…" : gwText, W / 2, 418);
+
+  const desc = TYPE_DESC[dominant];
+  const cardY = 470, cardW = W - 120, cardX = 60;
+  ctx.fillStyle = "#ffffff12";
+  rRect(ctx, cardX, cardY, cardW, 280, 20); ctx.fill();
+  ctx.strokeStyle = CAT[dominant].bg + "44"; ctx.lineWidth = 2;
+  rRect(ctx, cardX, cardY, cardW, 280, 20); ctx.stroke();
+
+  ctx.fillStyle = CAT[dominant].bg; ctx.font = "800 20px system-ui";
+  ctx.fillText(`${desc.emoji}  ${desc.title}`, W / 2, cardY + 40);
+  ctx.fillStyle = "#ffffffcc"; ctx.font = "600 18px system-ui";
+  ctx.fillText(desc.short, W / 2, cardY + 72);
+
+  ctx.fillStyle = "#ffffff99"; ctx.font = "400 16px system-ui";
+  const words = desc.text.split(" ");
+  let line = "", lineY = cardY + 110;
+  for (const word of words) {
+    const test = line + word + " ";
+    if (ctx.measureText(test).width > cardW - 60) {
+      ctx.fillText(line.trim(), W / 2, lineY); line = word + " "; lineY += 24;
+    } else line = test;
+  }
+  if (line.trim()) ctx.fillText(line.trim(), W / 2, lineY);
+
+  // DNA STRIP VISUALIZATION
+  const dnaY = 790, dnaH = 150;
+  const final8 = new Set(allValues.map(v => v.name));
+  const lanes = [
+    { cat: "orange", vals: ALL_VALUES_BY_CAT.orange, color: "#F97316", bright: "#FFAA44", label: "Sicherheit" },
+    { cat: "pink", vals: ALL_VALUES_BY_CAT.pink, color: "#EC4899", bright: "#F472B6", label: "Verbindung" },
+    { cat: "blue", vals: ALL_VALUES_BY_CAT.blue, color: "#3B82F6", bright: "#60A5FA", label: "Veränderung" },
+    { cat: "green", vals: ALL_VALUES_BY_CAT.green, color: "#22C55E", bright: "#4ADE80", label: "Selbstfindung" },
+  ];
+  const allValsFlat = lanes.flatMap(l => l.vals.map(n => ({ name: n, ...l })));
+  const totalBands = allValsFlat.length;
+
+  ctx.fillStyle = "#06061a";
+  rRect(ctx, 60, dnaY - 10, W - 120, dnaH + 50, 16); ctx.fill();
+  ctx.fillStyle = "#4338ca66"; ctx.font = "700 11px system-ui"; ctx.textAlign = "center";
+  ctx.fillText("V - C O D E   D N A", W / 2, dnaY + 6);
+
+  // Zone labels
+  const stripPad = 80, stripW = W - stripPad * 2;
+  let lx = stripPad;
+  lanes.forEach(lane => {
+    const zw = (lane.vals.length / totalBands) * stripW;
+    ctx.fillStyle = lane.color + "66"; ctx.font = "700 9px system-ui";
+    ctx.fillText(lane.label.toUpperCase(), lx + zw / 2, dnaY + 20);
+    lx += zw;
+  });
+
+  // Draw bands
+  const bandAreaY = dnaY + 26, bandAreaH = dnaH - 30;
+  let bx = stripPad;
+  allValsFlat.forEach(val => {
+    const bandW = stripW / totalBands;
+    const cx = bx + bandW / 2;
+    const rs = (valHistory && valHistory[val.name]) || 0;
+    const isF8 = final8.has(val.name);
+    const mr = maxRound || 3;
+
+    let intensity = isF8 ? 1.0 : rs >= mr ? 0.7 : rs >= mr - 1 && mr > 1 ? 0.4 : rs >= 1 ? 0.18 : 0.04;
+    const bh = bandAreaH * (isF8 ? 0.85 : 0.3 + intensity * 0.5);
+    const by = bandAreaY + (bandAreaH - bh) / 2;
+    const bw = Math.max(3, bandW * 0.6);
+
+    if (isF8) {
+      ctx.shadowColor = val.bright; ctx.shadowBlur = 16;
+      ctx.fillStyle = val.bright;
+      ctx.fillRect(cx - bw / 2, by, bw, bh);
+      ctx.shadowBlur = 0;
+      ctx.fillStyle = "#ffffffaa";
+      ctx.fillRect(cx - bw * 0.2, by + 3, bw * 0.4, bh - 6);
+    } else if (intensity > 0.05) {
+      ctx.fillStyle = val.color + Math.round(intensity * 180).toString(16).padStart(2, "0");
+      ctx.fillRect(cx - bw / 2, by, bw, bh);
+    } else {
+      ctx.fillStyle = "#ffffff06";
+      ctx.fillRect(cx - 1.5, by, 3, bh);
+    }
+    bx += bandW;
+  });
+
+  // Gradient line
+  const gradLine = ctx.createLinearGradient(stripPad, 0, W - stripPad, 0);
+  gradLine.addColorStop(0, "#F97316"); gradLine.addColorStop(0.3, "#EC4899");
+  gradLine.addColorStop(0.65, "#3B82F6"); gradLine.addColorStop(1, "#22C55E");
+  ctx.fillStyle = gradLine;
+  ctx.fillRect(stripPad, bandAreaY + bandAreaH + 4, stripW, 3);
+
+  // V-Code abbreviation string (colored)
+  ctx.font = "800 22px monospace"; ctx.textAlign = "center";
+  const abbrParts = allValues.map(v => ({ abbr: VALUE_ABBR[v.name] || "?", cat: v.cat }));
+  const abbrStr = abbrParts.map(p => p.abbr).join(" · ");
+  const totalAbbrW = ctx.measureText(abbrStr).width;
+  let ax = (W - totalAbbrW) / 2;
+  const ay = 975;
+  ctx.textAlign = "left";
+  abbrParts.forEach((p, i) => {
+    const catCol = p.cat === "orange" ? "#FFAA44" : p.cat === "pink" ? "#F472B6" : p.cat === "blue" ? "#60A5FA" : "#4ADE80";
+    ctx.fillStyle = catCol;
+    ctx.fillText(p.abbr, ax, ay);
+    ax += ctx.measureText(p.abbr).width;
+    if (i < abbrParts.length - 1) {
+      ctx.fillStyle = "#ffffff33";
+      ctx.fillText(" · ", ax, ay);
+      ax += ctx.measureText(" · ").width;
+    }
+  });
+
+  ctx.textAlign = "center";
+  ctx.fillStyle = "#ffffff50"; ctx.font = "700 16px system-ui";
+  ctx.fillText("valueverse.de", W / 2, 1020);
+  ctx.fillStyle = "#ffffff30"; ctx.font = "400 13px system-ui";
+  ctx.fillText("Finde deinen V-Code — das wahrscheinlich wertvollste Spiel der Welt", W / 2, 1045);
+
+  return canvas.toDataURL("image/png");
+}
+
+/* ═══════════════════════════════════════════
+   V-CODE DNA VISUALIZATION
+   ═══════════════════════════════════════════ */
+
+function VCodeDNA({ allValues, valHistory, maxRound }) {
+  const final8 = new Set(allValues.map(v => v.name));
+  const canvasRef = useRef(null);
+
+  const catColors = {
+    orange: { main: "#F97316", bright: "#FFAA44", glow: "rgba(249,115,22,", label: "Sicherheit" },
+    pink:   { main: "#EC4899", bright: "#F472B6", glow: "rgba(236,72,153,", label: "Verbindung" },
+    blue:   { main: "#3B82F6", bright: "#60A5FA", glow: "rgba(59,130,246,", label: "Veränderung" },
+    green:  { main: "#22C55E", bright: "#4ADE80", glow: "rgba(34,197,94,",  label: "Selbstfindung" },
+  };
+
+  const catOrder = ["orange", "pink", "blue", "green"];
+  const allVals = catOrder.flatMap(cat => ALL_VALUES_BY_CAT[cat].map(name => ({ name, cat })));
+  const totalVals = allVals.length;
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const dpr = window.devicePixelRatio || 1;
+    const dispW = canvas.parentElement.clientWidth;
+    const dispH = 220;
+    canvas.width = dispW * dpr;
+    canvas.height = dispH * dpr;
+    canvas.style.width = dispW + "px";
+    canvas.style.height = dispH + "px";
+    const ctx = canvas.getContext("2d");
+    ctx.scale(dpr, dpr);
+    const W = dispW, H = dispH;
+
+    // Background
+    const bg = ctx.createLinearGradient(0, 0, 0, H);
+    bg.addColorStop(0, "#06061a"); bg.addColorStop(0.5, "#0a0d20"); bg.addColorStop(1, "#06061a");
+    ctx.fillStyle = bg; ctx.fillRect(0, 0, W, H);
+
+    // Scan lines
+    ctx.globalAlpha = 0.03;
+    for (let y = 0; y < H; y += 3) {
+      ctx.fillStyle = "#fff";
+      ctx.fillRect(0, y, W, 1);
+    }
+    ctx.globalAlpha = 1;
+
+    const pad = 12;
+    const stripY = 50, stripH = 120;
+    const bandArea = W - pad * 2;
+
+    // Color zone backgrounds
+    let zoneX = pad;
+    catOrder.forEach((cat, ci) => {
+      const count = ALL_VALUES_BY_CAT[cat].length;
+      const zoneW = (count / totalVals) * bandArea;
+      const col = catColors[cat];
+
+      // Zone bg gradient
+      const zg = ctx.createLinearGradient(zoneX, stripY, zoneX, stripY + stripH);
+      zg.addColorStop(0, col.glow + "0.03)"); zg.addColorStop(0.5, col.glow + "0.06)"); zg.addColorStop(1, col.glow + "0.03)");
+      ctx.fillStyle = zg;
+      ctx.fillRect(zoneX, stripY, zoneW, stripH);
+
+      // Zone border
+      if (ci > 0) {
+        ctx.strokeStyle = "rgba(255,255,255,0.06)";
+        ctx.lineWidth = 1;
+        ctx.beginPath(); ctx.moveTo(zoneX, stripY); ctx.lineTo(zoneX, stripY + stripH); ctx.stroke();
+      }
+
+      // Zone label
+      ctx.fillStyle = col.main + "88";
+      ctx.font = "700 8px system-ui";
+      ctx.textAlign = "center";
+      ctx.fillText(col.label.toUpperCase(), zoneX + zoneW / 2, stripY - 6);
+
+      zoneX += zoneW;
+    });
+
+    // Draw bands
+    let x = pad;
+    allVals.forEach((val, vi) => {
+      const col = catColors[val.cat];
+      const zoneCount = ALL_VALUES_BY_CAT[val.cat].length;
+      const bandW = (1 / totalVals) * bandArea;
+      const cx = x + bandW / 2;
+
+      const roundSurvived = valHistory[val.name] || 0;
+      const isFinal = final8.has(val.name);
+
+      // Calculate intensity: 0 = never won, maxRound = last compare round, 99 = final8
+      let intensity = 0;
+      if (isFinal) {
+        intensity = 1.0;
+      } else if (roundSurvived >= maxRound) {
+        intensity = 0.7;
+      } else if (roundSurvived >= maxRound - 1 && maxRound > 1) {
+        intensity = 0.4;
+      } else if (roundSurvived >= 1) {
+        intensity = 0.18;
+      } else {
+        intensity = 0.04;
+      }
+
+      const bandH = isFinal ? stripH * 0.85 : stripH * (0.3 + intensity * 0.55);
+      const bandY = stripY + (stripH - bandH) / 2;
+      const bw = Math.max(2, bandW * 0.55);
+
+      if (isFinal) {
+        // Outer glow
+        ctx.shadowColor = col.bright;
+        ctx.shadowBlur = 14;
+        ctx.fillStyle = col.bright;
+        ctx.fillRect(cx - bw / 2, bandY, bw, bandH);
+        ctx.shadowBlur = 8;
+        ctx.fillRect(cx - bw / 2, bandY, bw, bandH);
+        ctx.shadowBlur = 0;
+
+        // Inner bright core
+        const innerW = bw * 0.5;
+        ctx.fillStyle = "#ffffffcc";
+        ctx.fillRect(cx - innerW / 2, bandY + 2, innerW, bandH - 4);
+
+        // Abbreviation label below strip
+        ctx.save();
+        ctx.translate(cx, stripY + stripH + 10);
+        ctx.rotate(-Math.PI / 4);
+        ctx.fillStyle = col.bright;
+        ctx.font = "bold 8px system-ui";
+        ctx.textAlign = "left";
+        ctx.fillText(VALUE_ABBR[val.name] || val.name.slice(0,3), 0, 0);
+        ctx.restore();
+      } else if (intensity > 0.05) {
+        // Faint to medium band
+        ctx.fillStyle = col.glow + (intensity * 0.8).toFixed(2) + ")";
+        ctx.fillRect(cx - bw / 2, bandY, bw, bandH);
+
+        // Slightly brighter center
+        if (intensity > 0.3) {
+          const coreW = bw * 0.4;
+          ctx.fillStyle = col.glow + (intensity * 0.5).toFixed(2) + ")";
+          ctx.fillRect(cx - coreW / 2, bandY + bandH * 0.2, coreW, bandH * 0.6);
+
+          // Faint abbreviation for medium-intensity
+          ctx.save();
+          ctx.translate(cx, stripY + stripH + 8);
+          ctx.rotate(-Math.PI / 4);
+          ctx.fillStyle = col.glow + "0.35)";
+          ctx.font = "600 6px system-ui";
+          ctx.textAlign = "left";
+          ctx.fillText(VALUE_ABBR[val.name] || val.name.slice(0,3), 0, 0);
+          ctx.restore();
+        }
+      } else {
+        // Ghost band
+        ctx.fillStyle = "rgba(255,255,255,0.015)";
+        ctx.fillRect(cx - 1, bandY, 2, bandH);
+      }
+
+      x += bandW;
+    });
+
+    // Gradient line at bottom of strip
+    const gradLine = ctx.createLinearGradient(pad, 0, W - pad, 0);
+    gradLine.addColorStop(0, "#F97316"); gradLine.addColorStop(0.3, "#EC4899");
+    gradLine.addColorStop(0.65, "#3B82F6"); gradLine.addColorStop(1, "#22C55E");
+    ctx.fillStyle = gradLine;
+    rRect(ctx, pad, stripY + stripH + 2, bandArea, 2, 1);
+    ctx.fill();
+
+    // Header
+    ctx.fillStyle = "#4338ca88";
+    ctx.font = "700 9px system-ui";
+    ctx.textAlign = "center";
+    ctx.fillText("V - C O D E   D N A", W / 2, 18);
+
+    // Speakable V-Code abbreviation string
+    ctx.font = "700 10px monospace";
+    const abbrCode = allValues.map(v => VALUE_ABBR[v.name] || "?").join("·");
+    // Color each abbreviation
+    const fullStr = abbrCode;
+    const totalW = ctx.measureText(fullStr).width;
+    let tx = (W - totalW) / 2;
+    const ty = H - 8;
+    allValues.forEach((v, i) => {
+      const abbr = VALUE_ABBR[v.name] || "?";
+      const sep = i < allValues.length - 1 ? "·" : "";
+      ctx.fillStyle = catColors[v.cat].bright + "cc";
+      ctx.textAlign = "left";
+      ctx.fillText(abbr, tx, ty);
+      tx += ctx.measureText(abbr).width;
+      if (sep) {
+        ctx.fillStyle = "#ffffff33";
+        ctx.fillText(sep, tx, ty);
+        tx += ctx.measureText(sep).width;
+      }
+    });
+
+  }, [allValues, valHistory, maxRound]);
+
+  return (
+    <div style={{
+      borderRadius: 16, overflow: "hidden", marginBottom: 24,
+      border: "1px solid rgba(99,102,241,0.15)",
+      background: "#06061a",
+    }}>
+      <canvas ref={canvasRef} style={{ display: "block", width: "100%" }} />
+    </div>
+  );
+}
+
+/* ═══════════════════════════════════════════
+   RESULT SCREEN
+   ═══════════════════════════════════════════ */
+
+function Result({ kompass, onRestart, valHistory, maxRound, demographics, saveError, typeDescs }) {
+  const { lebenswert: lw, superkraefte: sk, grundwerte: gw } = kompass;
+  const all = [lw, ...sk, ...gw];
+  const cc = {}; all.forEach(v => { cc[v.cat] = (cc[v.cat] || 0) + 1; });
+  const dominant = Object.entries(cc).sort((a, b) => b[1] - a[1])[0][0];
+  const td = typeDescs || TYPE_DESC;
+  const desc = td[dominant];
+  const [shareImg, setShareImg] = useState(null);
+  const [copied, setCopied] = useState(false);
+  const [showDeep, setShowDeep] = useState(false);
+  const [deepPin, setDeepPin] = useState("");
+  const [deepError, setDeepError] = useState(false);
+  const DEEP_PIN = "TIEFER";
+
+  const handleShare = () => {
+    try { setShareImg(generateShareImage(kompass, dominant, all, valHistory, maxRound)); }
+    catch(e) { console.error("Share image error:", e); }
+  };
+  const handleDownload = () => {
+    try {
+      if (!shareImg) return;
+      const a = document.createElement("a"); a.href = shareImg; a.download = "mein-wertekompass.png"; a.click();
+    } catch(e) {}
+  };
+  const handleCopy = () => {
+    const text = "🧭 Mein Wertekompass\n\n" + all.map(function(v, i) { return "#" + (i+1) + " " + v.name; }).join("\n") + "\n\n" + desc.emoji + " Ich bin \"" + desc.title + "\"\n\nFinde deinen Wertekompass: valueverse.de";
+    try { navigator.clipboard.writeText(text).then(() => { setCopied(true); setTimeout(() => setCopied(false), 2000); }); }
+    catch(e) { prompt("Text kopieren:", text); }
+  };
+
+  const tryDeepPin = () => {
+    if (deepPin.toUpperCase() === DEEP_PIN) { setShowDeep(true); setDeepError(false); }
+    else { setDeepError(true); setDeepPin(""); }
+  };
+
+  return (
+    <div style={{ textAlign: "center", padding: "24px 16px" }}>
+      {saveError && (
+        <div style={{ background: "#fef2f2", border: "1px solid #fca5a5", borderRadius: 12, padding: "10px 14px", marginBottom: 16, fontSize: 11, color: "#b91c1c" }}>
+          ⚠️ Konnte nicht gespeichert werden (Offline-Modus)
+        </div>
+      )}
+
+      <div style={{ fontSize: 52, marginBottom: 8 }}>🧭</div>
+      <h1 style={{ fontSize: 28, fontWeight: 900, color: "#2E2D8E", letterSpacing: "-0.04em", margin: "0 0 4px" }}>Dein Wertekompass</h1>
+      <p style={{ color: "#6b7280", fontSize: 14, marginBottom: 28 }}>Das sind deine persönlichen Top-Werte — sortiert nach Wichtigkeit.</p>
+
+      {/* Chart-style ranking */}
+      <div style={{ maxWidth: 380, margin: "0 auto 28px" }}>
+        {all.map(function(v, idx) {
+          var c = CAT[v.cat];
+          var isTop3 = idx < 3;
+          var barWidth = 100 - (idx * 8);
+          return (
+            <div key={v.name} style={{
+              display: "flex", alignItems: "center", gap: 10, marginBottom: 6,
+            }}>
+              <div style={{
+                width: 30, fontSize: idx === 0 ? 20 : 14, fontWeight: 800,
+                color: idx === 0 ? "#2E2D8E" : idx < 3 ? c.bg : "#b0b0b0",
+                textAlign: "right", flexShrink: 0,
+              }}>
+                {idx === 0 ? "🥇" : idx === 1 ? "🥈" : idx === 2 ? "🥉" : "#" + (idx + 1)}
+              </div>
+              <div style={{
+                flex: 1, padding: isTop3 ? "13px 16px" : "10px 14px",
+                borderRadius: 12,
+                background: idx === 0
+                  ? "linear-gradient(135deg," + c.bg + "ee," + c.bg + ")"
+                  : isTop3 ? c.bg + "18" : "#f5f5f5",
+                color: idx === 0 ? "#fff" : c.bg,
+                fontSize: isTop3 ? 17 : 15, fontWeight: isTop3 ? 800 : 600,
+                textAlign: "left",
+                border: idx === 0 ? "none" : isTop3 ? "2px solid " + c.bg + "30" : "none",
+                transition: "all 0.2s ease",
+              }}>
+                {v.name}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Wertetyp */}
+      <div style={{ background: CAT[dominant].bg + "10", border: "2px solid " + CAT[dominant].bg + "25", borderRadius: 18, padding: "20px 22px", marginBottom: 24, maxWidth: 380, margin: "0 auto 24px" }}>
+        <div style={{ fontSize: 36, marginBottom: 4 }}>{desc.emoji}</div>
+        <div style={{ fontSize: 20, fontWeight: 800, color: "#2E2D8E" }}>{desc.title}</div>
+        <div style={{ fontSize: 14, fontWeight: 600, color: CAT[dominant].bg, marginTop: 4, marginBottom: 12 }}>{desc.short}</div>
+        <p style={{ fontSize: 13, color: "#4b5563", lineHeight: 1.7, margin: 0, textAlign: "left" }}>{desc.text}</p>
+      </div>
+
+      {/* V-Code */}
+      <div style={{ background: "#1e1b4b", borderRadius: 14, padding: "16px 20px", marginBottom: 24, maxWidth: 380, margin: "0 auto 24px" }}>
+        <div style={{ fontSize: 10, color: "#6366f1", marginBottom: 6, textTransform: "uppercase", letterSpacing: 3 }}>Dein V‑Code</div>
+        <div style={{ display: "flex", justifyContent: "center", gap: 3, flexWrap: "wrap" }}>
+          {all.map(function(v, i) {
+            return (
+              <span key={v.name} style={{ fontFamily: "monospace", fontSize: 14, fontWeight: 800, color: CAT[v.cat].bg }}>
+                {VALUE_ABBR[v.name] || "?"}{i < all.length - 1 ? <span style={{ color: "#ffffff22", margin: "0 1px" }}>·</span> : ""}
+              </span>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Share */}
+      <div style={{ display: "flex", gap: 10, justifyContent: "center", flexWrap: "wrap", marginBottom: 24 }}>
+        <button onClick={handleShare} style={{
+          background: "linear-gradient(135deg,#E4405F,#C13584)", color: "#fff", border: "none", borderRadius: 12,
+          padding: "12px 20px", fontSize: 14, fontWeight: 700, cursor: "pointer",
+        }}>📸 Bild erstellen</button>
+        <button onClick={handleCopy} style={{
+          background: "linear-gradient(135deg,#0077B5,#00A0DC)", color: "#fff", border: "none", borderRadius: 12,
+          padding: "12px 20px", fontSize: 14, fontWeight: 700, cursor: "pointer",
+        }}>{copied ? "✅ Kopiert!" : "📋 Text kopieren"}</button>
+      </div>
+      {shareImg && (
+        <div style={{ marginBottom: 24, maxWidth: 380, margin: "0 auto 24px" }}>
+          <img src={shareImg} alt="Wertekompass" style={{ width: "100%", borderRadius: 12, border: "1px solid #e5e7eb" }} />
+          <button onClick={handleDownload} style={{
+            background: "#1e1b4b", color: "#fff", border: "none", borderRadius: 99,
+            padding: "10px 24px", fontSize: 13, fontWeight: 700, cursor: "pointer", marginTop: 12,
+          }}>⬇️ Bild speichern</button>
+        </div>
+      )}
+
+      {/* Deep dive section - PIN locked */}
+      {!showDeep && (
+        <div style={{ background: "#f8fafc", borderRadius: 16, padding: 20, marginBottom: 24, maxWidth: 380, margin: "0 auto 24px" }}>
+          <div style={{ fontSize: 28, marginBottom: 8 }}>🔍</div>
+          <div style={{ fontSize: 16, fontWeight: 800, color: "#2E2D8E", marginBottom: 4 }}>Tiefer gehen?</div>
+          <p style={{ fontSize: 12, color: "#9ca3af", marginBottom: 14, lineHeight: 1.5 }}>
+            Finde heraus was dein Lebenswert und deine Superkräfte sind. Deine Lehrkraft gibt dir den Code dafür.
+          </p>
+          <div style={{ display: "flex", gap: 8, justifyContent: "center", alignItems: "center" }}>
+            <input type="text" value={deepPin} onChange={function(e) { setDeepPin(e.target.value); setDeepError(false); }}
+              onKeyDown={function(e) { if (e.key === "Enter") tryDeepPin(); }}
+              placeholder="Code eingeben"
+              style={{
+                padding: "10px 16px", fontSize: 15, fontWeight: 600, borderRadius: 10,
+                border: deepError ? "2px solid #ef4444" : "2px solid #e5e7eb",
+                outline: "none", width: 140, textAlign: "center", textTransform: "uppercase",
+              }}
+            />
+            <Btn small primary onClick={tryDeepPin}>Freischalten</Btn>
+          </div>
+          {deepError && <p style={{ color: "#ef4444", fontSize: 12, marginTop: 6 }}>Falscher Code</p>}
+        </div>
+      )}
+
+      {/* Deep dive content - unlocked */}
+      {showDeep && (
+        <div style={{ maxWidth: 380, margin: "0 auto 24px" }}>
+          <div style={{ background: "#f0fdf4", border: "1px solid #bbf7d0", borderRadius: 12, padding: "10px 16px", marginBottom: 20, fontSize: 13, color: "#166534", fontWeight: 600 }}>
+            ✅ Detailansicht freigeschaltet
+          </div>
+
+          <div style={{ background: "linear-gradient(140deg,#1e1b4b,#312e81)", borderRadius: 20, padding: 24, marginBottom: 16, color: "#fff" }}>
+            <div style={{ fontSize: 11, textTransform: "uppercase", letterSpacing: 3, opacity: 0.6, marginBottom: 8 }}>Lebenswert</div>
+            <div style={{ fontSize: 32, fontWeight: 900 }}>{lw.name}</div>
+            <div style={{ display: "inline-block", marginTop: 8, background: CAT[lw.cat].bg, padding: "4px 14px", borderRadius: 99, fontSize: 11, fontWeight: 600 }}>{CAT[lw.cat].label}</div>
+          </div>
+
+          <div style={{ marginBottom: 16 }}>
+            <div style={{ fontSize: 11, textTransform: "uppercase", letterSpacing: 3, color: "#9ca3af", marginBottom: 8 }}>Superkräfte</div>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 6 }}>
+              {sk.map(function(v) {
+                var c = CAT[v.cat];
+                return (
+                  <div key={v.name} style={{ padding: "10px 6px", borderRadius: 12, background: "linear-gradient(140deg," + c.bg + "ee," + c.bg + ")", color: "#fff", fontSize: 13, fontWeight: 700, textAlign: "center" }}>
+                    💪 {v.name}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          <div style={{ marginBottom: 20 }}>
+            <div style={{ fontSize: 11, textTransform: "uppercase", letterSpacing: 3, color: "#9ca3af", marginBottom: 8 }}>Grundwerte</div>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 6 }}>
+              {gw.map(function(v) {
+                var c = CAT[v.cat];
+                return (
+                  <div key={v.name} style={{ padding: "8px 6px", borderRadius: 10, background: c.bg + "15", color: c.bg, fontSize: 13, fontWeight: 600, textAlign: "center" }}>
+                    {v.name}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* DNA Viz */}
+          <VCodeDNA allValues={all} valHistory={valHistory} maxRound={maxRound} />
+        </div>
+      )}
+
+      <div style={{ marginTop: 8 }}>
+        <Btn onClick={onRestart}>🔄 Nochmal spielen</Btn>
+      </div>
+    </div>
+  );
+}
+
+/* ═══════════════════════════════════════════
+   ADMIN DASHBOARD
+   ═══════════════════════════════════════════ */
+
+function AdminDashboard({ onBack }) {
+  const [tab, setTab] = useState("overview");
+  const [results, setResults] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [expandedId, setExpandedId] = useState(null);
+  const [filterKlasse, setFilterKlasse] = useState("all");
+  const [filterGeschlecht, setFilterGeschlecht] = useState("all");
+  const [connStatus, setConnStatus] = useState("checking"); // "checking" | "ok" | "error"
+  const [connError, setConnError] = useState(null);
+
+  // Normalize Supabase rows to match local format
+  const normalize = (rows) => rows.map(r => {
+    if (r.demographics) return r; // already local format
+    return {
+      id: r.id,
+      ts: r.created_at,
+      demographics: { geschlecht: r.geschlecht, klasse: r.klassenstufe, schulform: r.schulform },
+      lebenswert: { name: r.lebenswert, cat: r.lebenswert_cat },
+      superkraefte: r.superkraefte || [],
+      grundwerte: r.grundwerte || [],
+      allValues: r.all_values || [],
+      dominant: r.dominant,
+      vcode: r.vcode,
+    };
+  });
+
+  const loadResults = async () => {
+    setLoading(true);
+    try {
+      if (USE_SUPABASE) {
+        setConnStatus("checking");
+        const resp = await fetch(`${SUPABASE_URL}/rest/v1/results?select=*&order=created_at.desc`, {
+          headers: { "apikey": SUPABASE_KEY, "Authorization": `Bearer ${SUPABASE_KEY}` },
+        });
+        if (!resp.ok) {
+          const errText = await resp.text().catch(() => "");
+          setConnStatus("error");
+          setConnError(`HTTP ${resp.status}: ${errText.slice(0, 200)}`);
+          setResults([]);
+        } else {
+          const rows = await resp.json();
+          setConnStatus("ok");
+          setConnError(null);
+          setResults(normalize(rows));
+        }
+      } else {
+        const stored = await window.storage.get(RESULTS_KEY);
+        if (stored?.value) setResults(JSON.parse(stored.value));
+        else setResults([]);
+        setConnStatus("ok");
+      }
+    } catch(e) {
+      setConnStatus("error");
+      setConnError(e.message || "Verbindung fehlgeschlagen");
+      setResults([]);
+    }
+    setLoading(false);
+  };
+
+  useEffect(() => { loadResults(); }, []);
+
+  const deleteResult = async (id) => {
+    const updated = results.filter(r => r.id !== id);
+    setResults(updated);
+    if (USE_SUPABASE) { await supa.remove("results", id); }
+    else { try { await window.storage.set(RESULTS_KEY, JSON.stringify(updated)); } catch(e) {} }
+  };
+
+  const clearAll = async () => {
+    if (!confirm("Alle Ergebnisse löschen? Das kann nicht rückgängig gemacht werden.")) return;
+    setResults([]);
+    if (USE_SUPABASE) { await supa.removeAll("results"); }
+    else { try { await window.storage.set(RESULTS_KEY, JSON.stringify([])); } catch(e) {} }
+  };
+
+  const exportCSV = () => {
+    const headers = ["Datum","Geschlecht","Klasse","Schulform","Lebenswert","Superkräfte","Grundwerte","V-Code","Dominanter Typ"];
+    const rows = filtered.map(r => [
+      new Date(r.ts).toLocaleDateString("de-DE"),
+      r.demographics?.geschlecht || "",
+      r.demographics?.klasse || "",
+      r.demographics?.schulform || "",
+      r.lebenswert?.name || "",
+      (r.superkraefte||[]).map(v=>v.name).join("; "),
+      (r.grundwerte||[]).map(v=>v.name).join("; "),
+      r.vcode || "",
+      r.dominant || "",
+    ]);
+    const csv = [headers, ...rows].map(r => r.map(c => `"${c}"`).join(",")).join("\n");
+    const blob = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8;" });
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = `valueverse-ergebnisse-${new Date().toISOString().slice(0,10)}.csv`;
+    a.click();
+  };
+
+  // Filters
+  const filtered = results.filter(r => {
+    if (filterKlasse !== "all" && r.demographics?.klasse !== filterKlasse) return false;
+    if (filterGeschlecht !== "all" && r.demographics?.geschlecht !== filterGeschlecht) return false;
+    return true;
+  });
+
+  // Stats
+  const klassen = [...new Set(results.map(r => r.demographics?.klasse).filter(Boolean))].sort();
+  const valueCounts = {};
+  filtered.forEach(r => {
+    (r.allValues || []).forEach(v => {
+      valueCounts[v.name] = (valueCounts[v.name] || { count: 0, cat: v.cat });
+      valueCounts[v.name].count++;
+    });
+  });
+  const typeCounts = { orange: 0, pink: 0, blue: 0, green: 0 };
+  filtered.forEach(r => { if (r.dominant) typeCounts[r.dominant]++; });
+
+  const tabStyle = (t) => ({
+    flex: 1, padding: "10px 8px", fontSize: 13, fontWeight: 700, cursor: "pointer",
+    border: "none", borderBottom: tab === t ? "3px solid #6366f1" : "3px solid transparent",
+    background: tab === t ? "#eef2ff" : "#fff", color: tab === t ? "#4338ca" : "#6b7280",
+  });
+
+  if (loading) return <div style={{ textAlign: "center", padding: 60, color: "#6b7280" }}>Laden...</div>;
+
+  return (
+    <div style={{ padding: "16px 12px", maxWidth: 500, margin: "0 auto" }}>
+      {/* Header */}
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
+        <div>
+          <h2 style={{ fontSize: 20, fontWeight: 800, color: "#1e1b4b", margin: 0 }}>📊 Dashboard</h2>
+          <p style={{ fontSize: 12, color: "#6b7280", margin: "4px 0 0" }}>{results.length} Ergebnisse gesamt</p>
+        </div>
+        <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
+          <button onClick={loadResults} style={{ background: "none", border: "none", fontSize: 18, cursor: "pointer", padding: 4 }} title="Aktualisieren">🔄</button>
+          <Btn small onClick={onBack}>← Admin</Btn>
+        </div>
+      </div>
+      <div style={{
+        display: "inline-flex", alignItems: "center", gap: 6, marginBottom: 16,
+        fontSize: 11, fontWeight: 600, padding: "4px 12px", borderRadius: 99,
+        background: connStatus === "ok" ? "#f0fdf4" : connStatus === "error" ? "#fef2f2" : "#f3f4f6",
+        color: connStatus === "ok" ? "#166534" : connStatus === "error" ? "#b91c1c" : "#6b7280",
+      }}>
+        <span style={{ width: 8, height: 8, borderRadius: 99, background: connStatus === "ok" ? "#22c55e" : connStatus === "error" ? "#ef4444" : "#9ca3af" }} />
+        {connStatus === "ok" && (USE_SUPABASE ? "Cloud-Datenbank verbunden" : "Lokaler Speicher")}
+        {connStatus === "checking" && "Verbindung wird geprüft..."}
+        {connStatus === "error" && "Verbindung fehlgeschlagen"}
+      </div>
+      {connError && (
+        <div style={{ background: "#fef2f2", border: "1px solid #fca5a5", borderRadius: 10, padding: "8px 12px", marginBottom: 12, fontSize: 11, color: "#b91c1c", wordBreak: "break-all" }}>
+          {connError}
+        </div>
+      )}
+
+      {/* Tabs */}
+      <div style={{ display: "flex", borderBottom: "1px solid #e5e7eb", marginBottom: 16 }}>
+        <button style={tabStyle("overview")} onClick={() => setTab("overview")}>Übersicht</button>
+        <button style={tabStyle("results")} onClick={() => setTab("results")}>Ergebnisse</button>
+        <button style={tabStyle("cloud")} onClick={() => setTab("cloud")}>Tag-Cloud</button>
+      </div>
+
+      {/* Filters (shared) */}
+      {results.length > 0 && (
+        <div style={{ display: "flex", gap: 8, marginBottom: 16, flexWrap: "wrap" }}>
+          <select value={filterKlasse} onChange={e => setFilterKlasse(e.target.value)}
+            style={{ padding: "6px 10px", borderRadius: 8, border: "1px solid #e5e7eb", fontSize: 13 }}>
+            <option value="all">Alle Klassen</option>
+            {klassen.map(k => <option key={k} value={k}>Klasse {k}</option>)}
+          </select>
+          <select value={filterGeschlecht} onChange={e => setFilterGeschlecht(e.target.value)}
+            style={{ padding: "6px 10px", borderRadius: 8, border: "1px solid #e5e7eb", fontSize: 13 }}>
+            <option value="all">Alle Geschlechter</option>
+            <option value="m">männlich</option>
+            <option value="w">weiblich</option>
+            <option value="d">divers</option>
+            <option value="k">keine Angabe</option>
+          </select>
+          <span style={{ fontSize: 12, color: "#9ca3af", alignSelf: "center" }}>{filtered.length} gefiltert</span>
+        </div>
+      )}
+
+      {/* ─── OVERVIEW TAB ─── */}
+      {tab === "overview" && (
+        <div>
+          {results.length === 0 ? (
+            <div style={{ textAlign: "center", padding: 40, color: "#9ca3af" }}>
+              <div style={{ fontSize: 40, marginBottom: 8 }}>📭</div>
+              <p>Noch keine Ergebnisse. Sobald Spieler das Spiel abschließen, erscheinen sie hier.</p>
+            </div>
+          ) : (
+            <>
+              {/* Type distribution */}
+              <div style={{ background: "#f8fafc", borderRadius: 14, padding: 16, marginBottom: 16 }}>
+                <div style={{ fontSize: 12, fontWeight: 700, color: "#1e1b4b", marginBottom: 12 }}>Wertetyp-Verteilung</div>
+                {Object.entries(typeCounts).filter(([,n]) => n > 0).sort((a,b) => b[1] - a[1]).map(([cat, n]) => (
+                  <div key={cat} style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 8 }}>
+                    <div style={{ width: 12, height: 12, borderRadius: 4, background: CAT[cat].bg, flexShrink: 0 }} />
+                    <div style={{ flex: 1, fontSize: 13, color: "#374151" }}>{TYPE_DESC[cat].title}</div>
+                    <div style={{ height: 8, borderRadius: 4, background: CAT[cat].bg, width: `${(n / filtered.length) * 120}px`, minWidth: 8 }} />
+                    <span style={{ fontSize: 12, fontWeight: 700, color: "#1e1b4b", minWidth: 30, textAlign: "right" }}>
+                      {Math.round((n / filtered.length) * 100)}%
+                    </span>
+                  </div>
+                ))}
+              </div>
+
+              {/* Top values */}
+              <div style={{ background: "#f8fafc", borderRadius: 14, padding: 16, marginBottom: 16 }}>
+                <div style={{ fontSize: 12, fontWeight: 700, color: "#1e1b4b", marginBottom: 12 }}>Top 10 Werte</div>
+                {Object.entries(valueCounts).sort((a, b) => b[1].count - a[1].count).slice(0, 10).map(([name, { count, cat }], i) => (
+                  <div key={name} style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
+                    <span style={{ fontSize: 12, color: "#9ca3af", width: 18, textAlign: "right" }}>{i + 1}.</span>
+                    <div style={{ width: 8, height: 8, borderRadius: 2, background: CAT[cat].bg }} />
+                    <span style={{ flex: 1, fontSize: 13, fontWeight: 600, color: "#1e1b4b" }}>{name}</span>
+                    <div style={{ height: 6, borderRadius: 3, background: CAT[cat].bg, width: `${(count / filtered.length) * 100}px`, minWidth: 4 }} />
+                    <span style={{ fontSize: 12, color: "#6b7280", minWidth: 24, textAlign: "right" }}>{count}×</span>
+                  </div>
+                ))}
+              </div>
+
+              {/* Demographics breakdown */}
+              <div style={{ background: "#f8fafc", borderRadius: 14, padding: 16, marginBottom: 16 }}>
+                <div style={{ fontSize: 12, fontWeight: 700, color: "#1e1b4b", marginBottom: 12 }}>Teilnehmer</div>
+                <div style={{ display: "flex", gap: 16, flexWrap: "wrap" }}>
+                  <div>
+                    <span style={{ fontSize: 28, fontWeight: 900, color: "#6366f1" }}>{filtered.length}</span>
+                    <span style={{ fontSize: 12, color: "#6b7280", marginLeft: 4 }}>gesamt</span>
+                  </div>
+                  {Object.entries(
+                    filtered.reduce((acc, r) => {
+                      const g = r.demographics?.geschlecht || "k";
+                      acc[g] = (acc[g] || 0) + 1; return acc;
+                    }, {})
+                  ).map(([g, n]) => (
+                    <div key={g}>
+                      <span style={{ fontSize: 18, fontWeight: 800, color: "#374151" }}>{n}</span>
+                      <span style={{ fontSize: 11, color: "#9ca3af", marginLeft: 3 }}>
+                        {g === "m" ? "♂" : g === "w" ? "♀" : g === "d" ? "⚧" : "?"}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Actions */}
+              <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                <Btn small onClick={exportCSV}>📥 CSV Export</Btn>
+                <Btn small danger onClick={clearAll}>🗑️ Alle löschen</Btn>
+              </div>
+            </>
+          )}
+        </div>
+      )}
+
+      {/* ─── RESULTS TAB ─── */}
+      {tab === "results" && (
+        <div>
+          {filtered.length === 0 ? (
+            <div style={{ textAlign: "center", padding: 40, color: "#9ca3af" }}>Keine Ergebnisse.</div>
+          ) : (
+            filtered.sort((a, b) => new Date(b.ts) - new Date(a.ts)).map(r => {
+              const isOpen = expandedId === r.id;
+              return (
+                <div key={r.id} style={{
+                  background: "#fff", border: "1px solid #e5e7eb", borderRadius: 12,
+                  marginBottom: 8, overflow: "hidden",
+                }}>
+                  {/* Summary row */}
+                  <div onClick={() => setExpandedId(isOpen ? null : r.id)} style={{
+                    padding: "12px 14px", cursor: "pointer", display: "flex",
+                    alignItems: "center", gap: 10,
+                  }}>
+                    <div style={{
+                      width: 10, height: 10, borderRadius: 3,
+                      background: r.dominant ? CAT[r.dominant].bg : "#ccc", flexShrink: 0,
+                    }} />
+                    <div style={{ flex: 1 }}>
+                      <div style={{ fontSize: 14, fontWeight: 700, color: "#1e1b4b" }}>
+                        {r.lebenswert?.name || "?"} — {r.vcode}
+                      </div>
+                      <div style={{ fontSize: 11, color: "#9ca3af" }}>
+                        {r.demographics ? `${r.demographics.alter}J · ${r.demographics.geschlecht === "m" ? "♂" : r.demographics.geschlecht === "w" ? "♀" : r.demographics.geschlecht === "d" ? "⚧" : "?"} · Kl.${r.demographics.klasse}` : "Keine Demo"}
+                        {" · "}{new Date(r.ts).toLocaleDateString("de-DE")} {new Date(r.ts).toLocaleTimeString("de-DE", { hour: "2-digit", minute: "2-digit" })}
+                      </div>
+                    </div>
+                    <span style={{ fontSize: 16, color: "#9ca3af" }}>{isOpen ? "▲" : "▼"}</span>
+                  </div>
+
+                  {/* Expanded detail */}
+                  {isOpen && (
+                    <div style={{ padding: "0 14px 14px", borderTop: "1px solid #f3f4f6" }}>
+                      <div style={{ display: "flex", flexWrap: "wrap", gap: 6, margin: "10px 0" }}>
+                        {(r.allValues || []).map((v, i) => (
+                          <span key={v.name} style={{
+                            background: CAT[v.cat]?.bg || "#ccc", color: "#fff",
+                            padding: "3px 10px", borderRadius: 8, fontSize: 12, fontWeight: 700,
+                          }}>
+                            {v.name}{i === 0 ? " ⭐" : i <= (r.superkraefte?.length || 0) ? " 💪" : ""}
+                          </span>
+                        ))}
+                      </div>
+                      <div style={{ fontSize: 12, color: "#6b7280", marginBottom: 8 }}>
+                        Typ: <strong style={{ color: CAT[r.dominant]?.bg }}>{TYPE_DESC[r.dominant]?.title}</strong>
+                      </div>
+                      <button onClick={() => deleteResult(r.id)} style={{
+                        background: "none", border: "none", color: "#ef4444",
+                        fontSize: 12, cursor: "pointer", padding: 0, fontWeight: 600,
+                      }}>🗑️ Löschen</button>
+                    </div>
+                  )}
+                </div>
+              );
+            })
+          )}
+        </div>
+      )}
+
+      {/* ─── TAG CLOUD TAB ─── */}
+      {tab === "cloud" && (
+        <div>
+          {Object.keys(valueCounts).length === 0 ? (
+            <div style={{ textAlign: "center", padding: 40, color: "#9ca3af" }}>Keine Daten für die Tag-Cloud.</div>
+          ) : (
+            <div style={{
+              background: "linear-gradient(140deg, #0a0a1a, #1e1b4b)",
+              borderRadius: 20, padding: 28, minHeight: 300,
+              display: "flex", flexWrap: "wrap", gap: 6,
+              justifyContent: "center", alignItems: "center", alignContent: "center",
+            }}>
+              {Object.entries(valueCounts)
+                .sort((a, b) => b[1].count - a[1].count)
+                .map(([name, { count, cat }]) => {
+                  const maxCount = Math.max(...Object.values(valueCounts).map(v => v.count));
+                  const ratio = count / maxCount;
+                  const fontSize = 11 + ratio * 28;
+                  const opacity = 0.35 + ratio * 0.65;
+                  return (
+                    <span key={name} style={{
+                      fontSize, fontWeight: ratio > 0.6 ? 800 : 600,
+                      color: CAT[cat].bg,
+                      opacity,
+                      padding: "2px 6px",
+                      textShadow: ratio > 0.5 ? `0 0 ${ratio * 12}px ${CAT[cat].bg}60` : "none",
+                      transition: "all 0.2s ease",
+                      cursor: "default",
+                    }}
+                      title={`${name}: ${count}× (${Math.round((count / filtered.length) * 100)}%)`}
+                    >
+                      {name}
+                    </span>
+                  );
+                })
+              }
+            </div>
+          )}
+
+          {/* Cloud legend */}
+          {Object.keys(valueCounts).length > 0 && (
+            <div style={{ marginTop: 12, display: "flex", gap: 12, justifyContent: "center", flexWrap: "wrap" }}>
+              {Object.entries(CAT).map(([cat, c]) => (
+                <div key={cat} style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 11, color: "#6b7280" }}>
+                  <div style={{ width: 8, height: 8, borderRadius: 2, background: c.bg }} />
+                  {c.label.split("·")[0].trim()}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ═══════════════════════════════════════════
+   MAIN APP
+   ═══════════════════════════════════════════ */
+
+function App() {
+  const [values, setValues] = useState(DEFAULT_VALUES);
+  const [loaded, setLoaded] = useState(false);
+  const [phase, setPhase] = useState("intro");
+  const [roundNum, setRoundNum] = useState(1);
+  const [pile, setPile] = useState([]);
+  const [lastLosers, setLastLosers] = useState([]);
+  const [allLosers, setAllLosers] = useState([]);
+  const [kompass, setKompass] = useState(null);
+  const [valHistory, setValHistory] = useState({});
+  const [demographics, setDemographics] = useState(null);
+  const [saveError, setSaveError] = useState(null);
+  const [typeDescs, setTypeDescs] = useState(TYPE_DESC);
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const result = await window.storage.get(STORAGE_KEY);
+        if (result && result.value) {
+          const parsed = JSON.parse(result.value);
+          if (Array.isArray(parsed) && parsed.length > 0) setValues(parsed);
+        }
+      } catch (e) {}
+      // Load wertetypen from Supabase
+      if (USE_SUPABASE) {
+        try {
+          const rows = await supa.selectTable("wertetypen");
+          if (rows && rows.length > 0) {
+            const merged = {...TYPE_DESC};
+            rows.forEach(function(row) {
+              if (merged[row.cat]) {
+                merged[row.cat] = {
+                  title: row.title || merged[row.cat].title,
+                  emoji: row.emoji || merged[row.cat].emoji,
+                  short: row.short_desc || merged[row.cat].short,
+                  text: row.long_desc || merged[row.cat].text,
+                };
+              }
+            });
+            setTypeDescs(merged);
+          }
+        } catch (e) { console.error("Wertetypen load error:", e); }
+      }
+      setLoaded(true);
+    })();
+  }, []);
+
+  const initGame = () => {
+    setPile(shuffle(values));
+    setAllLosers([]); setLastLosers([]);
+    setRoundNum(1); setKompass(null);
+    const h = {}; values.forEach(v => { h[v.name] = 0; });
+    setValHistory(h);
+  };
+
+  const handleDemoSubmit = (demo) => {
+    setDemographics(demo);
+    initGame();
+    setPhase("compare");
+  };
+
+  const saveAndShowResult = async (k, demo) => {
+    const all = [k.lebenswert, ...k.superkraefte, ...k.grundwerte];
+    const cc = {}; all.forEach(v => { cc[v.cat] = (cc[v.cat] || 0) + 1; });
+    const dom = Object.entries(cc).sort((a, b) => b[1] - a[1])[0][0];
+    const vc = all.map(v => VALUE_ABBR[v.name] || "?").join("·");
+
+    if (USE_SUPABASE) {
+      try {
+        setSaveError(null);
+        await supa.insert("results", {
+          geschlecht: demo?.geschlecht || null,
+          klassenstufe: demo?.klasse || null,
+          schulform: demo?.schulform || null,
+          lebenswert: k.lebenswert.name,
+          lebenswert_cat: k.lebenswert.cat,
+          superkraefte: k.superkraefte.map(v => ({ name: v.name, cat: v.cat })),
+          grundwerte: k.grundwerte.map(v => ({ name: v.name, cat: v.cat })),
+          all_values: all.map(v => ({ name: v.name, cat: v.cat })),
+          dominant: dom,
+          vcode: vc,
+        });
+      } catch(e) { setSaveError(e.message); console.error("Supabase save error:", e); }
+    } else {
+      try {
+        const result = { id: Date.now().toString(36) + Math.random().toString(36).slice(2,6),
+          ts: new Date().toISOString(), demographics: demo, lebenswert: k.lebenswert,
+          superkraefte: k.superkraefte, grundwerte: k.grundwerte, allValues: all, dominant: dom, vcode: vc };
+        let existing = [];
+        try { const stored = await window.storage.get(RESULTS_KEY); if (stored?.value) existing = JSON.parse(stored.value); } catch(e) {}
+        existing.push(result);
+        await window.storage.set(RESULTS_KEY, JSON.stringify(existing));
+      } catch(e) { console.error("Local save error:", e); }
+    }
+    setPhase("result");
+  };
+
+  const handleRestart = () => { setDemographics(null); setKompass(null); setPhase("intro"); };
+
+  const MAX_ROUNDS = 3;
+
+  const onCompare = (w, l) => {
+    setLastLosers(l); setAllLosers(prev => [...prev, ...l]); setPile(w);
+    setValHistory(prev => {
+      const h = { ...prev };
+      w.forEach(v => { h[v.name] = roundNum; });
+      l.forEach(v => { if ((h[v.name] || 0) < roundNum - 1) h[v.name] = roundNum - 1; });
+      return h;
+    });
+    // After max rounds OR ≤8 values: go to adjust
+    if (w.length <= 8 || roundNum >= MAX_ROUNDS) setPhase("adjust");
+    else setPhase("joker");
+  };
+
+  const onJoker = (jokers) => {
+    const jn = new Set(jokers.map(j => j.name));
+    setAllLosers(prev => prev.filter(d => !jn.has(d.name)));
+    setLastLosers(prev => prev.filter(d => !jn.has(d.name)));
+    const np = shuffle([...pile, ...jokers]);
+    setValHistory(prev => {
+      const h = { ...prev };
+      jokers.forEach(v => { h[v.name] = roundNum; });
+      return h;
+    });
+    setPile(np);
+    // After max rounds OR ≤8 values: go to adjust
+    if (np.length <= 8 || roundNum >= MAX_ROUNDS) setPhase("adjust");
+    else { setRoundNum(r => r + 1); setPhase("compare"); }
+  };
+
+  const onAdjust = (final8) => {
+    setValHistory(prev => {
+      const h = { ...prev };
+      final8.forEach(v => { h[v.name] = 99; });
+      return h;
+    });
+    setPile(final8); setPhase("ranking");
+  };
+
+  const onRankDone = (ranked, goDeep) => {
+    setPile(ranked);
+    if (goDeep) {
+      setPhase("kompass");
+    } else {
+      const autoKompass = {
+        lebenswert: ranked[0],
+        superkraefte: ranked.slice(1, 4),
+        grundwerte: ranked.slice(4, 8),
+      };
+      setKompass(autoKompass);
+      saveAndShowResult(autoKompass, demographics);
+    }
+  };
+
+  const onKompass = async (r) => {
+    setKompass(r);
+    saveAndShowResult(r, demographics);
+  };
+
+  if (!loaded) return (
+    <div style={{ display: "flex", justifyContent: "center", alignItems: "center", minHeight: "100vh", color: "#6b7280" }}>Laden…</div>
+  );
+
+  const maxRound = roundNum;
+  const noHeader = ["intro","result","admin","admin-login","scan","demographics","dashboard"];
+
+  var stepIdx = 0;
+  if (phase === "compare" || phase === "joker") stepIdx = roundNum;
+  if (phase === "adjust") stepIdx = 4;
+  if (phase === "ranking") stepIdx = 5;
+  if (phase === "kompass") stepIdx = 5;
+  var steps = [
+    { label: "Runde 1", done: stepIdx > 1 },
+    { label: "Runde 2", done: stepIdx > 2 },
+    { label: "Runde 3", done: stepIdx > 3 },
+    { label: "Feinschliff", done: stepIdx > 4 },
+    { label: "Ergebnis", done: stepIdx > 5 },
+  ];
+
+  return (
+    <div style={{ maxWidth: 500, margin: "0 auto", minHeight: "100vh", fontFamily: "'Segoe UI',system-ui,-apple-system,sans-serif", background: "#fff" }}>
+      {!noHeader.includes(phase) && (
+        <div style={{ padding: "10px 16px 8px", borderBottom: "1px solid #f0f0f0" }}>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 8 }}>
+            <div style={{ fontSize: 13, fontWeight: 800, color: "#2E2D8E" }}>Dein Wertespiel</div>
+            <div style={{ fontSize: 11, color: "#9ca3af" }}>
+              {phase === "compare" && "Vergleichen"}
+              {phase === "joker" && "Joker wählen"}
+              {phase === "adjust" && "Feinschliff"}
+              {phase === "demographics" && "Über dich"}
+              {phase === "ranking" && "Dein Ranking"}
+              {phase === "kompass" && "Kompass bauen"}
+            </div>
+          </div>
+          <div style={{ display: "flex", alignItems: "center", gap: 2 }}>
+            {steps.map(function(s, i) {
+              var active = (i + 1) === stepIdx;
+              var done = s.done;
+              return (
+                <div key={i} style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: 3 }}>
+                  <div style={{
+                    height: 4, width: "100%", borderRadius: 4,
+                    background: done ? "#2E2D8E" : active ? "linear-gradient(90deg, #2E2D8E, #2E2D8E80)" : "#e5e7eb",
+                    transition: "all 0.3s ease",
+                  }} />
+                  <div style={{ fontSize: 9, color: active ? "#2E2D8E" : done ? "#2E2D8E" : "#c0c0c0", fontWeight: active ? 800 : 500 }}>
+                    {s.label}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+      {phase === "intro" && <Intro onStart={() => { setPhase("demographics"); }} valueCount={values.length} onAdmin={() => setPhase("admin-login")} onScan={() => { setPhase("scan"); }} />}
+      {phase === "demographics" && <DemographicsForm onSubmit={handleDemoSubmit} />}
+      {phase === "admin-login" && <AdminLogin onSuccess={function() { setPhase("admin"); }} onBack={function() { setPhase("intro"); }} />}
+      {phase === "admin" && <AdminPanel values={values} setValues={setValues} onClose={() => setPhase("intro")} onDashboard={() => setPhase("dashboard")} typeDescs={typeDescs} setTypeDescs={setTypeDescs} />}
+      {phase === "dashboard" && <AdminDashboard onBack={() => setPhase("admin")} />}
+      {phase === "scan" && <PhotoScan
+        onResult={(scanned) => {
+          const h = {};
+          values.forEach(v => { h[v.name] = 0; });
+          scanned.forEach(v => { h[v.name] = 99; });
+          setValHistory(h); setRoundNum(1);
+          const pool = values.filter(v => !scanned.find(s => s.name === v.name));
+          setLastLosers(pool); setPile(scanned);
+          if (scanned.length === 8) setPhase("kompass");
+          else setPhase("adjust");
+        }}
+        onBack={() => setPhase("intro")}
+      />}
+      {phase === "compare" && <Compare key={"r" + roundNum} pile={pile} roundNum={roundNum} onDone={onCompare} />}
+      {phase === "joker" && <JokerPick losers={lastLosers} winnerCount={pile.length} onDone={onJoker} />}
+      {phase === "adjust" && <FinalAdjust values8={pile} lastDiscards={lastLosers} onDone={onAdjust} />}
+      {phase === "ranking" && <RankValues values8={pile} onDone={onRankDone} />}
+      {phase === "kompass" && <KompassBuild values8={pile} onDone={onKompass} />}
+      {phase === "result" && kompass && <Result kompass={kompass} onRestart={handleRestart} valHistory={valHistory} maxRound={maxRound} demographics={demographics} saveError={saveError} typeDescs={typeDescs} />}
+    </div>
+  );
+}
+
+
+ReactDOM.createRoot(document.getElementById('root')).render(React.createElement(App));
+  </script>
+</body>
+</html>
