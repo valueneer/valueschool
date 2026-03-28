@@ -1740,6 +1740,10 @@ function RankValues({ values8, onDone }) {
   const listRef = useRef(null);
   const touchStartY = useRef(null);
   const touchStartIdx = useRef(null);
+  const [deepPinOpen, setDeepPinOpen] = useState(false);
+  const [deepPin, setDeepPin] = useState("");
+  const [deepPinError, setDeepPinError] = useState(false);
+  const DEEP_PIN = "TIEFER";
 
   const moveItem = (from, to) => {
     if (from === to || from == null || to == null) return;
@@ -1876,12 +1880,29 @@ function RankValues({ values8, onDone }) {
           fontSize: 16, fontWeight: 800, cursor: "pointer",
           boxShadow: "0 6px 24px rgba(46,45,142,0.3)",
         }}>Das ist mein Ranking ✓</button>
-        <button onClick={function() { onDone(ranked, true); }} style={{
-          background: "none", border: "2px solid #e5e7eb", borderRadius: 99,
-          padding: "10px 24px", fontSize: 13, fontWeight: 600,
-          color: "#6b7280", cursor: "pointer",
-        }}>🔍 Tiefer gehen — Lebenswert & Superkräfte einzeln wählen</button>
+        <button onClick={function() { setDeepPinOpen(!deepPinOpen); setDeepPinError(false); setDeepPin(""); }} style={{
+          background: "#d1d5db", color: "#9ca3af",
+          border: "none", borderRadius: 99, padding: "10px 24px",
+          fontSize: 13, fontWeight: 600, cursor: "pointer",
+        }}>🔒 Tiefer gehen — Lebenswert & Superkräfte einzeln wählen</button>
       </div>
+
+      {deepPinOpen && (
+        <div style={{ marginTop: 14, background: "#f8fafc", borderRadius: 14, padding: 16, maxWidth: 280, margin: "14px auto 0" }}>
+          <p style={{ fontSize: 12, color: "#6b7280", marginBottom: 10 }}>Code eingeben um Detailansicht freizuschalten:</p>
+          <div style={{ display: "flex", gap: 8, justifyContent: "center", alignItems: "center" }}>
+            <input type="text" value={deepPin} onChange={function(e) { setDeepPin(e.target.value); setDeepPinError(false); }}
+              onKeyDown={function(e) { if (e.key === "Enter") { if (deepPin.toUpperCase() === DEEP_PIN) { setDeepPinOpen(false); onDone(ranked, true); } else { setDeepPinError(true); setDeepPin(""); } } }}
+              placeholder="Code" style={{
+                padding: "8px 14px", fontSize: 15, fontWeight: 600, borderRadius: 10,
+                border: deepPinError ? "2px solid #ef4444" : "2px solid #e5e7eb",
+                outline: "none", width: 120, textAlign: "center", textTransform: "uppercase",
+              }} />
+            <Btn small primary onClick={function() { if (deepPin.toUpperCase() === DEEP_PIN) { setDeepPinOpen(false); onDone(ranked, true); } else { setDeepPinError(true); setDeepPin(""); } }}>OK</Btn>
+          </div>
+          {deepPinError && <p style={{ color: "#ef4444", fontSize: 12, marginTop: 6 }}>Falscher Code</p>}
+        </div>
+      )}
     </div>
   );
 }
@@ -2987,7 +3008,6 @@ function App() {
           superkraefte: k.superkraefte.map(v => ({ name: v.name, cat: v.cat })),
           grundwerte: k.grundwerte.map(v => ({ name: v.name, cat: v.cat })),
           all_values: all.map(v => ({ name: v.name, cat: v.cat })),
-          ranking: all.map((v, i) => ({ pos: i + 1, name: v.name, cat: v.cat })),
           dominant: dom,
           vcode: vc,
         });
