@@ -730,4 +730,20 @@ function ValueSchool() {
             <img src={LOGO_COLOR} alt="Value School" style={{ height: 70 }} />
           </div>
           <div style={{ fontSize: 12, color: "rgba(255,255,255,0.3)", marginBottom: 16 }}>Ein Projekt von Valueverse · IDEEalisten GmbH</div>
-          <div style={{ display: "flex", gap: 20, justifyContent: "center", flexWrap: "wrap", marginBottom: 1
+          <div style={{ display: "flex", gap: 20, justifyContent: "center", flexWrap: "wrap", marginBottom: 14 }}>
+            {[["Wertetest", "https://valueverse.de/pages/wertetest"], ["Valueverse Shop", "https://valueverse.de"], ["Datenschutz", "https://valueverse.de/policies/privacy-policy"], ["Impressum", "https://valueverse.de/policies/legal-notice"]].map(function (item) {
+              return <a key={item[0]} href={item[1]} style={{ color: "rgba(255,255,255,0.35)", fontSize: 12, textDecoration: "none" }}>{item[0]}</a>;
+            })}
+          </div>
+          <div style={{ fontSize: 11, color: "rgba(255,255,255,0.15)" }}>© 2026 IDEEalisten GmbH</div>
+        </div>
+      </footer>
+    </div>
+  );
+}
+
+
+ReactDOM.createRoot(document.getElementById('root')).render(React.createElement(ValueSchool));
+  </script>
+</body>
+</html>
