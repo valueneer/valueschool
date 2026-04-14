@@ -133,12 +133,14 @@ function ImgBox(props) {
       {hasSrc ? (
         <React.Fragment>
           <img src={props.src} alt={props.label || ""} onError={function() { setError(true); }} style={{ width: "100%", height: "100%", objectFit: "cover", position: "absolute", inset: 0 }} />
-          {props.quote && <div style={{ position: "absolute", inset: 0, background: "linear-gradient(180deg, rgba(0,0,0,0) 35%, rgba(0,0,0,0.45) 75%, rgba(0,0,0,0.75) 100%)", pointerEvents: "none" }} />}
+          {(props.quote || props.title) && <div style={{ position: "absolute", inset: 0, background: "linear-gradient(180deg, rgba(0,0,0,0.2) 0%, rgba(0,0,0,0) 40%, rgba(0,0,0,0.5) 75%, rgba(0,0,0,0.8) 100%)", pointerEvents: "none" }} />}
           {props.tag && <div style={{ position: "absolute", top: "clamp(20px, 3vw, 40px)", left: "max(24px, calc(50% - 550px))", background: accent, color: "#fff", fontSize: 12, fontWeight: 800, letterSpacing: 2, textTransform: "uppercase", padding: "6px 14px", borderRadius: 99, zIndex: 2 }}>{props.tag}</div>}
-          {props.quote && (
+          {(props.quote || props.title) && (
             <div style={{ position: "relative", zIndex: 1, width: "100%", paddingBottom: "clamp(28px, 5vw, 60px)" }}>
               <div style={{ maxWidth: 1100, margin: "0 auto", padding: "0 24px", color: "#fff" }}>
-                <div style={{ fontFamily: BANG, fontSize: "clamp(22px, 3.6vw, 44px)", letterSpacing: 1.5, lineHeight: 1.15, textTransform: "uppercase", textShadow: "0 2px 16px rgba(0,0,0,0.5)", maxWidth: 760 }}>{props.quote}</div>
+                {props.kicker && <div style={{ display: "inline-block", fontSize: 12, fontWeight: 800, color: "#fff", textTransform: "uppercase", letterSpacing: 3, background: accent, padding: "6px 14px", borderRadius: 99, marginBottom: 14 }}>{props.kicker}</div>}
+                {props.title && <h2 style={{ fontFamily: BANG, fontSize: "clamp(30px, 5vw, 56px)", fontWeight: 400, letterSpacing: 2, lineHeight: 1.05, textTransform: "uppercase", color: "#fff", textShadow: "0 4px 20px rgba(0,0,0,0.5)", maxWidth: 860, margin: 0 }}>{props.title}</h2>}
+                {props.quote && <div style={{ fontFamily: BANG, fontSize: "clamp(22px, 3.6vw, 44px)", letterSpacing: 1.5, lineHeight: 1.15, textTransform: "uppercase", textShadow: "0 2px 16px rgba(0,0,0,0.5)", maxWidth: 760 }}>{props.quote}</div>}
               </div>
             </div>
           )}
@@ -156,20 +158,44 @@ function ImgBox(props) {
 /* Small fact callout that gets woven into sections */
 function Fact(props) {
   var c = props.color || CYAN;
-  var dark = props.dark;
+  var onDark = props.dark || props.grouped;
   return (
     <div style={{
-      background: dark ? "rgba(255,255,255,0.06)" : "#fff",
-      borderRadius: 18, padding: "clamp(22px, 3vw, 30px)", marginTop: 18,
-      border: dark ? "1px solid rgba(255,255,255,0.12)" : "1px solid " + c + "20",
-      boxShadow: dark ? "none" : "0 8px 28px -12px " + c + "40",
+      background: onDark ? "rgba(255,255,255,0.05)" : "#fff",
+      borderRadius: 12, padding: "14px 18px", marginTop: 10,
+      border: onDark ? "1px solid rgba(255,255,255,0.1)" : "1px solid " + c + "20",
+      boxShadow: onDark ? "none" : "0 4px 14px -6px " + c + "40",
       position: "relative", overflow: "hidden", textAlign: "left",
     }}>
-      <div style={{ position: "absolute", top: 0, left: 0, bottom: 0, width: 5, background: "linear-gradient(180deg, " + c + ", " + c + "60)" }} />
-      <div style={{ display: "inline-block", fontSize: 10, fontWeight: 800, color: c, textTransform: "uppercase", letterSpacing: 2, marginBottom: 6, background: dark ? "rgba(255,255,255,0.08)" : c + "12", padding: "4px 10px", borderRadius: 6 }}>📖 Studie</div>
-      <div style={{ fontFamily: BANG, fontSize: "clamp(38px, 6vw, 64px)", lineHeight: 1, letterSpacing: 1, color: c, textShadow: dark ? "0 0 40px " + c + "50" : "none", marginBottom: 12, marginTop: 4 }}>{props.stat}</div>
-      <div style={{ fontSize: "clamp(14px, 1.6vw, 16px)", color: dark ? "rgba(255,255,255,0.85)" : TXT, lineHeight: 1.55 }}>{props.text}</div>
-      {props.src ? <div style={{ fontSize: 11, color: dark ? "rgba(255,255,255,0.45)" : MUTED, marginTop: 12, fontStyle: "italic" }}>Quelle: {props.src}</div> : null}
+      <div style={{ position: "absolute", top: 0, left: 0, bottom: 0, width: 4, background: c }} />
+      <div style={{ display: "flex", alignItems: "baseline", gap: "clamp(10px, 2vw, 16px)", flexWrap: "wrap", paddingLeft: 10 }}>
+        <div style={{ fontFamily: BANG, fontSize: "clamp(22px, 3vw, 32px)", lineHeight: 1.1, letterSpacing: 1, color: c, minWidth: "fit-content" }}>{props.stat}</div>
+        <div style={{ fontSize: "clamp(13px, 1.4vw, 14px)", color: onDark ? "rgba(255,255,255,0.85)" : TXT, lineHeight: 1.55, flex: "1 1 260px" }}>
+          {props.text}
+          {props.src ? <span style={{ fontSize: 11, color: onDark ? "rgba(255,255,255,0.45)" : MUTED, fontStyle: "italic", display: "block", marginTop: 4 }}>Quelle: {props.src}</span> : null}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function FactGroup(props) {
+  return (
+    <div style={{
+      background: "linear-gradient(160deg, " + BLUE_DK + " 0%, " + BLUE + " 100%)",
+      borderRadius: 22, padding: "clamp(22px, 3.5vw, 32px)", marginTop: 28,
+      boxShadow: "0 16px 44px -18px rgba(28,27,94,0.5)",
+      position: "relative", overflow: "hidden",
+    }}>
+      <div style={{ position: "absolute", top: -80, right: -80, width: 240, height: 240, background: "radial-gradient(circle, " + CYAN + "22, transparent 70%)", pointerEvents: "none" }} />
+      <div style={{ position: "absolute", bottom: -80, left: -60, width: 200, height: 200, background: "radial-gradient(circle, " + PINK + "18, transparent 70%)", pointerEvents: "none" }} />
+      <div style={{ position: "relative" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 14 }}>
+          <span style={{ fontSize: 20 }}>📚</span>
+          <div style={{ fontFamily: BANG, fontSize: "clamp(14px, 1.8vw, 18px)", color: "#fff", letterSpacing: 2.5, textTransform: "uppercase" }}>{props.title || "Wissenschaftliche Belege"}</div>
+        </div>
+        {props.children}
+      </div>
     </div>
   );
 }
@@ -321,10 +347,11 @@ function ValueSchool() {
                 })}
               </div>
 
-              <h4 style={{ fontFamily: HEAD, fontSize: 13, fontWeight: 700, color: ORANGE, textTransform: "uppercase", letterSpacing: 2, marginTop: 20, marginBottom: 4 }}>Wissenschaftlich belegt</h4>
-              <Fact color={PINK} stat="90%" text="der Menschen kennen ihre eigenen Werte nicht wirklich. Die Wissenschaft zeigt: Wer sich selbst nicht kennt, kann keine bewussten Entscheidungen treffen — und wird zum Spielball äußerer Einflüsse." src="Eurich, 2018" />
-              <Fact color={CYAN} stat="Ab 5 Jahren" text="bilden Kinder bereits eine differenzierte Wertestruktur  —  die Schwartz-Wertetheorie wurde in Studien mit 5–12-Jährigen weltweit repliziert. Die Frage ist nicht ob, sondern wer ihre Werte formt: sie selbst oder der Algorithmus." src="Döring et al., 2015 / VALISE-Studie" />
-              <Fact color={GREEN} stat="10 Werte" text="Die Schwartz-Wertetheorie identifiziert 10 universale Werte, die in über 80 Kulturen weltweit nachweisbar sind. Werte sind kein westliches Konstrukt — sie sind Teil dessen, was uns alle ausmacht. Genau hier setzen wir an." src="Schwartz, 1992 / Schwartz et al., 2012" />
+              <FactGroup title="Wissenschaftliche Belege">
+                <Fact grouped color={PINK} stat="90%" text="der Menschen kennen ihre eigenen Werte nicht wirklich. Wer sich selbst nicht kennt, kann keine bewussten Entscheidungen treffen — und wird zum Spielball äußerer Einflüsse." src="Eurich, 2018" />
+                <Fact grouped color={CYAN} stat="Ab 5 Jahren" text="bilden Kinder bereits eine differenzierte Wertestruktur. Die Schwartz-Wertetheorie wurde in Studien mit 5–12-Jährigen weltweit repliziert." src="Döring et al., 2015 / VALISE" />
+                <Fact grouped color={GREEN} stat="10 Werte" text="Die Schwartz-Wertetheorie identifiziert 10 universale Werte, die in über 80 Kulturen weltweit nachweisbar sind. Werte sind kein westliches Konstrukt." src="Schwartz, 1992 / Schwartz et al., 2012" />
+              </FactGroup>
             </div>
           </FadeIn>
         </div>
@@ -365,9 +392,10 @@ function ValueSchool() {
                 })}
               </div>
 
-              <h4 style={{ fontFamily: HEAD, fontSize: 13, fontWeight: 700, color: ORANGE, textTransform: "uppercase", letterSpacing: 2, marginTop: 20, marginBottom: 4 }}>Warum Werte wirken</h4>
-              <Fact color={ORANGE} stat="1.299" text="Schülerinnen und Schüler beweisen in einer kontrollierten Studie: Wer Selbstbewusstsein entwickelt, wird resilienter und psychisch gesünder. Nicht irgendwann. Sofort. Die Wirkung ist messbar und signifikant." src="Prevention Science, RCT 2022" />
-              <Fact color={GREEN} stat="+31%" text="mehr Engagement bei wertealignierter Berufswahl. Wer weiß, was ihn antreibt, arbeitet motivierter, bleibt länger und leistet mehr. Das beginnt nicht beim ersten Job. Das beginnt in der Schule." src="Gallup / SHRM" />
+              <FactGroup title="Warum Werte wirken">
+                <Fact grouped color={ORANGE} stat="1.299" text="Schülerinnen und Schüler in einer kontrollierten Studie: Wer Selbstbewusstsein entwickelt, wird resilienter und psychisch gesünder. Sofort. Messbar. Signifikant." src="Prevention Science, RCT 2022" />
+                <Fact grouped color={GREEN} stat="+31%" text="mehr Engagement bei wertealignierter Berufswahl. Wer weiß, was ihn antreibt, arbeitet motivierter — und das beginnt in der Schule." src="Gallup / SHRM" />
+              </FactGroup>
             </div>
           </FadeIn>
         </div>
@@ -412,9 +440,10 @@ function ValueSchool() {
               })}
               </div>
 
-              <h4 style={{ fontFamily: HEAD, fontSize: 13, fontWeight: 700, color: ORANGE, textTransform: "uppercase", letterSpacing: 2, marginTop: 20, marginBottom: 4 }}>Studienergebnisse</h4>
-              <Fact color={GREEN} stat="53%" text="der Beziehungszufriedenheit lässt sich durch geteilte Werte erklären. In der Klasse. Im Kollegium. Im Leben. Wer gemeinsame Werte benennen kann, versteht einander  —  und streitet weniger." src="Utah State University" />
-              <Fact color={ORANGE} stat="52 Studien" text="In einer Meta-Analyse zu Charakterbildung verbesserten sich schulische Leistungen und Verhalten der Teilnehmenden signifikant gegenüber Kontrollgruppen." src="Education and Urban Society, 2019" />
+              <FactGroup title="Studienergebnisse">
+                <Fact grouped color={GREEN} stat="53%" text="der Beziehungszufriedenheit lässt sich durch geteilte Werte erklären. Wer gemeinsame Werte benennen kann, versteht einander — und streitet weniger." src="Utah State University" />
+                <Fact grouped color={ORANGE} stat="52 Studien" text="In einer Meta-Analyse zu Charakterbildung verbesserten sich schulische Leistungen und Verhalten signifikant gegenüber Kontrollgruppen." src="Education and Urban Society, 2019" />
+              </FactGroup>
             </div>
           </FadeIn>
         </div>
@@ -743,10 +772,11 @@ function ValueSchool() {
                 );
               })}
 
-              <h4 style={{ fontFamily: HEAD, fontSize: 13, fontWeight: 700, color: ORANGE, textTransform: "uppercase", letterSpacing: 2, marginTop: 20, marginBottom: 4 }}>Wertvolle Fakten</h4>
-              <Fact color={ORANGE} stat="2/3" text="aller Menschen sind unzufrieden mit ihrem Job. Weil sie nie gelernt haben, was sie wirklich antreibt. Wer seine Werte früh kennt, wählt bewusster — und baut ein Leben, das zu ihm passt." src="Burnett & Evans" />
-              <Fact color={GREEN} stat="6-12 Jahre" text="sind die entscheidende Phase für die Wertebildung. Die Schule ist neben der Familie der wichtigste Ort, an dem Werte geformt werden. Das ist kein Zufall — das ist eine Chance." src="Knafo-Noam et al., 2024 / VALISE" />
-              <Fact color={BLUE} stat="+11%" text="bessere Schulleistungen bei Schülerinnen und Schülern in SEL-Programmen, die Selbstbewusstsein und Wertebildung integrieren. Wertebildung ist kein Soft Skill — sie macht Schule messbar besser." src="Durlak et al., Meta-Analyse, 2011" />
+              <FactGroup title="Wertvolle Fakten">
+                <Fact grouped color={ORANGE} stat="2/3" text="aller Menschen sind unzufrieden mit ihrem Job — weil sie nie gelernt haben, was sie wirklich antreibt. Wer seine Werte früh kennt, wählt bewusster." src="Burnett & Evans" />
+                <Fact grouped color={GREEN} stat="6-12 Jahre" text="sind die entscheidende Phase für die Wertebildung. Die Schule ist neben der Familie der wichtigste Ort, an dem Werte geformt werden." src="Knafo-Noam et al., 2024 / VALISE" />
+                <Fact grouped color={"#00D9FF"} stat="+11%" text="bessere Schulleistungen bei Schülerinnen und Schülern in SEL-Programmen, die Werte- und Selbstbewusstsein integrieren. Wertebildung macht Schule messbar besser." src="Durlak et al., Meta-Analyse, 2011" />
+              </FactGroup>
             </div>
           </FadeIn>
         </div>
