@@ -160,21 +160,16 @@ function Fact(props) {
   return (
     <div style={{
       background: dark ? "rgba(255,255,255,0.06)" : "#fff",
-      borderRadius: 20, padding: "clamp(20px, 3vw, 32px)", marginTop: 20,
-      display: "grid", gridTemplateColumns: "auto 1fr", gap: "clamp(18px, 3vw, 32px)", alignItems: "center",
+      borderRadius: 18, padding: "clamp(22px, 3vw, 30px)", marginTop: 18,
       border: dark ? "1px solid rgba(255,255,255,0.12)" : "1px solid " + c + "20",
       boxShadow: dark ? "none" : "0 8px 28px -12px " + c + "40",
-      position: "relative", overflow: "hidden",
+      position: "relative", overflow: "hidden", textAlign: "left",
     }}>
-      <div style={{ position: "absolute", top: 0, left: 0, bottom: 0, width: 6, background: "linear-gradient(180deg, " + c + ", " + c + "60)" }} />
-      <div style={{ paddingLeft: "clamp(8px, 1.5vw, 14px)", minWidth: "min(140px, 30vw)", textAlign: "left" }}>
-        <div style={{ fontFamily: BANG, fontSize: "clamp(42px, 7vw, 72px)", lineHeight: 1, letterSpacing: 1, color: c, textShadow: dark ? "0 0 40px " + c + "50" : "none" }}>{props.stat}</div>
-        <div style={{ fontSize: 10, fontWeight: 800, color: c, textTransform: "uppercase", letterSpacing: 2, marginTop: 8, opacity: 0.8 }}>Studie</div>
-      </div>
-      <div>
-        <div style={{ fontSize: "clamp(14px, 1.6vw, 16px)", color: dark ? "rgba(255,255,255,0.9)" : TXT, lineHeight: 1.6 }}>{props.text}</div>
-        {props.src ? <div style={{ display: "inline-block", fontSize: 11, color: dark ? "rgba(255,255,255,0.5)" : MUTED, marginTop: 10, fontFamily: "'DM Sans', system-ui, sans-serif", background: dark ? "rgba(255,255,255,0.06)" : c + "10", padding: "4px 10px", borderRadius: 6, letterSpacing: 0.3 }}>📖 {props.src}</div> : null}
-      </div>
+      <div style={{ position: "absolute", top: 0, left: 0, bottom: 0, width: 5, background: "linear-gradient(180deg, " + c + ", " + c + "60)" }} />
+      <div style={{ display: "inline-block", fontSize: 10, fontWeight: 800, color: c, textTransform: "uppercase", letterSpacing: 2, marginBottom: 6, background: dark ? "rgba(255,255,255,0.08)" : c + "12", padding: "4px 10px", borderRadius: 6 }}>📖 Studie</div>
+      <div style={{ fontFamily: BANG, fontSize: "clamp(38px, 6vw, 64px)", lineHeight: 1, letterSpacing: 1, color: c, textShadow: dark ? "0 0 40px " + c + "50" : "none", marginBottom: 12, marginTop: 4 }}>{props.stat}</div>
+      <div style={{ fontSize: "clamp(14px, 1.6vw, 16px)", color: dark ? "rgba(255,255,255,0.85)" : TXT, lineHeight: 1.55 }}>{props.text}</div>
+      {props.src ? <div style={{ fontSize: 11, color: dark ? "rgba(255,255,255,0.45)" : MUTED, marginTop: 12, fontStyle: "italic" }}>Quelle: {props.src}</div> : null}
     </div>
   );
 }
@@ -399,28 +394,36 @@ function ValueSchool() {
       </section>
 
       {/* ═══════════ MANIFEST-EINSCHUB ═══════════ */}
-      <section style={{ background: BLUE, padding: "70px 24px", textAlign: "center", position: "relative", overflow: "hidden" }}>
-        <Starburst color="#fff" size={400} top="-120px" left="50%" opacity={0.04} />
-        <Starburst color={CYAN} size={180} bottom="-60px" right="-40px" opacity={0.08} />
-        <div style={{ maxWidth: 700, margin: "0 auto", position: "relative", zIndex: 1 }}>
+      <section style={{ background: "linear-gradient(160deg, " + BLUE_DK + " 0%, " + BLUE + " 100%)", padding: "clamp(80px, 12vw, 130px) 24px", position: "relative", overflow: "hidden" }}>
+        <Starburst color="#fff" size={500} top="-180px" left="50%" opacity={0.04} />
+        <Starburst color={CYAN} size={220} bottom="-80px" right="-60px" opacity={0.08} />
+        <Starburst color={PINK} size={180} top="20%" left="-40px" opacity={0.06} />
+        <div style={{ maxWidth: 860, margin: "0 auto", position: "relative", zIndex: 1, textAlign: "center" }}>
           <FadeIn>
-            <p style={{ fontFamily: BANG, fontSize: "clamp(24px, 4vw, 40px)", color: "#fff", lineHeight: 1.3, letterSpacing: 2, marginBottom: 16 }}>
-              Wer mit 15 weiß, wer er ist, baut sein Leben auf einem echten Fundament.
-            </p>
-            <p style={{ fontSize: 16, color: "rgba(255,255,255,0.6)", lineHeight: 1.8, marginBottom: 12 }}>
-              Wer seine Werte nicht kennt, wird zum Spielball — von Algorithmen, Trends und fremden Erwartungen. Deshalb setzen wir bei jungen Menschen an: Sie stehen noch am Anfang und haben die Chance, sich selbst zu kennen, bevor andere es für sie entscheiden.
-            </p>
-            <p style={{ fontSize: 16, color: "rgba(255,255,255,0.75)", lineHeight: 1.8, fontWeight: 500 }}>
-              Das Ergebnis: mehr Orientierung, weniger Konflikte, stärkere mentale Gesundheit — und junge Menschen, die wissen, wofür sie stehen.
-            </p>
-            <Fact dark color={CYAN} stat="264 Jugendliche" text="Jugendliche in einer Nature-Studie: Wer sich selbst emotional kennt, zeigt signifikant mehr Resilienz, ein stärkeres Selbstbild und höhere Lebensmotivation. Sich kennen ist kein Luxus — es ist Schutz." src="Scientific Reports, 2024" />
-          </FadeIn>
-          <FadeIn delay={0.1}>
-            <div style={{ display: "flex", gap: 10, justifyContent: "center", flexWrap: "wrap", marginTop: 20 }}>
-              <span style={{ fontFamily: BANG, fontSize: 15, letterSpacing: 1, color: ORANGE, background: "rgba(255,255,255,0.1)", padding: "6px 16px", borderRadius: 8 }}>Werte bilden Identität.</span>
-              <span style={{ fontFamily: BANG, fontSize: 15, letterSpacing: 1, color: PINK, background: "rgba(255,255,255,0.1)", padding: "6px 16px", borderRadius: 8 }}>Werte schaffen Authentizität.</span>
-              <span style={{ fontFamily: BANG, fontSize: 15, letterSpacing: 1, color: CYAN, background: "rgba(255,255,255,0.1)", padding: "6px 16px", borderRadius: 8 }}>Werte bringen Resilienz.</span>
+            <div style={{ display: "inline-block", background: "rgba(255,255,255,0.12)", color: "#fff", padding: "8px 20px", borderRadius: 99, fontSize: 12, fontWeight: 800, letterSpacing: 2, textTransform: "uppercase", marginBottom: 28, backdropFilter: "blur(8px)" }}>
+              Unsere Überzeugung
             </div>
+            <p style={{ fontFamily: BANG, fontSize: "clamp(28px, 4.5vw, 52px)", color: "#fff", lineHeight: 1.15, letterSpacing: 2, marginBottom: 24, textTransform: "uppercase" }}>
+              Wer mit 15 weiß, wer er ist,<br /><span style={{ color: CYAN }}>baut auf echtem Fundament.</span>
+            </p>
+            <p style={{ fontSize: "clamp(16px, 1.9vw, 19px)", color: "rgba(255,255,255,0.85)", lineHeight: 1.65, maxWidth: 680, margin: "0 auto 40px" }}>
+              Wer seine Werte nicht kennt, wird zum Spielball. Deshalb setzen wir früh an — wenn die Chance am größten ist.
+            </p>
+          </FadeIn>
+          <FadeIn delay={0.12}>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 20, marginBottom: 40 }}>
+              {[[ORANGE, "Identität", "Wer bin ich?"], [PINK, "Authentizität", "Wofür stehe ich?"], [CYAN, "Resilienz", "Was trägt mich?"]].map(function (item, i) {
+                return (
+                  <div key={i} style={{ textAlign: "center", padding: "8px 4px" }}>
+                    <div style={{ fontFamily: BANG, fontSize: "clamp(24px, 3.5vw, 36px)", color: item[0], letterSpacing: 2, marginBottom: 4, textTransform: "uppercase" }}>{item[1]}</div>
+                    <div style={{ fontSize: 14, color: "rgba(255,255,255,0.65)", fontStyle: "italic" }}>{item[2]}</div>
+                  </div>
+                );
+              })}
+            </div>
+          </FadeIn>
+          <FadeIn delay={0.2}>
+            <Fact dark color={CYAN} stat="264" text="Jugendliche in einer Nature-Studie: Wer sich selbst emotional kennt, zeigt signifikant mehr Resilienz, ein stärkeres Selbstbild und höhere Lebensmotivation. Sich kennen ist kein Luxus — es ist Schutz." src="Scientific Reports, 2024" />
           </FadeIn>
         </div>
       </section>
