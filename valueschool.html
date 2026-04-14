@@ -173,41 +173,45 @@ function ValueSchool() {
 
       {/* ═══════════ HERO ═══════════ */}
       <section style={{
-        minHeight: "auto", display: "flex", alignItems: "center",
-        background: "linear-gradient(160deg, " + BLUE_DK + " 0%, " + BLUE + " 45%, #3b2d6e 100%)",
+        minHeight: "92vh", display: "flex", alignItems: "center",
+        background: "url('hero.jpg') center 30%/cover no-repeat, " + BLUE_DK,
         position: "relative", overflow: "hidden", paddingTop: 80,
       }}>
+        <div style={{ position: "absolute", inset: 0, background: "linear-gradient(180deg, rgba(28,27,94,0.65) 0%, rgba(28,27,94,0.85) 100%)", pointerEvents: "none" }} />
         <div style={{ position: "absolute", inset: 0, pointerEvents: "none" }}>
-          <div style={{ position: "absolute", top: "-40%", left: "-15%", width: "55%", height: "180%", background: PINK, opacity: 0.1, transform: "rotate(-25deg) skewY(-5deg)" }} />
-          <div style={{ position: "absolute", top: "-50%", right: "-10%", width: "45%", height: "200%", background: GREEN, opacity: 0.08, transform: "rotate(18deg)" }} />
-          <div style={{ position: "absolute", bottom: "-30%", left: "25%", width: "40%", height: "160%", background: CYAN, opacity: 0.06, transform: "rotate(-12deg)" }} />
-          <div style={{ position: "absolute", bottom: "-20%", right: "5%", width: "35%", height: "140%", background: ORANGE, opacity: 0.07, transform: "rotate(22deg)" }} />
+          <div style={{ position: "absolute", top: "-40%", left: "-15%", width: "55%", height: "180%", background: PINK, opacity: 0.08, transform: "rotate(-25deg) skewY(-5deg)" }} />
+          <div style={{ position: "absolute", bottom: "-20%", right: "5%", width: "35%", height: "140%", background: ORANGE, opacity: 0.06, transform: "rotate(22deg)" }} />
         </div>
 
-        <div style={{ maxWidth: 850, margin: "0 auto", padding: "36px 24px 40px", textAlign: "center", position: "relative", zIndex: 1 }}>
+        <div style={{ maxWidth: 880, margin: "0 auto", padding: "36px 24px 40px", textAlign: "center", position: "relative", zIndex: 1 }}>
           <FadeIn>
-            <h1 style={{ fontFamily: BANG, fontSize: "clamp(48px, 9vw, 88px)", fontWeight: 400, color: "#fff", lineHeight: 0.95, letterSpacing: 3, marginBottom: 12, textTransform: "uppercase" }}>
+            <div style={{ display: "inline-flex", gap: 8, marginBottom: 20, flexWrap: "wrap", justifyContent: "center" }}>
+              {[["💪", "Resilienz"], ["🗳️", "Demokratie"], ["🎯", "Orientierung"]].map(function (b) {
+                return <span key={b[1]} style={{ background: "rgba(255,255,255,0.12)", color: "#fff", padding: "6px 14px", borderRadius: 99, fontSize: 13, fontWeight: 600, letterSpacing: 0.5, backdropFilter: "blur(8px)", border: "1px solid rgba(255,255,255,0.18)" }}>{b[0]} {b[1]}</span>;
+              })}
+            </div>
+            <h1 style={{ fontFamily: BANG, fontSize: "clamp(48px, 9vw, 96px)", fontWeight: 400, color: "#fff", lineHeight: 0.95, letterSpacing: 3, marginBottom: 20, textTransform: "uppercase", textShadow: "0 4px 24px rgba(0,0,0,0.4)" }}>
               <span style={{ color: ORANGE }}>Werte</span> bewegen<br /><span style={{ color: GREEN }}>Schule</span>
             </h1>
           </FadeIn>
           <FadeIn delay={0.12}>
-            <p style={{ fontSize: "clamp(15px, 1.8vw, 18px)", color: "rgba(255,255,255,0.6)", lineHeight: 1.8, maxWidth: 580, margin: "0 auto 12px" }}>
-              Jede fünfte Schülerin und jeder fünfte Schüler ist psychisch belastet. Die Bundesschülerkonferenz spricht von einer Krise. Gleichzeitig braucht unsere Demokratie mehr denn je Menschen mit Haltung. Gerade deshalb brauchen junge Menschen ein Bewusstsein für ihre individuellen und gemeinschaftlichen Werte.
+            <p style={{ fontSize: "clamp(18px, 2.4vw, 24px)", color: "#fff", lineHeight: 1.45, maxWidth: 720, margin: "0 auto 16px", fontWeight: 500, textShadow: "0 2px 12px rgba(0,0,0,0.3)" }}>
+              Wir helfen Schulen, junge Menschen stark zu machen — <strong style={{ color: CYAN }}>für Demokratie</strong>, <strong style={{ color: PINK }}>für Gesundheit</strong>, fürs Leben.
             </p>
-            <p style={{ fontSize: 15, color: "rgba(255,255,255,0.4)", maxWidth: 540, margin: "0 auto 28px" }}>
-              Mit den Valueverse-Wertespielen haben wir erlebt, wie kraftvoll Wertebildung wirkt — besonders bei jungen Menschen. Value School bringt diesen spielerischen Ansatz in die Schule. Wissenschaftlich fundiert. Gemeinnützig.
+            <p style={{ fontSize: "clamp(14px, 1.6vw, 16px)", color: "rgba(255,255,255,0.85)", maxWidth: 540, margin: "0 auto 32px", letterSpacing: 0.5 }}>
+              Spielerisch. Wissenschaftlich fundiert. Gemeinnützig.
             </p>
           </FadeIn>
           <FadeIn delay={0.25}>
             <div style={{ display: "flex", gap: 16, justifyContent: "center", flexWrap: "wrap" }}>
-              <button onClick={function () { go("kontakt"); }} style={{ background: "#fff", color: BLUE, border: "none", borderRadius: 99, padding: "16px 36px", fontSize: 17, fontWeight: 700, cursor: "pointer", fontFamily: HEAD, boxShadow: "0 4px 24px rgba(0,0,0,0.2)" }}>Jetzt anfragen</button>
-              <button onClick={function () { go("module"); }} style={{ background: "rgba(255,255,255,0.1)", color: "#fff", border: "1px solid rgba(255,255,255,0.2)", borderRadius: 99, padding: "16px 36px", fontSize: 17, fontWeight: 600, cursor: "pointer", fontFamily: HEAD }}>Module entdecken</button>
+              <button onClick={function () { go("kontakt"); }} style={{ background: "#fff", color: BLUE, border: "none", borderRadius: 99, padding: "18px 40px", fontSize: 18, fontWeight: 800, cursor: "pointer", fontFamily: HEAD, boxShadow: "0 8px 32px rgba(0,0,0,0.3)" }}>Jetzt anfragen</button>
+              <button onClick={function () { go("module"); }} style={{ background: "rgba(255,255,255,0.12)", color: "#fff", border: "1.5px solid rgba(255,255,255,0.4)", borderRadius: 99, padding: "18px 40px", fontSize: 18, fontWeight: 600, cursor: "pointer", fontFamily: HEAD, backdropFilter: "blur(8px)" }}>Module entdecken</button>
             </div>
           </FadeIn>
           <FadeIn delay={0.4}>
-            <div style={{ marginTop: 32, display: "flex", gap: 36, justifyContent: "center", flexWrap: "wrap" }}>
+            <div style={{ marginTop: 44, display: "flex", gap: 36, justifyContent: "center", flexWrap: "wrap" }}>
               {[["+70.000", "Wertespiele verkauft"], ["+300.000", "Menschen erreicht"], ["+5.000", "Trainer & Coaches"]].map(function (item) {
-                return <div key={item[0]}><div style={{ fontSize: 28, fontWeight: 900, color: "#fff", fontFamily: HEAD }}>{item[0]}</div><div style={{ fontSize: 12, color: "rgba(255,255,255,0.4)", marginTop: 2 }}>{item[1]}</div></div>;
+                return <div key={item[0]}><div style={{ fontSize: 30, fontWeight: 900, color: "#fff", fontFamily: HEAD, textShadow: "0 2px 12px rgba(0,0,0,0.3)" }}>{item[0]}</div><div style={{ fontSize: 12, color: "rgba(255,255,255,0.6)", marginTop: 2 }}>{item[1]}</div></div>;
               })}
             </div>
           </FadeIn>
