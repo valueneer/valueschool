@@ -201,7 +201,7 @@ function ValueSchool() {
 
       {/* ═══════════ HERO ═══════════ */}
       <section style={{
-        minHeight: "92vh", display: "flex", alignItems: "center",
+        minHeight: "80vh", display: "flex", alignItems: "center",
         background: "url('hero.jpg') center 30%/cover no-repeat, " + BLUE_DK,
         position: "relative", overflow: "hidden", paddingTop: 80,
       }}>
@@ -234,12 +234,6 @@ function ValueSchool() {
             <div style={{ display: "flex", gap: 16, justifyContent: "center", flexWrap: "wrap" }}>
 <a href="https://valueverse.de/pages/wertetest" target="_blank" rel="noopener" style={{ background: "linear-gradient(135deg, " + PINK + ", " + ORANGE + ")", color: "#fff", border: "none", borderRadius: 99, padding: "20px 44px", fontSize: 19, fontWeight: 800, cursor: "pointer", fontFamily: HEAD, boxShadow: "0 12px 40px rgba(233,30,140,0.45)", textDecoration: "none", display: "inline-flex", alignItems: "center", gap: 10 }}><span style={{ fontSize: 22 }}>🧬</span> Wertetest starten</a>
               <button onClick={function () { go("kontakt"); }} style={{ background: "rgba(255,255,255,0.12)", color: "#fff", border: "1.5px solid rgba(255,255,255,0.4)", borderRadius: 99, padding: "20px 36px", fontSize: 17, fontWeight: 600, cursor: "pointer", fontFamily: HEAD, backdropFilter: "blur(8px)" }}>Jetzt anfragen</button>
-            </div>
-          </FadeIn>
-          <FadeIn delay={0.4}>
-            <div style={{ marginTop: 40, display: "inline-flex", alignItems: "center", gap: 10, background: "rgba(255,255,255,0.1)", padding: "10px 20px", borderRadius: 99, backdropFilter: "blur(8px)", border: "1px solid rgba(255,255,255,0.18)" }}>
-              <span style={{ fontSize: 18 }}>💎</span>
-              <span style={{ fontSize: 13, color: "rgba(255,255,255,0.9)", fontWeight: 500, letterSpacing: 0.3 }}>Auf Basis der <strong style={{ color: "#fff" }}>Valueverse</strong>-Methode — seit Jahren bewährt in Unternehmen.</span>
             </div>
           </FadeIn>
         </div>
@@ -467,6 +461,60 @@ function ValueSchool() {
           </FadeIn>
           <FadeIn delay={0.2}>
             <Fact dark color={CYAN} stat="264" text="Jugendliche in einer Nature-Studie: Wer sich selbst emotional kennt, zeigt signifikant mehr Resilienz, ein stärkeres Selbstbild und höhere Lebensmotivation. Sich kennen ist kein Luxus — es ist Schutz." src="Scientific Reports, 2024" />
+          </FadeIn>
+        </div>
+      </section>
+
+      {/* ═══════════ UNSERE STORY / VALUEVERSE-FUNDAMENT ═══════════ */}
+      <section style={{ background: WARM, padding: "clamp(70px, 10vw, 110px) 24px", position: "relative", overflow: "hidden" }}>
+        <Starburst color={BLUE} size={380} top="-140px" right="-100px" opacity={0.05} />
+        <Starburst color={ORANGE} size={220} bottom="-80px" left="-60px" opacity={0.06} />
+        <div style={{ maxWidth: 1000, margin: "0 auto", position: "relative", zIndex: 1 }}>
+          <FadeIn>
+            <div style={{ textAlign: "center", marginBottom: 40 }}>
+              <span style={{ display: "inline-block", fontSize: 12, fontWeight: 800, color: PINK, textTransform: "uppercase", letterSpacing: 3, background: PINK + "15", padding: "6px 16px", borderRadius: 99, marginBottom: 18 }}>Unsere Story</span>
+              <h2 style={{ fontFamily: BANG, fontSize: "clamp(32px, 5.5vw, 54px)", fontWeight: 400, letterSpacing: 2, textTransform: "uppercase", color: BLUE, lineHeight: 1.1, marginBottom: 20 }}>
+                Value School ist <span style={{ color: ORANGE }}>kein Experiment.</span>
+              </h2>
+              <p style={{ fontSize: "clamp(16px, 2vw, 19px)", color: TXT, lineHeight: 1.65, maxWidth: 780, margin: "0 auto" }}>
+                <strong>Valueverse</strong> ist das Wertemodell, das Hendrik Martens vor Jahren entwickelt hat. Mit den <strong>Valueneers</strong> bringen wir das Modell in Form von Wertespielen seit Jahren in Unternehmen, Coachings und Teams — weltweit.
+              </p>
+              <p style={{ fontSize: "clamp(16px, 2vw, 19px)", color: TXT, lineHeight: 1.65, maxWidth: 780, margin: "18px auto 0" }}>
+                Dabei haben wir eines klar gesehen: <strong style={{ color: BLUE }}>Bei jungen Menschen wirkt die Methode noch stärker.</strong> Der spielerische Ansatz trifft sie dort, wo es zählt. Deshalb gibt es jetzt <strong>Value School</strong>.
+              </p>
+            </div>
+          </FadeIn>
+
+          <FadeIn delay={0.15}>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: 18, marginTop: 40 }}>
+              {[
+                { n: "+70.000", c: ORANGE, t: "Wertespiele im Einsatz", d: "verkauft an Unternehmen, Coaches und Trainer weltweit." },
+                { n: "+250.000", c: PINK, t: "Menschen erreicht", d: "haben mit der Valueverse-Methode ihre Werte entdeckt und benannt." },
+                { n: "+10.000", c: CYAN, t: "Coaches & Lehrende", d: "arbeiten täglich mit unseren Werkzeugen — in Teams, Klassen und Coachings." },
+              ].map(function (x, i) {
+                return (
+                  <div key={i} style={{ background: "#fff", borderRadius: 20, padding: "28px 24px", border: "1px solid " + x.c + "25", boxShadow: "0 8px 28px -12px " + x.c + "40", position: "relative", overflow: "hidden", textAlign: "left" }}>
+                    <div style={{ position: "absolute", top: 0, right: 0, width: 100, height: 100, background: "radial-gradient(circle at top right, " + x.c + "20, transparent 70%)" }} />
+                    <div style={{ fontFamily: BANG, fontSize: "clamp(36px, 5vw, 52px)", color: x.c, letterSpacing: 1, lineHeight: 1, marginBottom: 10, position: "relative" }}>{x.n}</div>
+                    <div style={{ fontFamily: HEAD, fontSize: 15, fontWeight: 800, color: BLUE, marginBottom: 6, textTransform: "uppercase", letterSpacing: 1 }}>{x.t}</div>
+                    <div style={{ fontSize: 14, color: MUTED, lineHeight: 1.55 }}>{x.d}</div>
+                  </div>
+                );
+              })}
+            </div>
+          </FadeIn>
+
+          <FadeIn delay={0.3}>
+            <div style={{ textAlign: "center", marginTop: 36 }}>
+              <p style={{ fontSize: 15, color: MUTED, marginBottom: 16, fontStyle: "italic" }}>
+                Was in Unternehmen seit Jahren funktioniert, bringen wir jetzt dorthin, wo der Grundstein gelegt wird.
+              </p>
+              <div style={{ display: "flex", gap: 16, justifyContent: "center", flexWrap: "wrap" }}>
+                <a href="https://valueverse.de" target="_blank" rel="noopener" style={{ display: "inline-flex", alignItems: "center", gap: 8, fontSize: 14, color: BLUE, fontWeight: 600, textDecoration: "none", borderBottom: "2px solid " + BLUE + "40", paddingBottom: 2 }}>
+                  Valueneers / Wertespiele <span>→</span>
+                </a>
+              </div>
+            </div>
           </FadeIn>
         </div>
       </section>
@@ -705,60 +753,6 @@ function ValueSchool() {
       </section>
 
 
-
-      {/* ═══════════ UNSERE STORY / VALUEVERSE-FUNDAMENT ═══════════ */}
-      <section style={{ background: WARM, padding: "clamp(70px, 10vw, 110px) 24px", position: "relative", overflow: "hidden" }}>
-        <Starburst color={BLUE} size={380} top="-140px" right="-100px" opacity={0.05} />
-        <Starburst color={ORANGE} size={220} bottom="-80px" left="-60px" opacity={0.06} />
-        <div style={{ maxWidth: 1000, margin: "0 auto", position: "relative", zIndex: 1 }}>
-          <FadeIn>
-            <div style={{ textAlign: "center", marginBottom: 40 }}>
-              <span style={{ display: "inline-block", fontSize: 12, fontWeight: 800, color: PINK, textTransform: "uppercase", letterSpacing: 3, background: PINK + "15", padding: "6px 16px", borderRadius: 99, marginBottom: 18 }}>Unsere Story</span>
-              <h2 style={{ fontFamily: BANG, fontSize: "clamp(32px, 5.5vw, 54px)", fontWeight: 400, letterSpacing: 2, textTransform: "uppercase", color: BLUE, lineHeight: 1.1, marginBottom: 20 }}>
-                Value School ist <span style={{ color: ORANGE }}>kein Experiment.</span>
-              </h2>
-              <p style={{ fontSize: "clamp(16px, 2vw, 19px)", color: TXT, lineHeight: 1.65, maxWidth: 780, margin: "0 auto" }}>
-                <strong>Valueverse</strong> ist das Wertemodell, das Hendrik Martens vor Jahren entwickelt hat. Mit den <strong>Valueneers</strong> bringen wir das Modell in Form von Wertespielen seit Jahren in Unternehmen, Coachings und Teams — weltweit.
-              </p>
-              <p style={{ fontSize: "clamp(16px, 2vw, 19px)", color: TXT, lineHeight: 1.65, maxWidth: 780, margin: "18px auto 0" }}>
-                Dabei haben wir eines klar gesehen: <strong style={{ color: BLUE }}>Bei jungen Menschen wirkt die Methode noch stärker.</strong> Der spielerische Ansatz trifft sie dort, wo es zählt. Deshalb gibt es jetzt <strong>Value School</strong>.
-              </p>
-            </div>
-          </FadeIn>
-
-          <FadeIn delay={0.15}>
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: 18, marginTop: 40 }}>
-              {[
-                { n: "+70.000", c: ORANGE, t: "Wertespiele im Einsatz", d: "verkauft an Unternehmen, Coaches und Trainer weltweit." },
-                { n: "+250.000", c: PINK, t: "Menschen erreicht", d: "haben mit der Valueverse-Methode ihre Werte entdeckt und benannt." },
-                { n: "+10.000", c: CYAN, t: "Coaches & Lehrende", d: "arbeiten täglich mit unseren Werkzeugen — in Teams, Klassen und Coachings." },
-              ].map(function (x, i) {
-                return (
-                  <div key={i} style={{ background: "#fff", borderRadius: 20, padding: "28px 24px", border: "1px solid " + x.c + "25", boxShadow: "0 8px 28px -12px " + x.c + "40", position: "relative", overflow: "hidden", textAlign: "left" }}>
-                    <div style={{ position: "absolute", top: 0, right: 0, width: 100, height: 100, background: "radial-gradient(circle at top right, " + x.c + "20, transparent 70%)" }} />
-                    <div style={{ fontFamily: BANG, fontSize: "clamp(36px, 5vw, 52px)", color: x.c, letterSpacing: 1, lineHeight: 1, marginBottom: 10, position: "relative" }}>{x.n}</div>
-                    <div style={{ fontFamily: HEAD, fontSize: 15, fontWeight: 800, color: BLUE, marginBottom: 6, textTransform: "uppercase", letterSpacing: 1 }}>{x.t}</div>
-                    <div style={{ fontSize: 14, color: MUTED, lineHeight: 1.55 }}>{x.d}</div>
-                  </div>
-                );
-              })}
-            </div>
-          </FadeIn>
-
-          <FadeIn delay={0.3}>
-            <div style={{ textAlign: "center", marginTop: 36 }}>
-              <p style={{ fontSize: 15, color: MUTED, marginBottom: 16, fontStyle: "italic" }}>
-                Was in Unternehmen seit Jahren funktioniert, bringen wir jetzt dorthin, wo der Grundstein gelegt wird.
-              </p>
-              <div style={{ display: "flex", gap: 16, justifyContent: "center", flexWrap: "wrap" }}>
-                <a href="https://valueverse.de" target="_blank" rel="noopener" style={{ display: "inline-flex", alignItems: "center", gap: 8, fontSize: 14, color: BLUE, fontWeight: 600, textDecoration: "none", borderBottom: "2px solid " + BLUE + "40", paddingBottom: 2 }}>
-                  Valueneers / Wertespiele <span>→</span>
-                </a>
-              </div>
-            </div>
-          </FadeIn>
-        </div>
-      </section>
 
       {/* ═══════════ WERTETEST TEASER ═══════════ */}
       <section style={{ background: "linear-gradient(135deg, " + PINK + " 0%, " + ORANGE + " 100%)", padding: "clamp(80px, 12vw, 130px) 24px", position: "relative", overflow: "hidden" }}>
