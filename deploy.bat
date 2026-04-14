@@ -1,5 +1,9 @@
 @echo off
 cd /d C:\Users\hendr\claude\landingpage
+echo === Hole Aenderungen von GitHub ===
+git pull --rebase
+echo.
+echo === Pushe lokale Aenderungen ===
 git add .
 git commit -m "Update Value School"
 git push
