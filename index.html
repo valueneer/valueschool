@@ -18,6 +18,14 @@
 </head>
 <body>
   <div id="root"></div>
+  <!-- Hidden form for Netlify Forms detection (build-time crawler) -->
+  <form name="kontakt" data-netlify="true" netlify-honeypot="bot-field" hidden>
+    <input type="text" name="bot-field" />
+    <input type="text" name="name" />
+    <input type="email" name="email" />
+    <input type="text" name="schule" />
+    <textarea name="msg"></textarea>
+  </form>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.9/babel.min.js"></script>
@@ -730,21 +738,37 @@ function ValueSchool() {
             </FadeIn>
           ) : (
             <FadeIn>
-              <div style={{ background: WARM, borderRadius: 20, padding: "28px 24px" }}>
+              <form name="kontakt" method="POST" data-netlify="true" netlify-honeypot="bot-field"
+                    onSubmit={function (e) {
+                      e.preventDefault();
+                      if (!form.name || !form.email) return;
+                      var data = new FormData();
+                      data.append("form-name", "kontakt");
+                      data.append("name", form.name);
+                      data.append("email", form.email);
+                      data.append("schule", form.schule);
+                      data.append("msg", form.msg);
+                      fetch("/", { method: "POST", body: new URLSearchParams(data).toString(), headers: { "Content-Type": "application/x-www-form-urlencoded" } })
+                        .then(function (r) { if (r.ok) { setSent(true); } else { alert("Etwas ging schief. Bitte versuche es nochmal oder schreibe an sebastian@valueverse.de"); } })
+                        .catch(function () { alert("Netzwerkfehler. Bitte versuche es nochmal oder schreibe an sebastian@valueverse.de"); });
+                    }}
+                    style={{ background: WARM, borderRadius: 20, padding: "28px 24px" }}>
+                <input type="hidden" name="form-name" value="kontakt" />
+                <p style={{ display: "none" }}><label>Bitte nicht ausfüllen: <input name="bot-field" /></label></p>
                 {[{ k: "name", l: "Dein Name", p: "Max Mustermann" }, { k: "email", l: "E-Mail", p: "max@schule.de" }, { k: "schule", l: "Schule / Organisation", p: "Gymnasium Musterstadt" }].map(function (f) {
                   return (
                     <div key={f.k} style={{ marginBottom: 16 }}>
                       <label style={{ fontSize: 13, fontWeight: 600, color: BLUE, display: "block", marginBottom: 5 }}>{f.l}</label>
-                      <input value={form[f.k]} onChange={function (e) { var n = {}; n[f.k] = e.target.value; setForm(Object.assign({}, form, n)); }} placeholder={f.p} style={{ width: "100%", padding: "14px 18px", fontSize: 16, borderRadius: 12, border: "2px solid #e5e7eb", outline: "none", boxSizing: "border-box" }} />
+                      <input name={f.k} type={f.k === "email" ? "email" : "text"} required={f.k !== "schule"} value={form[f.k]} onChange={function (e) { var n = {}; n[f.k] = e.target.value; setForm(Object.assign({}, form, n)); }} placeholder={f.p} style={{ width: "100%", padding: "14px 18px", fontSize: 16, borderRadius: 12, border: "2px solid #e5e7eb", outline: "none", boxSizing: "border-box" }} />
                     </div>
                   );
                 })}
                 <div style={{ marginBottom: 16 }}>
                   <label style={{ fontSize: 13, fontWeight: 600, color: BLUE, display: "block", marginBottom: 5 }}>Nachricht (optional)</label>
-                  <textarea value={form.msg} onChange={function (e) { setForm(Object.assign({}, form, { msg: e.target.value })); }} placeholder="Was beschäftigt dich an deiner Schule? Was wünschst du dir?" rows={3} style={{ width: "100%", padding: "14px 18px", fontSize: 16, borderRadius: 12, border: "2px solid #e5e7eb", outline: "none", boxSizing: "border-box", resize: "vertical" }} />
+                  <textarea name="msg" value={form.msg} onChange={function (e) { setForm(Object.assign({}, form, { msg: e.target.value })); }} placeholder="Was beschäftigt dich an deiner Schule? Was wünschst du dir?" rows={3} style={{ width: "100%", padding: "14px 18px", fontSize: 16, borderRadius: 12, border: "2px solid #e5e7eb", outline: "none", boxSizing: "border-box", resize: "vertical" }} />
                 </div>
-                <button onClick={function () { if (form.name && form.email) setSent(true); }} style={{ width: "100%", background: BLUE, color: "#fff", border: "none", borderRadius: 99, padding: "16px 32px", fontSize: 17, fontWeight: 700, cursor: "pointer", fontFamily: HEAD }}>Anfrage senden</button>
-              </div>
+                <button type="submit" style={{ width: "100%", background: BLUE, color: "#fff", border: "none", borderRadius: 99, padding: "16px 32px", fontSize: 17, fontWeight: 700, cursor: "pointer", fontFamily: HEAD }}>Anfrage senden</button>
+              </form>
             </FadeIn>
           )}
           <div style={{ marginTop: 20, textAlign: "center", fontSize: 14, color: MUTED }}>
