@@ -113,21 +113,25 @@ function ImgBox(props) {
   var accent = props.accent || PINK;
   return (
     <div style={{
-      aspectRatio: props.ratio || "21/9", width: "100%", maxWidth: "100%", borderRadius: 24,
+      aspectRatio: props.ratio || "21/9", borderRadius: 0,
       background: hasSrc ? "#0a0a14" : "linear-gradient(135deg, " + BLUE + "10, " + PINK + "06)",
       display: "flex", alignItems: "flex-end", justifyContent: "flex-start",
       border: "none", overflow: "hidden",
-      position: "relative", margin: "8px 0 28px",
-      boxShadow: "0 24px 60px -16px rgba(28,27,94,0.35), 0 0 0 1px rgba(255,255,255,0.04)",
+      position: "relative",
+      width: "100vw", marginLeft: "calc(50% - 50vw)", marginRight: "calc(50% - 50vw)",
+      marginTop: "clamp(40px, 6vw, 70px)", marginBottom: "clamp(40px, 6vw, 70px)",
+      boxShadow: "0 24px 60px -16px rgba(28,27,94,0.35)",
     }}>
       {hasSrc ? (
         <React.Fragment>
           <img src={props.src} alt={props.label || ""} onError={function() { setError(true); }} style={{ width: "100%", height: "100%", objectFit: "cover", position: "absolute", inset: 0 }} />
           <div style={{ position: "absolute", inset: 0, background: "linear-gradient(180deg, rgba(0,0,0,0) 35%, rgba(0,0,0,0.45) 75%, rgba(0,0,0,0.75) 100%)", pointerEvents: "none" }} />
-          <div style={{ position: "absolute", top: 18, left: 18, background: accent, color: "#fff", fontSize: 11, fontWeight: 800, letterSpacing: 2, textTransform: "uppercase", padding: "6px 12px", borderRadius: 99 }}>{props.tag || "Realität"}</div>
+          <div style={{ position: "absolute", top: "clamp(20px, 3vw, 40px)", left: "max(24px, calc(50% - 550px))", background: accent, color: "#fff", fontSize: 12, fontWeight: 800, letterSpacing: 2, textTransform: "uppercase", padding: "6px 14px", borderRadius: 99, zIndex: 2 }}>{props.tag || "Realität"}</div>
           {props.quote && (
-            <div style={{ position: "relative", zIndex: 1, padding: "clamp(20px, 4vw, 40px)", color: "#fff", maxWidth: "90%" }}>
-              <div style={{ fontFamily: BANG, fontSize: "clamp(18px, 2.6vw, 28px)", letterSpacing: 1.5, lineHeight: 1.25, textTransform: "uppercase", textShadow: "0 2px 16px rgba(0,0,0,0.5)" }}>{props.quote}</div>
+            <div style={{ position: "relative", zIndex: 1, width: "100%", paddingBottom: "clamp(28px, 5vw, 60px)" }}>
+              <div style={{ maxWidth: 1100, margin: "0 auto", padding: "0 24px", color: "#fff" }}>
+                <div style={{ fontFamily: BANG, fontSize: "clamp(22px, 3.6vw, 44px)", letterSpacing: 1.5, lineHeight: 1.15, textTransform: "uppercase", textShadow: "0 2px 16px rgba(0,0,0,0.5)", maxWidth: 760 }}>{props.quote}</div>
+              </div>
             </div>
           )}
         </React.Fragment>
