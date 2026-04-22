@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Finanzierung prüfen — Value School</title>
+  <meta name="description" content="Prüfe kostenfrei, welche Fördermittel für Value School an deiner Schule verfügbar sind.">
+  <meta name="robots" content="noindex,follow">
+
+  <!-- Brevo Tracking -->
+  <script src="https://cdn.brevo.com/js/sdk-loader.js" async></script>
+  <script>
+    // Version: 2.0
+    window.Brevo = window.Brevo || [];
+    Brevo.push([
+      "init",
+      {
+        client_key: "5hjjfnj2uicgx2zzxv1lzh36"
+      }
+    ]);
+  </script>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Outfit:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --blue: #2E2D8E;
+      --blue-dk: #1C1B5E;
+      --pink: #E91E8C;
+      --cyan: #00BCD4;
+      --orange: #F7941D;
+      --green: #7CC142;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { min-height: 100%; }
+    body {
+      font-family: 'Outfit', system-ui, -apple-system, 'Segoe UI', sans-serif;
+      background: linear-gradient(135deg, var(--green) 0%, #4a8a2a 100%);
+      color: #fff;
+      -webkit-font-smoothing: antialiased;
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+    }
+    .wrap {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: clamp(20px, 5vw, 60px);
+    }
+    .card {
+      max-width: 680px;
+      width: 100%;
+      text-align: center;
+      position: relative;
+    }
+    .badge {
+      display: inline-block;
+      background: rgba(255,255,255,0.15);
+      color: #fff;
+      padding: 8px 18px;
+      border-radius: 99px;
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      margin-bottom: 28px;
+      backdrop-filter: blur(6px);
+    }
+    h1 {
+      font-family: 'Bangers', system-ui, sans-serif;
+      font-size: clamp(36px, 7vw, 64px);
+      letter-spacing: 2px;
+      line-height: 1.1;
+      margin-bottom: 20px;
+      text-transform: uppercase;
+    }
+    h1 .accent { color: var(--orange); }
+    .lead {
+      font-size: clamp(17px, 2.2vw, 20px);
+      line-height: 1.55;
+      color: rgba(255,255,255,0.9);
+      margin-bottom: 32px;
+      max-width: 540px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+    .benefits {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 14px;
+      margin-bottom: 36px;
+      text-align: left;
+    }
+    .benefit {
+      background: rgba(255,255,255,0.12);
+      border-radius: 14px;
+      padding: 16px 18px;
+      backdrop-filter: blur(6px);
+      font-size: 15px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .benefit .icon { font-size: 22px; }
+    .cta-row {
+      display: flex;
+      gap: 14px;
+      justify-content: center;
+      flex-wrap: wrap;
+      margin-bottom: 28px;
+    }
+    .btn {
+      display: inline-block;
+      padding: 16px 32px;
+      border-radius: 99px;
+      font-family: 'Bangers', system-ui, sans-serif;
+      font-size: 17px;
+      letter-spacing: 1.5px;
+      text-decoration: none;
+      text-transform: uppercase;
+      transition: transform 0.15s ease, box-shadow 0.15s ease;
+    }
+    .btn-primary {
+      background: var(--orange);
+      color: #fff;
+      box-shadow: 0 8px 24px rgba(247, 148, 29, 0.45);
+    }
+    .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 12px 28px rgba(247, 148, 29, 0.55); }
+    .btn-ghost {
+      background: rgba(255,255,255,0.12);
+      color: #fff;
+      border: 2px solid rgba(255,255,255,0.3);
+    }
+    .btn-ghost:hover { background: rgba(255,255,255,0.2); transform: translateY(-2px); }
+    .footer-note {
+      font-size: 14px;
+      color: rgba(255,255,255,0.75);
+      line-height: 1.5;
+    }
+    .footer-note a { color: #fff; text-decoration: underline; }
+
+    .deco {
+      position: absolute;
+      border-radius: 50%;
+      pointer-events: none;
+      z-index: 0;
+    }
+    .deco-1 { top: -80px; right: -60px; width: 220px; height: 220px; background: radial-gradient(circle, rgba(247,148,29,0.35), transparent 70%); }
+    .deco-2 { bottom: -100px; left: -80px; width: 280px; height: 280px; background: radial-gradient(circle, rgba(255,255,255,0.15), transparent 70%); }
+
+    .card > * { position: relative; z-index: 1; }
+
+    footer {
+      padding: 20px;
+      text-align: center;
+      font-size: 12px;
+      color: rgba(255,255,255,0.6);
+    }
+    footer a { color: rgba(255,255,255,0.8); text-decoration: none; margin: 0 8px; }
+    footer a:hover { text-decoration: underline; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="card">
+      <div class="deco deco-1"></div>
+      <div class="deco deco-2"></div>
+
+      <span class="badge">Finanzierungs-Check</span>
+      <h1>Finanzierung für <span class="accent">deine Schule</span> prüfen</h1>
+      <p class="lead">
+        Value School kann über verschiedene Fördertöpfe finanziert werden — oft ohne Eigenbeitrag der Schule.
+        Wir prüfen kostenfrei für dich, welche Möglichkeiten in deinem Bundesland verfügbar sind.
+      </p>
+
+      <div class="benefits">
+        <div class="benefit"><span class="icon">✓</span> Kostenfreie Prüfung</div>
+        <div class="benefit"><span class="icon">✓</span> Unverbindlich</div>
+        <div class="benefit"><span class="icon">✓</span> Fördermittel-Expertise</div>
+      </div>
+
+      <p class="lead" style="margin-bottom: 24px; font-size: 16px;">
+        Wir melden uns innerhalb von 2 Werktagen mit konkreten Optionen bei dir.
+      </p>
+
+      <div class="cta-row">
+        <a href="https://calendly.com/lets-play/50min" class="btn btn-primary">Jetzt Gespräch buchen →</a>
+        <a href="mailto:hendrik@valueverse.de?subject=Finanzierung%20Value%20School" class="btn btn-ghost">E-Mail schreiben</a>
+      </div>
+
+      <p class="footer-note">
+        Fragen vorab? <a href="mailto:hendrik@valueverse.de">hendrik@valueverse.de</a>
+      </p>
+    </div>
+  </div>
+
+  <footer>
+    <a href="https://value-school.de">value-school.de</a>·
+    <a href="https://value-school.de#kontakt">Kontakt</a>
+  </footer>
+</body>
+</html>
