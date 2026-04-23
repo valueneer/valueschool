@@ -1,0 +1,508 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Welcher Werte-Typ bist du? — Value School Minitest</title>
+  <meta name="description" content="5 echte Konfliktszenarien aus deinem Schulalltag. 1 Minute. Am Ende kennst du deinen Werte-Typ — und weißt, was deine Schule wirklich braucht.">
+
+  <!-- Brevo Tracking -->
+  <script src="https://cdn.brevo.com/js/sdk-loader.js" async></script>
+  <script>
+    window.Brevo = window.Brevo || [];
+    Brevo.push(["init", { client_key: "5hjjfnj2uicgx2zzxv1lzh36" }]);
+  </script>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Outfit:wght@400;600;700;800;900&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --blue: #2E2D8E;
+      --blue-dk: #1C1B5E;
+      --pink: #E91E8C;
+      --cyan: #00BCD4;
+      --green: #7CC142;
+      --orange: #F7941D;
+      --bang: 'Bangers', system-ui, sans-serif;
+      --body: 'Outfit', 'DM Sans', system-ui, sans-serif;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: var(--body);
+      color: #1a1a1a;
+      background: #fff;
+      -webkit-font-smoothing: antialiased;
+      line-height: 1.55;
+    }
+
+    /* HEADER */
+    header {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 100;
+      background: #000;
+      padding: 14px 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    header .logo {
+      font-family: var(--bang);
+      font-size: 22px;
+      letter-spacing: 2px;
+      color: #fff;
+      text-decoration: none;
+    }
+    header .back {
+      color: rgba(255,255,255,0.7);
+      font-size: 14px;
+      text-decoration: none;
+      font-weight: 500;
+    }
+    header .back:hover { color: #fff; }
+
+    /* HERO */
+    .hero {
+      min-height: 100vh;
+      background: linear-gradient(160deg, var(--blue-dk) 0%, var(--blue) 100%);
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 120px 24px 80px;
+      position: relative;
+      overflow: hidden;
+    }
+    .hero::before, .hero::after {
+      content: '';
+      position: absolute;
+      border-radius: 50%;
+      pointer-events: none;
+    }
+    .hero::before {
+      top: -200px; right: -150px;
+      width: 500px; height: 500px;
+      background: radial-gradient(circle, rgba(0,188,212,0.20), transparent 70%);
+    }
+    .hero::after {
+      bottom: -180px; left: -120px;
+      width: 400px; height: 400px;
+      background: radial-gradient(circle, rgba(233,30,140,0.18), transparent 70%);
+    }
+    .hero-inner {
+      max-width: 920px;
+      width: 100%;
+      text-align: center;
+      position: relative;
+      z-index: 1;
+    }
+    .badge {
+      display: inline-block;
+      background: rgba(255,255,255,0.12);
+      backdrop-filter: blur(8px);
+      color: #fff;
+      padding: 10px 22px;
+      border-radius: 99px;
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      margin-bottom: 32px;
+      border: 1px solid rgba(255,255,255,0.18);
+    }
+    .hero h1 {
+      font-family: var(--bang);
+      font-size: clamp(48px, 9vw, 96px);
+      letter-spacing: 3px;
+      line-height: 1;
+      text-transform: uppercase;
+      margin-bottom: 24px;
+      text-shadow: 0 4px 24px rgba(0,0,0,0.25);
+    }
+    .hero h1 .accent { color: var(--pink); }
+    .hero .lead {
+      font-size: clamp(18px, 2.4vw, 22px);
+      color: rgba(255,255,255,0.92);
+      margin: 0 auto 44px;
+      max-width: 680px;
+      font-weight: 400;
+    }
+    .cta-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+      background: linear-gradient(135deg, var(--pink), var(--orange));
+      color: #fff;
+      padding: 22px 48px;
+      border-radius: 99px;
+      font-family: var(--bang);
+      font-size: 22px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      text-decoration: none;
+      box-shadow: 0 16px 48px rgba(233,30,140,0.45);
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+      border: none;
+      cursor: pointer;
+    }
+    .cta-btn:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 20px 56px rgba(233,30,140,0.55);
+    }
+    .cta-meta {
+      margin-top: 20px;
+      font-size: 14px;
+      color: rgba(255,255,255,0.7);
+      letter-spacing: 0.5px;
+    }
+
+    /* WHY-NOW */
+    .why-section {
+      background: #fff;
+      padding: clamp(80px, 12vw, 120px) 24px;
+    }
+    .why-inner {
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+    .why-section h2 {
+      font-family: var(--bang);
+      font-size: clamp(36px, 6vw, 56px);
+      text-align: center;
+      letter-spacing: 2px;
+      line-height: 1.1;
+      text-transform: uppercase;
+      color: var(--blue-dk);
+      margin-bottom: 18px;
+    }
+    .why-section .sub {
+      text-align: center;
+      font-size: clamp(16px, 1.8vw, 19px);
+      color: #555;
+      max-width: 640px;
+      margin: 0 auto 56px;
+    }
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 28px;
+    }
+    .stat-card {
+      background: #fff;
+      border: 2px solid;
+      border-radius: 20px;
+      padding: 32px 28px;
+      transition: transform 0.2s ease;
+    }
+    .stat-card:hover { transform: translateY(-4px); }
+    .stat-card .stat {
+      font-family: var(--bang);
+      font-size: clamp(40px, 5vw, 56px);
+      letter-spacing: 1px;
+      line-height: 1;
+      margin-bottom: 14px;
+    }
+    .stat-card .text {
+      font-size: 16px;
+      color: #2a2a2a;
+      line-height: 1.5;
+      margin-bottom: 12px;
+    }
+    .stat-card .src {
+      font-size: 12px;
+      color: #888;
+      letter-spacing: 0.5px;
+    }
+    .stat-card.pink { border-color: var(--pink); }
+    .stat-card.pink .stat { color: var(--pink); }
+    .stat-card.orange { border-color: var(--orange); }
+    .stat-card.orange .stat { color: var(--orange); }
+    .stat-card.cyan { border-color: var(--cyan); }
+    .stat-card.cyan .stat { color: var(--cyan); }
+
+    /* WHAT YOU GET */
+    .what-section {
+      background: linear-gradient(160deg, var(--blue-dk), var(--blue));
+      color: #fff;
+      padding: clamp(80px, 12vw, 120px) 24px;
+      position: relative;
+      overflow: hidden;
+    }
+    .what-section::before {
+      content: '';
+      position: absolute;
+      top: -100px; right: -80px;
+      width: 320px; height: 320px;
+      background: radial-gradient(circle, rgba(247,148,29,0.15), transparent 70%);
+      border-radius: 50%;
+      pointer-events: none;
+    }
+    .what-inner {
+      max-width: 1000px;
+      margin: 0 auto;
+      position: relative;
+      z-index: 1;
+    }
+    .what-section h2 {
+      font-family: var(--bang);
+      font-size: clamp(34px, 5.5vw, 50px);
+      text-align: center;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      margin-bottom: 50px;
+      line-height: 1.1;
+    }
+    .what-list {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 24px;
+    }
+    .what-item {
+      background: rgba(255,255,255,0.08);
+      backdrop-filter: blur(8px);
+      border: 1px solid rgba(255,255,255,0.18);
+      border-radius: 18px;
+      padding: 28px 24px;
+    }
+    .what-item .num {
+      font-family: var(--bang);
+      font-size: 36px;
+      color: var(--cyan);
+      letter-spacing: 1px;
+      margin-bottom: 14px;
+    }
+    .what-item .title {
+      font-family: var(--bang);
+      font-size: 22px;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      margin-bottom: 10px;
+      color: #fff;
+    }
+    .what-item .desc {
+      font-size: 15px;
+      color: rgba(255,255,255,0.78);
+      line-height: 1.5;
+    }
+
+    /* TEST PLACEHOLDER */
+    .test-placeholder {
+      background: #fafafa;
+      padding: clamp(80px, 12vw, 120px) 24px;
+      text-align: center;
+      color: #555;
+      border-top: 4px dashed #ddd;
+      border-bottom: 4px dashed #ddd;
+    }
+    .test-placeholder .ph-icon {
+      font-size: 48px;
+      margin-bottom: 16px;
+    }
+    .test-placeholder .ph-title {
+      font-family: var(--bang);
+      font-size: 28px;
+      letter-spacing: 2px;
+      color: var(--blue-dk);
+      margin-bottom: 14px;
+      text-transform: uppercase;
+    }
+    .test-placeholder .ph-text {
+      max-width: 480px;
+      margin: 0 auto;
+      font-size: 15px;
+      color: #777;
+    }
+
+    /* FINAL CTA */
+    .final-cta {
+      background: linear-gradient(135deg, var(--pink) 0%, var(--orange) 100%);
+      color: #fff;
+      padding: clamp(80px, 12vw, 130px) 24px;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+    .final-cta::before, .final-cta::after {
+      content: '';
+      position: absolute;
+      border-radius: 50%;
+      pointer-events: none;
+    }
+    .final-cta::before {
+      top: -200px; right: -150px;
+      width: 500px; height: 500px;
+      background: radial-gradient(circle, rgba(255,255,255,0.20), transparent 70%);
+    }
+    .final-cta::after {
+      bottom: -180px; left: -120px;
+      width: 400px; height: 400px;
+      background: radial-gradient(circle, rgba(255,255,255,0.14), transparent 70%);
+    }
+    .final-cta-inner {
+      position: relative;
+      z-index: 1;
+      max-width: 720px;
+      margin: 0 auto;
+    }
+    .final-cta h2 {
+      font-family: var(--bang);
+      font-size: clamp(40px, 7vw, 70px);
+      letter-spacing: 2px;
+      line-height: 1.1;
+      text-transform: uppercase;
+      margin-bottom: 22px;
+    }
+    .final-cta p {
+      font-size: clamp(17px, 2.2vw, 21px);
+      color: rgba(255,255,255,0.95);
+      margin-bottom: 40px;
+    }
+    .cta-btn-light {
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+      background: #fff;
+      color: var(--pink);
+      padding: 22px 48px;
+      border-radius: 99px;
+      font-family: var(--bang);
+      font-size: 22px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      text-decoration: none;
+      box-shadow: 0 16px 48px rgba(0,0,0,0.25);
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    .cta-btn-light:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 20px 56px rgba(0,0,0,0.3);
+    }
+
+    /* FOOTER */
+    footer {
+      background: #000;
+      color: rgba(255,255,255,0.55);
+      padding: 36px 24px;
+      text-align: center;
+      font-size: 13px;
+    }
+    footer a {
+      color: rgba(255,255,255,0.75);
+      text-decoration: none;
+      margin: 0 10px;
+      transition: color 0.2s;
+    }
+    footer a:hover { color: #fff; }
+    .footer-meta {
+      margin-top: 12px;
+      font-size: 11px;
+      color: rgba(255,255,255,0.4);
+      letter-spacing: 0.5px;
+    }
+
+    @media (max-width: 600px) {
+      header .logo { font-size: 18px; }
+      header .back { font-size: 12px; }
+      .hero { padding: 100px 18px 60px; }
+      .cta-btn, .cta-btn-light { padding: 18px 32px; font-size: 18px; }
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <a href="https://value-school.de" class="logo">VALUE SCHOOL</a>
+    <a href="https://value-school.de" class="back">← Zur Hauptseite</a>
+  </header>
+
+  <!-- HERO -->
+  <section class="hero">
+    <div class="hero-inner">
+      <span class="badge">🧭 1-Min-Wertetest · für die Schule</span>
+      <h1>Spür mal, wie <span class="accent">krass</span> das ist.</h1>
+      <p class="lead">5 echte Konfliktszenarien aus deinem Schulalltag. 1 Minute. Am Ende kennst du deinen Werte-Typ — und weißt, was deine Schule wirklich braucht.</p>
+      <a href="#test" class="cta-btn">Test starten →</a>
+      <div class="cta-meta">Kostenfrei · 1 Minute · DSGVO-konform</div>
+    </div>
+  </section>
+
+  <!-- WHY -->
+  <section class="why-section">
+    <div class="why-inner">
+      <h2>Warum Werte in der Schule alles entscheiden</h2>
+      <p class="sub">Drei Zahlen, die die ganze Geschichte erzählen — und warum dieser Test dich nicht kalt lässt.</p>
+      <div class="stats-grid">
+        <div class="stat-card pink">
+          <div class="stat">90%</div>
+          <p class="text">der Menschen kennen ihre eigenen Werte nicht wirklich. Wer sich selbst nicht kennt, wird zum Spielball äußerer Einflüsse — und gibt diesen Zustand an die nächste Generation weiter.</p>
+          <div class="src">Eurich, 2018</div>
+        </div>
+        <div class="stat-card orange">
+          <div class="stat">+11%</div>
+          <p class="text">bessere Schulleistungen in Programmen, die Werte- und Selbstbewusstsein integrieren. Wertebildung macht Schule messbar besser — wissenschaftlich belegt.</p>
+          <div class="src">Durlak et al., Meta-Analyse 2011</div>
+        </div>
+        <div class="stat-card cyan">
+          <div class="stat">6–12 J.</div>
+          <p class="text">sind die entscheidende Phase, in der sich Werte formen. Die Schule ist neben der Familie der wichtigste Ort, an dem das passiert. Verschenken können wir diese Zeit nicht.</p>
+          <div class="src">Knafo-Noam et al., 2024</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- WHAT YOU GET -->
+  <section class="what-section">
+    <div class="what-inner">
+      <h2>Was du in 1 Minute mitnimmst</h2>
+      <div class="what-list">
+        <div class="what-item">
+          <div class="num">01</div>
+          <div class="title">Dein Werte-Typ</div>
+          <div class="desc">Persönliche Auswertung — bist du Sicherheits-, Beziehungs-, Veränderungs- oder Erfüllungs-Typ?</div>
+        </div>
+        <div class="what-item">
+          <div class="num">02</div>
+          <div class="title">Was das heißt</div>
+          <div class="desc">Klartext, was dein Werte-Typ für dich UND für deine Schule wirklich bedeutet.</div>
+        </div>
+        <div class="what-item">
+          <div class="num">03</div>
+          <div class="title">Dein nächster Schritt</div>
+          <div class="desc">Konkrete Hinweise, wie du Wertebildung an deiner Schule ins Rollen bringst.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- TEST PLACEHOLDER -->
+  <section id="test" class="test-placeholder">
+    <div class="ph-icon">🚧</div>
+    <div class="ph-title">Hier kommt der Test rein</div>
+    <p class="ph-text">Die 5 Fragen + Auswertung kommen in der nächsten Iteration genau an diese Stelle. Landingpage steht — Test wird jetzt drauf gesetzt.</p>
+  </section>
+
+  <!-- FINAL CTA -->
+  <section class="final-cta">
+    <div class="final-cta-inner">
+      <h2>Bereit, dich kennenzulernen?</h2>
+      <p>1 Minute. 5 Fragen. Eine Erkenntnis, die dich nicht mehr loslässt.</p>
+      <a href="#test" class="cta-btn-light">Jetzt loslegen →</a>
+    </div>
+  </section>
+
+  <footer>
+    <div>
+      <a href="https://value-school.de">value-school.de</a>·
+      <a href="https://value-school.de#kontakt">Kontakt</a>·
+      <a href="https://value-school.de#impressum">Impressum</a>·
+      <a href="https://value-school.de#datenschutz">Datenschutz</a>
+    </div>
+    <div class="footer-meta">Value School ist ein gemeinnütziges Wertebildungsprogramm.</div>
+  </footer>
+
+</body>
+</html>
