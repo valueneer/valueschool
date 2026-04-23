@@ -288,32 +288,383 @@
       line-height: 1.5;
     }
 
-    /* TEST PLACEHOLDER */
-    .test-placeholder {
-      background: #fafafa;
-      padding: clamp(80px, 12vw, 120px) 24px;
+    /* TEST SECTION */
+    .test-section {
+      background: linear-gradient(180deg, #f8f8fb 0%, #ffffff 100%);
+      padding: clamp(60px, 10vw, 100px) 20px;
+      min-height: 80vh;
+    }
+    .test-container {
+      max-width: 720px;
+      margin: 0 auto;
+    }
+    .test-progress {
+      margin-bottom: 32px;
+    }
+    .progress-track {
+      width: 100%;
+      height: 8px;
+      background: #e8e8ee;
+      border-radius: 99px;
+      overflow: hidden;
+    }
+    .progress-bar {
+      height: 100%;
+      background: linear-gradient(90deg, var(--pink), var(--orange));
+      border-radius: 99px;
+      transition: width 0.4s ease;
+      width: 0%;
+    }
+    .progress-text {
+      text-align: center;
+      margin-top: 12px;
+      font-size: 13px;
+      color: #888;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      font-weight: 600;
+    }
+    .test-content {
+      animation: fadeIn 0.4s ease;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ROLE SELECTOR */
+    .state-roles h2 {
+      font-family: var(--bang);
+      font-size: clamp(32px, 5vw, 48px);
+      text-align: center;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--blue-dk);
+      margin-bottom: 12px;
+      line-height: 1.1;
+    }
+    .state-roles .intro-text {
+      text-align: center;
+      color: #666;
+      font-size: 16px;
+      margin-bottom: 36px;
+    }
+    .role-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 14px;
+    }
+    .role-card {
+      background: #fff;
+      border: 2px solid #e8e8ee;
+      border-radius: 16px;
+      padding: 20px 22px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      font-family: var(--body);
+      text-align: left;
+      width: 100%;
+    }
+    .role-card:hover {
+      border-color: var(--pink);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(233,30,140,0.12);
+    }
+    .role-card .emoji {
+      font-size: 32px;
+      flex-shrink: 0;
+    }
+    .role-card .role-label {
+      font-size: 16px;
+      font-weight: 600;
+      color: #1a1a1a;
+    }
+
+    /* QUESTION */
+    .state-question .question-theme {
+      text-align: center;
+      font-size: 12px;
+      color: var(--pink);
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      font-weight: 700;
+      margin-bottom: 14px;
+    }
+    .question-card {
+      background: #fff;
+      border-radius: 22px;
+      padding: clamp(24px, 4vw, 36px);
+      box-shadow: 0 12px 36px rgba(28,27,94,0.08);
+      margin-bottom: 24px;
+      border: 1px solid #eee;
+    }
+    .question-card .scenario {
+      font-size: clamp(16px, 2.1vw, 19px);
+      line-height: 1.6;
+      color: #1a1a1a;
+    }
+    .answers {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+    }
+    @media (max-width: 600px) {
+      .answers { grid-template-columns: 1fr; }
+    }
+    .answer-card {
+      background: #fff;
+      border: 2px solid #e8e8ee;
+      border-radius: 18px;
+      padding: 22px 20px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      font-family: var(--body);
+      text-align: left;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .answer-card:hover {
+      border-color: var(--blue);
+      transform: translateY(-3px);
+      box-shadow: 0 12px 28px rgba(46,45,142,0.15);
+    }
+    .answer-card .value-name {
+      font-family: var(--bang);
+      font-size: 22px;
+      letter-spacing: 1.5px;
+      color: var(--blue-dk);
+      text-transform: uppercase;
+      line-height: 1;
+    }
+    .answer-card .action {
+      font-size: 15px;
+      line-height: 1.45;
+      color: #444;
+    }
+    .answer-card.selected {
+      border-color: var(--pink);
+      background: linear-gradient(135deg, rgba(233,30,140,0.05), rgba(247,148,29,0.05));
+    }
+
+    /* LEAD FORM */
+    .state-lead h2 {
+      font-family: var(--bang);
+      font-size: clamp(30px, 5vw, 44px);
+      text-align: center;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--blue-dk);
+      margin-bottom: 12px;
+      line-height: 1.1;
+    }
+    .state-lead .lead-intro {
       text-align: center;
       color: #555;
-      border-top: 4px dashed #ddd;
-      border-bottom: 4px dashed #ddd;
+      font-size: 16px;
+      margin-bottom: 28px;
+      max-width: 480px;
+      margin-left: auto;
+      margin-right: auto;
     }
-    .test-placeholder .ph-icon {
-      font-size: 48px;
-      margin-bottom: 16px;
+    .lead-form {
+      background: #fff;
+      border-radius: 22px;
+      padding: clamp(24px, 4vw, 36px);
+      box-shadow: 0 12px 36px rgba(28,27,94,0.08);
+      border: 1px solid #eee;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
     }
-    .test-placeholder .ph-title {
+    .lead-form input[type="text"],
+    .lead-form input[type="email"] {
+      width: 100%;
+      padding: 16px 18px;
+      border: 2px solid #e8e8ee;
+      border-radius: 12px;
+      font-size: 16px;
+      font-family: var(--body);
+      transition: border-color 0.2s;
+    }
+    .lead-form input:focus {
+      outline: none;
+      border-color: var(--pink);
+    }
+    .consent {
+      display: flex;
+      gap: 10px;
+      align-items: flex-start;
+      font-size: 13px;
+      color: #555;
+      line-height: 1.5;
+      cursor: pointer;
+    }
+    .consent input[type="checkbox"] {
+      margin-top: 3px;
+      flex-shrink: 0;
+    }
+    .consent a { color: var(--pink); text-decoration: underline; }
+    .lead-form button {
+      margin-top: 8px;
+      background: linear-gradient(135deg, var(--pink), var(--orange));
+      color: #fff;
+      border: none;
+      padding: 18px 32px;
+      border-radius: 99px;
       font-family: var(--bang);
-      font-size: 28px;
+      font-size: 20px;
       letter-spacing: 2px;
+      text-transform: uppercase;
+      cursor: pointer;
+      box-shadow: 0 12px 32px rgba(233,30,140,0.35);
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .lead-form button:hover:not(:disabled) {
+      transform: translateY(-2px);
+      box-shadow: 0 16px 40px rgba(233,30,140,0.45);
+    }
+    .lead-form button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    /* RESULT */
+    .state-result {
+      text-align: center;
+    }
+    .state-result .badge {
+      display: inline-block;
+      background: rgba(46,45,142,0.08);
       color: var(--blue-dk);
+      padding: 8px 18px;
+      border-radius: 99px;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      margin-bottom: 24px;
+    }
+    .result-emoji {
+      font-size: 80px;
+      line-height: 1;
       margin-bottom: 14px;
+    }
+    .result-type-name {
+      font-family: var(--bang);
+      font-size: clamp(48px, 8vw, 80px);
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      line-height: 1;
+      margin-bottom: 12px;
+    }
+    .result-type-desc {
+      font-size: 18px;
+      color: #555;
+      max-width: 480px;
+      margin: 0 auto 32px;
+      line-height: 1.5;
+    }
+    .result-scores {
+      background: #fff;
+      border-radius: 18px;
+      padding: 24px;
+      margin: 0 auto 32px;
+      max-width: 460px;
+      box-shadow: 0 8px 24px rgba(28,27,94,0.08);
+      border: 1px solid #eee;
+    }
+    .score-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+    .score-row:last-child { margin-bottom: 0; }
+    .score-label {
+      font-family: var(--bang);
+      font-size: 16px;
+      letter-spacing: 1px;
+      width: 130px;
+      text-align: left;
       text-transform: uppercase;
     }
-    .test-placeholder .ph-text {
-      max-width: 480px;
-      margin: 0 auto;
+    .score-bar-track {
+      flex: 1;
+      height: 12px;
+      background: #f0f0f5;
+      border-radius: 99px;
+      overflow: hidden;
+    }
+    .score-bar-fill {
+      height: 100%;
+      border-radius: 99px;
+      transition: width 0.6s ease;
+    }
+    .score-value {
+      font-family: var(--bang);
+      font-size: 16px;
+      letter-spacing: 1px;
+      width: 30px;
+      text-align: right;
+    }
+    .result-note {
+      background: rgba(124,193,66,0.1);
+      border: 1px solid rgba(124,193,66,0.3);
+      border-radius: 14px;
+      padding: 18px 22px;
+      margin-bottom: 28px;
       font-size: 15px;
-      color: #777;
+      color: #2a2a2a;
+      max-width: 520px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+    .result-cta {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      background: var(--blue-dk);
+      color: #fff;
+      padding: 18px 36px;
+      border-radius: 99px;
+      font-family: var(--bang);
+      font-size: 18px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      text-decoration: none;
+      box-shadow: 0 12px 32px rgba(28,27,94,0.25);
+      transition: transform 0.2s;
+    }
+    .result-cta:hover { transform: translateY(-2px); }
+
+    /* LOADING */
+    .state-loading {
+      text-align: center;
+      padding: 60px 20px;
+    }
+    .spinner {
+      display: inline-block;
+      width: 48px;
+      height: 48px;
+      border: 5px solid #e8e8ee;
+      border-top-color: var(--pink);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      margin-bottom: 20px;
+    }
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+    .loading-text {
+      font-family: var(--bang);
+      font-size: 22px;
+      letter-spacing: 2px;
+      color: var(--blue-dk);
+      text-transform: uppercase;
     }
 
     /* FINAL CTA */
@@ -478,11 +829,17 @@
     </div>
   </section>
 
-  <!-- TEST PLACEHOLDER -->
-  <section id="test" class="test-placeholder">
-    <div class="ph-icon">🚧</div>
-    <div class="ph-title">Hier kommt der Test rein</div>
-    <p class="ph-text">Die 5 Fragen + Auswertung kommen in der nächsten Iteration genau an diese Stelle. Landingpage steht — Test wird jetzt drauf gesetzt.</p>
+  <!-- TEST -->
+  <section id="test" class="test-section">
+    <div class="test-container">
+      <div class="test-progress" id="testProgress" style="display:none">
+        <div class="progress-track"><div class="progress-bar" id="progressBar"></div></div>
+        <div class="progress-text" id="progressText">Frage 1 von 5</div>
+      </div>
+      <div class="test-content" id="testContent">
+        <!-- gets filled by JS -->
+      </div>
+    </div>
   </section>
 
   <!-- FINAL CTA -->
@@ -493,6 +850,504 @@
       <a href="#test" class="cta-btn-light">Jetzt loslegen →</a>
     </div>
   </section>
+
+  <script>
+    // ═══════════════════════════════════════════
+    // VALUE SCHOOL MINITEST — Logic
+    // ═══════════════════════════════════════════
+
+    // Supabase (gleiches Projekt wie der alte Wertetest)
+    const SUPABASE_URL = "https://iwsgkwmtsrqpqlahvrhl.supabase.co";
+    const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Iml3c2drd210c3JxcHFsYWh2cmhsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ2MjM4ODMsImV4cCI6MjA5MDE5OTg4M30.elfrwQNUhw75rFQ6eRCrXQdKidt3T1WIQmdodyHbzMg";
+
+    // Mapping unsere 4 Typen → Brevo-Attribut "TYP-SCHNELLTEST_WERTE" (A-G slots)
+    // Vorläufig: A/B/C/D — Klärung mit Matthias steht noch aus
+    const TYPE_TO_LETTER = {
+      sicherheit:   "A",
+      beziehung:    "B",
+      veraenderung: "C",
+      erfuellung:   "D"
+    };
+
+    const ROLES = {
+      schulleitung: { label: "Schulleiterin oder Schulleiter", emoji: "🎓" },
+      lehrkraft:    { label: "Lehrerin oder Lehrer",            emoji: "📚" },
+      schueler:     { label: "Schülerin oder Schüler",          emoji: "🎒" },
+      eltern:       { label: "Elternteil",                       emoji: "👨‍👩‍👧" },
+      sonstige:     { label: "Sonstige (z.B. päd. interessiert)", emoji: "✨" }
+    };
+
+    const TYPES = {
+      sicherheit:   { name: "Sicherheit",   emoji: "🟠", color: "#F7941D", desc: "Halt, Klarheit, Ordnung — du gibst Struktur und Verlässlichkeit." },
+      beziehung:    { name: "Beziehung",    emoji: "🩷", color: "#E91E8C", desc: "Verbindung, Nähe, Gemeinschaft — du hältst Menschen zusammen." },
+      veraenderung: { name: "Veränderung",  emoji: "🔵", color: "#2E2D8E", desc: "Wachstum, Neues, Entwicklung — du treibst Wandel voran." },
+      erfuellung:   { name: "Erfüllung",    emoji: "🟢", color: "#7CC142", desc: "Sinn, Selbstbestimmung, Selbstfindung — du folgst deinem inneren Kompass." }
+    };
+
+    const QUESTIONS = [
+      {
+        id: 1,
+        theme: "Bewährtes wird aufgeweicht",
+        roles: {
+          schulleitung: {
+            scenario: "In deinem Kollegium gibt es eine Lehrkraft, die zunehmend von Vorgaben abweicht — kommt zu spät, gibt eigene Regeln raus, ignoriert Vereinbarungen. Das Kollegium wartet auf deine Reaktion. Was tust du?",
+            a: { value: "Empathie",       action: "Ich frage vorsichtig nach, was eigentlich los ist.",                              type: "beziehung"  },
+            b: { value: "Zuverlässigkeit", action: "Ich spreche die Person klar an und setze die Regeln durch.",                     type: "sicherheit" }
+          },
+          lehrkraft: {
+            scenario: "Eine deiner Schülerinnen hat seit zwei Wochen ihre Hausaufgaben nicht abgegeben. Sie ist sonst absolut zuverlässig. Heute siehst du, wie sie in der Pause weint, willst sie ansprechen — sie wendet sich ab. Morgen ist Notenstichtag. Was tust du?",
+            a: { value: "Empathie",       action: "Ich gebe ihr Zeit, lass die Hausaufgabe diesmal durchgehen. Die Note kann warten.", type: "beziehung"  },
+            b: { value: "Zuverlässigkeit", action: "Ich notiere die fehlende Hausaufgabe wie bei allen anderen.",                      type: "sicherheit" }
+          },
+          schueler: {
+            scenario: "In eurer Klasse gilt: Bei Gruppenarbeiten machen alle mit. Einer aus eurer Gruppe lässt euch wieder mal die ganze Arbeit machen. Was tust du?",
+            a: { value: "Mitgefühl",     action: "Ich frag ihn allein, ob bei ihm gerade was nicht stimmt.",     type: "beziehung"  },
+            b: { value: "Gerechtigkeit", action: "Ich sage es offen in der Gruppe: So geht's nicht weiter.",     type: "sicherheit" }
+          },
+          eltern: {
+            scenario: "Bei euch gilt: 30 Minuten Bildschirmzeit am Tag. Dein Kind testet diese Regel ständig — argumentiert, verhandelt, weicht aus. Heute schon eine Stunde länger. Was tust du?",
+            a: { value: "Empathie",       action: "Ich setze mich dazu und frage, was gerade los ist.",                  type: "beziehung"  },
+            b: { value: "Zuverlässigkeit", action: "Ich nehme das Gerät weg und erinnere an unsere Vereinbarung.",       type: "sicherheit" }
+          },
+          sonstige: {
+            scenario: "In deinem Umfeld gibt's eine eingespielte Routine, die alle gut finden. Eine neue Person bricht sie immer wieder — nicht böse, aber konsequent. Andere schauen zu dir. Was tust du?",
+            a: { value: "Empathie",  action: "Ich suche das Gespräch und versuche zu verstehen, warum.",  type: "beziehung"  },
+            b: { value: "Tradition", action: "Ich spreche an: Die Routine gibt's nicht ohne Grund.",      type: "sicherheit" }
+          }
+        }
+      },
+      {
+        id: 2,
+        theme: "Du siehst, wie jemand schlecht behandelt wird",
+        roles: {
+          schulleitung: {
+            scenario: "Du merkst seit Monaten: An eurer Schule entsteht eine schleichende Kultur, in der sich die 'starken' Schüler*innen über die schwächeren stellen. Drei Lehrkräfte haben dich leise drauf angesprochen. Du könntest in der nächsten Schulkonferenz eine offene Aussprache ansetzen — riskierst aber Außenwirkung. Was tust du?",
+            a: { value: "Rücksichtnahme", action: "Ich arbeite leise: Einzelgespräche mit Klassenleitungen, gezielte Maßnahmen pro Klasse.", type: "beziehung" },
+            b: { value: "Authentizität", action: "Ich setze die Aussprache an und mache es zum Schulthema. Auch wenn der Ruf leidet.",       type: "erfuellung" }
+          },
+          lehrkraft: {
+            scenario: "Im Lehrerzimmer wird über einen 'Problemschüler' gelästert — er kassiert wieder eine Vier, sei eh nicht zu retten. Du weißt: Sein Vater liegt schwer krank im Krankenhaus. Wenn du den Hintergrund ausplauderst, verletzt du seine Privatsphäre. Was tust du?",
+            a: { value: "Rücksichtnahme", action: "Ich werfe einen Satz ein, der lenkt: 'Vielleicht ist da was bei ihm los, was wir nicht wissen.'", type: "beziehung" },
+            b: { value: "Authentizität", action: "Ich sage klar: 'So wollen wir nicht über Schüler reden. Punkt.'",                                  type: "erfuellung" }
+          },
+          schueler: {
+            scenario: "In eurer Klassen-WhatsApp wird seit Tagen über ein Mädchen gelästert, das auf Klassenfahrt mit jemandem im Zelt war. Alle finden's witzig. Sie ist gar nicht in der Gruppe — sie weiß nichts. Wenn du dich einmischst, bist du nächste Woche dran. Was tust du?",
+            a: { value: "Harmonie",     action: "Ich schweige in der Gruppe. Spreche stattdessen sie persönlich an.", type: "beziehung" },
+            b: { value: "Authentizität", action: "Ich schreibe in die Gruppe: 'Hört auf, das ist eklig.'",            type: "erfuellung" }
+          },
+          eltern: {
+            scenario: "Beim Elternabend reden zwei Mütter abfällig über die Familie eines Kindes ('Was wundert man sich, bei DENEN'). Andere nicken. Wenn du widersprichst, machst du dir die einflussreichsten Eltern zum Feind, was deine Kinder spüren werden. Was tust du?",
+            a: { value: "Rücksichtnahme", action: "Ich höre zu, will den Abend nicht kippen. Sage es danach unter vier Augen.",     type: "beziehung" },
+            b: { value: "Authentizität",  action: "Ich sage laut: 'So reden wir hier nicht über Kinder oder Eltern. Bitte hört auf.'", type: "erfuellung" }
+          },
+          sonstige: {
+            scenario: "In deinem Umfeld wird offen abfällig über eine bestimmte Gruppe gesprochen ('die lernen's eh nicht'). Niemand widerspricht. Wenn du das tust, gibt's einen langen Streit und du giltst danach als 'der eine, der das Politische macht'. Was tust du?",
+            a: { value: "Harmonie",       action: "Ich halte mich raus. Das kläre ich nicht in einer Tischrunde.", type: "beziehung" },
+            b: { value: "Andersartigkeit", action: "Ich sage offen, was ich denke. Auch wenn ich danach allein dastehe.", type: "erfuellung" }
+          }
+        }
+      },
+      {
+        id: 3,
+        theme: "Generationenkonflikt",
+        roles: {
+          schulleitung: {
+            scenario: "Eine Gruppe junger Lehrkräfte schlägt vor, klassische Klassenarbeiten teilweise durch Lernportfolios zu ersetzen. Drei alteingesessene Kollegen lehnen ab: 'Das verwässert die Qualität.' Eltern und Träger werden Fragen stellen. Was tust du?",
+            a: { value: "Aufgeschlossenheit", action: "Ich starte einen Pilot in zwei Klassen, hol die Alteingesessenen ins Pilot-Design rein.", type: "veraenderung" },
+            b: { value: "Tradition",          action: "Ich vertage. Für so eine Veränderung müssen alle im Boot sein.",                          type: "sicherheit" }
+          },
+          lehrkraft: {
+            scenario: "Eine sehr engagierte Schülerin will ihre Hausaufgabe lieber als Video machen statt als Aufsatz. Pädagogisch wäre das spannend. Aber: andere werden 'Warum darf SIE das?' fragen, der Bewertungsaufwand explodiert, Kollegen gucken schief. Was tust du?",
+            a: { value: "Mut",       action: "Ich lass sie das Video machen, dokumentiere es als Experiment, mach's in der Konferenz transparent.", type: "veraenderung" },
+            b: { value: "Disziplin", action: "Ich sage: Schriftlich ist die Aufgabe für alle, das hat Gründe.",                                     type: "sicherheit" }
+          },
+          schueler: {
+            scenario: "Beim Familienrat: Du willst dieses Jahr NICHT in den Sommerurlaub — sondern in ein Workcamp, etwas Eigenes machen. Deine Eltern reagieren skeptisch. Wenn du dich durchsetzt, gibt's wochenlang schlechte Stimmung zuhause. Was tust du?",
+            a: { value: "Mut",       action: "Ich erkläre, warum mir das wichtig ist, und sage: Ich mach das. Auch wenn ihr's nicht versteht.", type: "veraenderung" },
+            b: { value: "Tradition", action: "Ich gehe mit. Familienurlaub ist bei uns Tradition — das verschenken wir nicht.",                  type: "sicherheit" }
+          },
+          eltern: {
+            scenario: "Dein 17-jähriger Sohn will nach dem Abi NICHT studieren, sondern Wwoofing durch Europa, dann Schreinerlehre. Verwandtschaft (und dein Partner) hat ihn auf BWL ausgerichtet. Wenn du ihn unterstützt, gehst du gegen die Familie. Was tust du?",
+            a: { value: "Aufgeschlossenheit", action: "Ich unterstütze seinen Weg offen — und nehm in Kauf, dass ich's der Verwandtschaft erkläre.", type: "veraenderung" },
+            b: { value: "Tradition",          action: "Ich versuche, ihn auf den bewährten Weg zurückzuholen. BWL hält viele Türen offen.",          type: "sicherheit" }
+          },
+          sonstige: {
+            scenario: "In deinem Umfeld wird etwas Etabliertes radikal in Frage gestellt — wie ihr im Verein entscheidet, in der Firma arbeitet. Eine jüngere Generation will das ganz anders. Du wirst gefragt, wo du stehst. Was tust du?",
+            a: { value: "Innovation", action: "Ich stelle mich hinter das Neue und nehme die Reibung mit den Älteren in Kauf.",       type: "veraenderung" },
+            b: { value: "Tradition",  action: "Ich verteidige das Bewährte. Es gibt Gründe, warum wir das so machen.",                type: "sicherheit" }
+          }
+        }
+      },
+      {
+        id: 4,
+        theme: "Du bist mit deiner Situation nicht happy",
+        roles: {
+          schulleitung: {
+            scenario: "Du bist seit 8 Jahren Schulleitung. Die Schule läuft gut, die Zahlen stimmen. Aber etwas in dir sagt: Es ist nicht mehr DEIN Projekt. Eine andere Schule sucht eine Leitung — komplett neuer Aufbau. Spannender, aber alles hier — Team, Routinen — bliebe zurück. Was tust du?",
+            a: { value: "Authentizität", action: "Ich höre auf mein Bauchgefühl. Wenn das Feuer hier weg ist, dann muss ich gehen.", type: "erfuellung" },
+            b: { value: "Verantwortung", action: "Ich krempel hier was um. 8 Jahre Aufbau wirft man nicht weg.",                     type: "veraenderung" }
+          },
+          lehrkraft: {
+            scenario: "Seit 12 Jahren Lehrkraft. Du machst deinen Job gut. Aber: Seit Corona spürst du keine echte Verbindung mehr. Manchmal denkst du an Coaching, raus aus der Schule. Aber Familie, Gehalt, Kollegen brauchen dich. Was tust du?",
+            a: { value: "Authentizität", action: "Ich nehme mir die Frage ernst, was wirklich zu mir passt — auch wenn das Veränderung bedeutet.", type: "erfuellung" },
+            b: { value: "Entwicklung",   action: "Ich gestalte meinen Job aktiv um. Bevor ich gehe, hol ich mir den Drive zurück.",                type: "veraenderung" }
+          },
+          schueler: {
+            scenario: "Du bist 15. Schule fühlt sich gerade leer an. Noten okay, Freunde da — aber irgendwas fehlt. Wenn du mit deinen Eltern darüber redest, sagen sie: 'Das ist die Pubertät, das geht vorbei.' Was tust du?",
+            a: { value: "Selbstverwirklichung", action: "Ich nehm die Sache selbst in die Hand, suche raus was MIR was bedeutet.", type: "erfuellung" },
+            b: { value: "Spontaneität",         action: "Ich probier was Neues aus — andere Hobbys, andere Leute, raus aus der Routine.", type: "veraenderung" }
+          },
+          eltern: {
+            scenario: "Seit 12 Jahren Elternteil. Es funktioniert alles. Aber du merkst, dass du als 'Mensch' kaum noch vorkommst. Wenn du dich fragst 'wer bin ich noch außerhalb dieser Rollen?' — kommt nicht viel. Was tust du?",
+            a: { value: "Gelassenheit", action: "Ich höre auf mich, frage was ich für MICH brauche — nehme mir konsequent Zeit dafür.", type: "erfuellung" },
+            b: { value: "Entwicklung",  action: "Ich gestalte meinen Alltag aktiv um, baue neue Routinen ein, suche Neues was mich nährt.", type: "veraenderung" }
+          },
+          sonstige: {
+            scenario: "Seit Monaten merkst du: Dein Leben ist nicht rund. Es funktioniert alles — Job, Beziehungen, Wohnen. Aber etwas Zentrales fehlt. Du sitzt manchmal abends da und fragst dich: 'Ist das alles?' Was tust du?",
+            a: { value: "Selbstverwirklichung", action: "Ich höre genauer auf mich — was wirklich passt, was mich nährt, was Sinn ergibt.", type: "erfuellung" },
+            b: { value: "Verantwortung",        action: "Ich nehme das Heft in die Hand und gestalte aktiv um — was auch immer dran ist.",   type: "veraenderung" }
+          }
+        }
+      },
+      {
+        id: 5,
+        theme: "Konflikt mit jemandem in deinem Umfeld",
+        roles: {
+          schulleitung: {
+            scenario: "Der Schulträger teilt dir mit: Eure Personalmittel werden nächstes Jahr gekürzt — du sollst eine Stelle einsparen. Du könntest die Streichung 'durchwinken' und im Kollegium politisch mildern — oder vor dem Träger offen Position beziehen. Politisch riskant. Was tust du?",
+            a: { value: "Loyalität",     action: "Ich versuche, die Streichung intern abzufedern und investiere meine Energie ins Kollegium.", type: "beziehung" },
+            b: { value: "Verantwortung", action: "Ich beziehe öffentlich Position gegen den Träger — auch wenn's mich politisch was kostet.",  type: "veraenderung" }
+          },
+          lehrkraft: {
+            scenario: "Du hast einen langen Konflikt mit einem Elternteil über die Bewertung des Kindes. Es eskaliert: Schriftliche Beschwerde an die Schulleitung, du seist 'voreingenommen'. Du weißt: Du hast korrekt bewertet — aber dieser Konflikt zieht sich monatelang. Was tust du?",
+            a: { value: "Toleranz",      action: "Ich treffe mich mit den Eltern, höre genau zu, suche einen Weg — auch wenn ich Kompromisse machen muss.", type: "beziehung" },
+            b: { value: "Verantwortung", action: "Ich bleibe bei meiner Einschätzung. Würde ich nachgeben, würden andere Eltern denken: Wer laut ist, bekommt Recht.", type: "veraenderung" }
+          },
+          schueler: {
+            scenario: "Du hast einen schweren Konflikt mit deiner besten Freundin / deinem besten Freund. Es geht um etwas Grundlegendes — ihr habt unterschiedliche Werte. Eine Stimme sagt: 'Lass die Freundschaft retten.' Eine andere: 'Vielleicht wachsen wir auseinander.' Was tust du?",
+            a: { value: "Treue", action: "Ich mache den ersten Schritt, kämpfe um die Freundschaft. Wir kennen uns zu lange.", type: "beziehung" },
+            b: { value: "Mut",   action: "Ich sage, was Sache ist — und akzeptiere, wenn das die Freundschaft beendet.",       type: "veraenderung" }
+          },
+          eltern: {
+            scenario: "Seit Monaten Spannung mit deinem Partner über die Erziehung eures Kindes. Beim letzten Streit habt ihr euch tief verletzt. Bald ist Eltern-Sprechstunde — und ihr werdet vor der Lehrerin gemeinsam darstellen müssen, wie ihr zuhause vorgeht. Was tust du?",
+            a: { value: "Toleranz",      action: "Ich suche einen gemeinsamen Weg, der für uns beide tragbar ist — auch wenn ich Abstriche machen muss.", type: "beziehung" },
+            b: { value: "Verantwortung", action: "Ich beziehe Position für meinen Erziehungsstil, auch wenn's neuen Streit gibt.",                          type: "veraenderung" }
+          },
+          sonstige: {
+            scenario: "Du hast ein dauerhaftes Reibungsverhältnis mit jemandem in deinem Umfeld — Verein, Freundeskreis, Familie. Es belastet dich seit Monaten. Du könntest weiter aushalten oder die Situation aufbrechen. Was tust du?",
+            a: { value: "Toleranz",      action: "Ich suche das Gespräch, will die Verbindung halten und einen Weg finden, der für beide trägt.", type: "beziehung" },
+            b: { value: "Verantwortung", action: "Ich bringe es auf den Punkt — auch wenn die Beziehung das nicht überlebt.",                      type: "veraenderung" }
+          }
+        }
+      }
+    ];
+
+    // ═══════════════ State ═══════════════
+    const state = {
+      role: null,
+      currentQ: 0,
+      answers: [],   // [{ q: 1, choice: 'a', type: 'beziehung', value: 'Empathie' }, ...]
+      lead: { vorname: "", nachname: "", email: "" },
+      result: null
+    };
+
+    // ═══════════════ DOM Helpers ═══════════════
+    const $ = (id) => document.getElementById(id);
+    const content = $("testContent");
+    const progressEl = $("testProgress");
+    const progressBar = $("progressBar");
+    const progressText = $("progressText");
+
+    function setProgress(visible, current, total) {
+      if (!visible) {
+        progressEl.style.display = "none";
+        return;
+      }
+      progressEl.style.display = "block";
+      const pct = Math.round((current / total) * 100);
+      progressBar.style.width = pct + "%";
+      progressText.textContent = "Frage " + current + " von " + total;
+    }
+
+    function scrollToTest() {
+      const target = $("test");
+      if (target) {
+        const y = target.getBoundingClientRect().top + window.scrollY - 20;
+        window.scrollTo({ top: y, behavior: "smooth" });
+      }
+    }
+
+    function escapeHtml(str) {
+      const div = document.createElement("div");
+      div.textContent = str;
+      return div.innerHTML;
+    }
+
+    // ═══════════════ Render Functions ═══════════════
+    function renderRoleSelector() {
+      setProgress(false);
+      let html = '<div class="state-roles">';
+      html += '<h2>Wer bist du?</h2>';
+      html += '<p class="intro-text">Damit wir dir die richtigen Szenarien zeigen.</p>';
+      html += '<div class="role-grid">';
+      Object.entries(ROLES).forEach(([key, r]) => {
+        html += `<button class="role-card" onclick="selectRole('${key}')">`;
+        html += `<span class="emoji">${r.emoji}</span>`;
+        html += `<span class="role-label">${r.label}</span>`;
+        html += '</button>';
+      });
+      html += '</div></div>';
+      content.innerHTML = html;
+      content.style.animation = "none";
+      void content.offsetWidth;
+      content.style.animation = "fadeIn 0.4s ease";
+    }
+
+    function renderQuestion() {
+      const qIdx = state.currentQ;
+      const q = QUESTIONS[qIdx];
+      const r = q.roles[state.role];
+      setProgress(true, qIdx + 1, QUESTIONS.length);
+
+      let html = '<div class="state-question">';
+      html += `<div class="question-theme">Szenario · ${escapeHtml(q.theme)}</div>`;
+      html += '<div class="question-card">';
+      html += `<p class="scenario">${escapeHtml(r.scenario)}</p>`;
+      html += '</div>';
+      html += '<div class="answers">';
+      html += `<button class="answer-card" onclick="answer('a')">`;
+      html += `<span class="value-name">${escapeHtml(r.a.value)}</span>`;
+      html += `<span class="action">${escapeHtml(r.a.action)}</span>`;
+      html += '</button>';
+      html += `<button class="answer-card" onclick="answer('b')">`;
+      html += `<span class="value-name">${escapeHtml(r.b.value)}</span>`;
+      html += `<span class="action">${escapeHtml(r.b.action)}</span>`;
+      html += '</button>';
+      html += '</div></div>';
+      content.innerHTML = html;
+      content.style.animation = "none";
+      void content.offsetWidth;
+      content.style.animation = "fadeIn 0.4s ease";
+      scrollToTest();
+    }
+
+    function renderLeadForm() {
+      setProgress(false);
+      let html = '<div class="state-lead">';
+      html += '<h2>Eines noch.</h2>';
+      html += '<p class="lead-intro">Wo dürfen wir dir deine ausführliche Auswertung schicken?</p>';
+      html += '<form class="lead-form" onsubmit="submitLead(event)">';
+      html += '<input type="text" name="vorname" placeholder="Vorname" required autocomplete="given-name">';
+      html += '<input type="text" name="nachname" placeholder="Nachname" required autocomplete="family-name">';
+      html += '<input type="email" name="email" placeholder="Email" required autocomplete="email">';
+      html += '<label class="consent">';
+      html += '<input type="checkbox" required>';
+      html += '<span>Ich bin einverstanden, dass meine Auswertung an meine Email-Adresse geschickt wird. Mehr in der <a href="https://value-school.de#datenschutz" target="_blank">Datenschutzerklärung</a>.</span>';
+      html += '</label>';
+      html += '<button type="submit" id="leadBtn">Auswertung anfordern →</button>';
+      html += '</form></div>';
+      content.innerHTML = html;
+      content.style.animation = "none";
+      void content.offsetWidth;
+      content.style.animation = "fadeIn 0.4s ease";
+      scrollToTest();
+    }
+
+    function renderLoading() {
+      setProgress(false);
+      content.innerHTML = `
+        <div class="state-loading">
+          <div class="spinner"></div>
+          <div class="loading-text">Wir senden dir gleich deine Auswertung...</div>
+        </div>`;
+    }
+
+    function renderResult() {
+      setProgress(false);
+      const t = TYPES[state.result.type];
+      const scores = state.result.scores;
+      const order = ["sicherheit","beziehung","veraenderung","erfuellung"];
+      const max = Math.max(...Object.values(scores));
+
+      let html = '<div class="state-result">';
+      html += '<div class="badge">Dein Werte-Typ</div>';
+      html += `<div class="result-emoji">${t.emoji}</div>`;
+      html += `<div class="result-type-name" style="color:${t.color}">${t.name}</div>`;
+      html += `<p class="result-type-desc">${escapeHtml(t.desc)}</p>`;
+
+      html += '<div class="result-scores">';
+      order.forEach(k => {
+        const tt = TYPES[k];
+        const sc = scores[k] || 0;
+        const pct = max > 0 ? (sc / max) * 100 : 0;
+        html += '<div class="score-row">';
+        html += `<div class="score-label" style="color:${tt.color}">${tt.name}</div>`;
+        html += `<div class="score-bar-track"><div class="score-bar-fill" style="width:${pct}%;background:${tt.color}"></div></div>`;
+        html += `<div class="score-value" style="color:${tt.color}">${sc}</div>`;
+        html += '</div>';
+      });
+      html += '</div>';
+
+      html += '<div class="result-note">📩 <strong>Deine ausführliche Auswertung</strong> mit konkreten nächsten Schritten — was das für dich UND deine Schule bedeutet — bekommst du in den nächsten Minuten per Mail. Bitte schau auch in den Spam-Ordner.</div>';
+
+      html += '<a href="https://value-school.de" class="result-cta">Mehr über Value School →</a>';
+      html += '</div>';
+      content.innerHTML = html;
+      content.style.animation = "none";
+      void content.offsetWidth;
+      content.style.animation = "fadeIn 0.4s ease";
+      scrollToTest();
+    }
+
+    // ═══════════════ Logic ═══════════════
+    function selectRole(roleKey) {
+      state.role = roleKey;
+      state.currentQ = 0;
+      state.answers = [];
+      renderQuestion();
+    }
+    window.selectRole = selectRole;
+
+    function answer(choice) {
+      const q = QUESTIONS[state.currentQ];
+      const r = q.roles[state.role];
+      const picked = r[choice];
+      state.answers.push({ q: q.id, choice: choice, type: picked.type, value: picked.value });
+
+      if (state.currentQ < QUESTIONS.length - 1) {
+        state.currentQ++;
+        renderQuestion();
+      } else {
+        renderLeadForm();
+      }
+    }
+    window.answer = answer;
+
+    function calcScores() {
+      const scores = { sicherheit: 0, beziehung: 0, veraenderung: 0, erfuellung: 0 };
+      state.answers.forEach(a => { scores[a.type] = (scores[a.type] || 0) + 1; });
+      return scores;
+    }
+
+    function determineType(scores) {
+      const max = Math.max(...Object.values(scores));
+      const winners = Object.entries(scores).filter(([k,v]) => v === max).map(([k]) => k);
+      // Tiebreaker: simple random pick (TODO: dedicated tiebreaker question)
+      return winners[Math.floor(Math.random() * winners.length)];
+    }
+
+    // UTM-Parameter aus URL extrahieren (für Ad-Tracking)
+    function getUTM() {
+      const p = new URLSearchParams(window.location.search);
+      return {
+        utm_source:   p.get("utm_source")   || null,
+        utm_medium:   p.get("utm_medium")   || null,
+        utm_campaign: p.get("utm_campaign") || null
+      };
+    }
+
+    // Supabase: INSERT in minitest_results
+    async function saveToSupabase(payload) {
+      const r = await fetch(`${SUPABASE_URL}/rest/v1/minitest_results`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "apikey": SUPABASE_KEY,
+          "Authorization": `Bearer ${SUPABASE_KEY}`,
+          "Prefer": "return=minimal"
+        },
+        body: JSON.stringify(payload)
+      });
+      if (!r.ok) {
+        const t = await r.text().catch(() => "");
+        throw new Error(`Supabase ${r.status}: ${t}`);
+      }
+      return true;
+    }
+
+    // Brevo: via Netlify Function (API-Key bleibt server-seitig)
+    async function pushToBrevo(payload) {
+      const r = await fetch("/.netlify/functions/brevo-subscribe", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
+      if (!r.ok) {
+        const t = await r.text().catch(() => "");
+        throw new Error(`Brevo function ${r.status}: ${t}`);
+      }
+      return true;
+    }
+
+    async function submitLead(ev) {
+      ev.preventDefault();
+      const form = ev.target;
+      const data = new FormData(form);
+      state.lead.vorname  = data.get("vorname");
+      state.lead.nachname = data.get("nachname");
+      state.lead.email    = data.get("email");
+
+      const btn = $("leadBtn");
+      btn.disabled = true;
+      btn.textContent = "Wird gesendet...";
+
+      const scores       = calcScores();
+      const typeKey      = determineType(scores);
+      const typeLetter   = TYPE_TO_LETTER[typeKey];
+      const utm          = getUTM();
+      state.result = { scores: scores, type: typeKey };
+
+      renderLoading();
+
+      // 1) Supabase (Wahrheit / Persistenz)
+      const supaPayload = {
+        vorname:      state.lead.vorname,
+        nachname:     state.lead.nachname,
+        email:        state.lead.email,
+        rolle:        state.role,
+        answers:      state.answers,
+        scores:       scores,
+        wertetyp:     typeKey,
+        utm_source:   utm.utm_source,
+        utm_medium:   utm.utm_medium,
+        utm_campaign: utm.utm_campaign,
+        user_agent:   navigator.userAgent
+      };
+
+      // 2) Brevo (Funnel-Push via Netlify Function)
+      const brevoPayload = {
+        email:     state.lead.email,
+        vorname:   state.lead.vorname,
+        nachname:  state.lead.nachname,
+        rolle:     ROLES[state.role].label,
+        wertetyp:  typeLetter
+      };
+
+      // Submit-Pipeline (Supabase aktiv, Brevo aktuell deaktiviert bis API-Key da)
+      try {
+        await Promise.allSettled([
+          saveToSupabase(supaPayload).catch(e => { console.warn("Supabase save failed:", e); })
+
+          // ─── BREVO TEMPORÄR DEAKTIVIERT ───────────────────────────
+          // Sobald BREVO_API_KEY in Netlify Env Vars gesetzt ist:
+          // Comma oben hinzufügen und untenstehende Zeile aktivieren.
+          //
+          // , pushToBrevo(brevoPayload).catch(e => { console.warn("Brevo push failed:", e); })
+          // ──────────────────────────────────────────────────────────
+        ]);
+      } catch (e) {
+        console.warn("Submit pipeline error:", e);
+      }
+
+      renderResult();
+    }
+    window.submitLead = submitLead;
+
+    // ═══════════════ Init ═══════════════
+    document.addEventListener("DOMContentLoaded", function() {
+      renderRoleSelector();
+    });
+  </script>
 
   <footer>
     <div>
