@@ -450,6 +450,98 @@
       background: linear-gradient(135deg, rgba(233,30,140,0.05), rgba(247,148,29,0.05));
     }
 
+    /* TEASE (Vorauswertung) */
+    .state-tease {
+      background: linear-gradient(160deg, var(--blue-dk) 0%, var(--blue) 100%);
+      color: #fff;
+      border-radius: 24px;
+      padding: clamp(36px, 6vw, 56px) clamp(28px, 4.5vw, 48px);
+      box-shadow: 0 20px 60px rgba(28,27,94,0.25);
+      position: relative;
+      overflow: hidden;
+    }
+    .state-tease::before {
+      content: '';
+      position: absolute;
+      top: -100px; right: -80px;
+      width: 320px; height: 320px;
+      background: radial-gradient(circle, rgba(247,148,29,0.20), transparent 70%);
+      border-radius: 50%;
+      pointer-events: none;
+    }
+    .state-tease::after {
+      content: '';
+      position: absolute;
+      bottom: -100px; left: -80px;
+      width: 280px; height: 280px;
+      background: radial-gradient(circle, rgba(233,30,140,0.18), transparent 70%);
+      border-radius: 50%;
+      pointer-events: none;
+    }
+    .state-tease > * { position: relative; z-index: 1; }
+    .tease-badge {
+      display: inline-block;
+      background: rgba(255,255,255,0.15);
+      backdrop-filter: blur(8px);
+      color: #fff;
+      padding: 8px 18px;
+      border-radius: 99px;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      margin-bottom: 20px;
+      border: 1px solid rgba(255,255,255,0.18);
+    }
+    .state-tease h2 {
+      font-family: var(--bang);
+      font-size: clamp(40px, 6.5vw, 64px);
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      line-height: 1;
+      margin-bottom: 28px;
+      color: #fff;
+      text-shadow: 0 4px 20px rgba(0,0,0,0.2);
+    }
+    .tease-text {
+      font-size: clamp(15px, 1.9vw, 17px);
+      color: rgba(255,255,255,0.92);
+      line-height: 1.65;
+      margin-bottom: 18px;
+    }
+    .tease-text:last-of-type { margin-bottom: 32px; }
+    .tease-cta-wrap {
+      text-align: center;
+      margin-top: 20px;
+    }
+    .cta-btn-pink {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      background: linear-gradient(135deg, var(--pink), var(--orange));
+      color: #fff;
+      border: none;
+      padding: 20px 40px;
+      border-radius: 99px;
+      font-family: var(--bang);
+      font-size: 22px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      cursor: pointer;
+      box-shadow: 0 16px 40px rgba(233,30,140,0.45);
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .cta-btn-pink:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 20px 48px rgba(233,30,140,0.55);
+    }
+    .tease-meta {
+      margin-top: 16px;
+      font-size: 13px;
+      color: rgba(255,255,255,0.7);
+      letter-spacing: 0.5px;
+    }
+
     /* LEAD FORM */
     .state-lead h2 {
       font-family: var(--bang);
@@ -877,6 +969,50 @@
       sonstige:     { label: "Sonstige (z.B. päd. interessiert)", emoji: "✨" }
     };
 
+    // Vorauswertungs-Texte (Tease vor Email-Capture, rollenspezifisch)
+    const TEASE = {
+      schulleitung: {
+        headline: "Spürst du's?",
+        paragraphs: [
+          "Diese Konflikte sind keine Phantasie — sie sitzen täglich auf deinem Schreibtisch. Reformen vs. Bewährtes. Loyalität vs. Klarheit. Pädagogik vs. Politik.",
+          "Du bist nicht allein damit. Hunderte Schulleitungen in Deutschland navigieren gerade dieselben Werte-Konflikte. Meistens ohne Sprache dafür.",
+          "Genau hier setzt Wertebildung an: Mit gemeinsamer Werte-Sprache werden diese Konflikte zu Dialog statt zu Streit. Klarheit für dich. Halt fürs Kollegium. Zukunft für die Schule."
+        ]
+      },
+      lehrkraft: {
+        headline: "Spürst du's?",
+        paragraphs: [
+          "Diese Szenen kennst du. Aus dem Klassenzimmer, dem Lehrerzimmer, dem Eltern­gespräch. Es sind keine Konstrukte — es ist dein Alltag.",
+          "Du bist nicht allein damit. Tausende Lehrkräfte stehen vor genau diesen Werte-Konflikten — Tag für Tag, oft ohne dass jemand sie dafür sieht.",
+          "Genau hier setzt Wertebildung an: Wenn deine Schule eine gemeinsame Werte-Sprache hat, wirst du nicht mehr allein gelassen mit diesen Entscheidungen. Sie werden gemeinsam getragen."
+        ]
+      },
+      schueler: {
+        headline: "Spürst du's?",
+        paragraphs: [
+          "Das sind echte Situationen — aus deiner Klasse, deiner Familie, deinem Leben. Du erkennst sie sofort, oder?",
+          "Du bist nicht allein damit. Tausende junge Menschen stehen gerade vor denselben Fragen — was ist mir wichtig, wofür stehe ich ein, wann lass ich los?",
+          "Wenn du deine Werte kennst, wirst du sicherer in deinen Entscheidungen. Du weißt, wofür du dich einsetzt — und kannst dich vom Druck anderer befreien."
+        ]
+      },
+      eltern: {
+        headline: "Spürst du's?",
+        paragraphs: [
+          "Diese Situationen kennst du — von zuhause, von der Schule, vom Elternabend. Sie machen müde, weil es selten klare Antworten gibt.",
+          "Du bist nicht allein damit. Tausende Eltern stehen vor denselben Werte-Konflikten: Bewährtes weitergeben oder Neues zulassen? Eingreifen oder vertrauen?",
+          "Genau hier setzt Wertebildung an: Wenn dein Kind seine Werte kennt — und die Schule eine gemeinsame Werte-Sprache hat — wird Erziehung zu Dialog statt zu Streit. Du musst nicht mehr alles allein tragen."
+        ]
+      },
+      sonstige: {
+        headline: "Spürst du's?",
+        paragraphs: [
+          "Diese Konflikte sind keine Phantasie — sie passieren in jedem Umfeld, in dem Menschen miteinander leben, lernen oder arbeiten.",
+          "Du bist nicht allein damit. Werte-Konflikte sind die unsichtbare Reibung in fast jeder Entscheidung — beruflich, privat, gesellschaftlich.",
+          "Wer seine Werte kennt — und die Werte der anderen — entscheidet bewusster, kommuniziert klarer und kommt schneller zu tragfähigen Lösungen. Genau dafür gibt's Wertebildung."
+        ]
+      }
+    };
+
     const TYPES = {
       sicherheit:   { name: "Sicherheit",   emoji: "🟠", color: "#F7941D", desc: "Halt, Klarheit, Ordnung — du gibst Struktur und Verlässlichkeit." },
       beziehung:    { name: "Beziehung",    emoji: "🩷", color: "#E91E8C", desc: "Verbindung, Nähe, Gemeinschaft — du hältst Menschen zusammen." },
@@ -1131,6 +1267,28 @@
       scrollToTest();
     }
 
+    function renderTease() {
+      setProgress(false);
+      const t = TEASE[state.role];
+      let html = '<div class="state-tease">';
+      html += '<div class="tease-badge">Bevor du dein Ergebnis bekommst</div>';
+      html += `<h2>${escapeHtml(t.headline)}</h2>`;
+      t.paragraphs.forEach(p => {
+        html += `<p class="tease-text">${escapeHtml(p)}</p>`;
+      });
+      html += '<div class="tease-cta-wrap">';
+      html += '<button class="cta-btn-pink" onclick="renderLeadForm()">Mein Ergebnis sehen →</button>';
+      html += '<div class="tease-meta">1 Klick · 1 Mail · komplette Auswertung</div>';
+      html += '</div></div>';
+      content.innerHTML = html;
+      content.style.animation = "none";
+      void content.offsetWidth;
+      content.style.animation = "fadeIn 0.4s ease";
+      scrollToTest();
+    }
+    window.renderTease = renderTease;
+    window.renderLeadForm = renderLeadForm;
+
     function renderLeadForm() {
       setProgress(false);
       let html = '<div class="state-lead">';
@@ -1218,7 +1376,7 @@
         state.currentQ++;
         renderQuestion();
       } else {
-        renderLeadForm();
+        renderTease();
       }
     }
     window.answer = answer;
@@ -1323,17 +1481,11 @@
         wertetyp:  typeLetter
       };
 
-      // Submit-Pipeline (Supabase aktiv, Brevo aktuell deaktiviert bis API-Key da)
+      // Submit-Pipeline (Supabase + Brevo parallel)
       try {
         await Promise.allSettled([
-          saveToSupabase(supaPayload).catch(e => { console.warn("Supabase save failed:", e); })
-
-          // ─── BREVO TEMPORÄR DEAKTIVIERT ───────────────────────────
-          // Sobald BREVO_API_KEY in Netlify Env Vars gesetzt ist:
-          // Comma oben hinzufügen und untenstehende Zeile aktivieren.
-          //
-          // , pushToBrevo(brevoPayload).catch(e => { console.warn("Brevo push failed:", e); })
-          // ──────────────────────────────────────────────────────────
+          saveToSupabase(supaPayload).catch(e => { console.warn("Supabase save failed:", e); }),
+          pushToBrevo(brevoPayload).catch(e => { console.warn("Brevo push failed:", e); })
         ]);
       } catch (e) {
         console.warn("Submit pipeline error:", e);
