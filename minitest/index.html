@@ -426,6 +426,45 @@
       display: flex;
       flex-direction: column;
       gap: 10px;
+      position: relative;
+      overflow: hidden;
+    }
+    /* Karten-Peek (Dummy für Valueneers-Karten, später durch echte Bilder ersetzbar) */
+    .answer-card .card-peek {
+      position: absolute;
+      top: -28px;
+      right: -22px;
+      width: 88px;
+      height: 124px;
+      border-radius: 12px;
+      transform: rotate(16deg);
+      box-shadow: 0 8px 22px rgba(0,0,0,0.18);
+      pointer-events: none;
+      border: 3px solid #fff;
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+      padding-bottom: 14px;
+      font-size: 28px;
+      color: #fff;
+      z-index: 0;
+      transition: transform 0.25s ease;
+    }
+    .answer-card:hover .card-peek {
+      transform: rotate(8deg) translate(-6px, 4px);
+    }
+    .answer-card[data-type="sicherheit"]   .card-peek { background: linear-gradient(155deg, #F7941D, #C46B0B); }
+    .answer-card[data-type="beziehung"]    .card-peek { background: linear-gradient(155deg, #E91E8C, #A1135E); }
+    .answer-card[data-type="veraenderung"] .card-peek { background: linear-gradient(155deg, #5754C8, #2E2D8E); }
+    .answer-card[data-type="erfuellung"]   .card-peek { background: linear-gradient(155deg, #7CC142, #4F8B25); }
+    /* Text liegt über dem Peek */
+    .answer-card .value-name,
+    .answer-card .action {
+      position: relative;
+      z-index: 1;
+    }
+    .answer-card .value-name {
+      max-width: calc(100% - 60px);
     }
     .answer-card:hover {
       border-color: var(--blue);
@@ -657,8 +696,30 @@
       font-size: 18px;
       color: #555;
       max-width: 480px;
-      margin: 0 auto 32px;
+      margin: 0 auto 24px;
       line-height: 1.5;
+    }
+    .result-type-long {
+      background: #fff;
+      border: 1px solid #eee;
+      border-radius: 16px;
+      padding: 22px 24px;
+      max-width: 580px;
+      margin: 0 auto 32px;
+      font-size: 16px;
+      line-height: 1.6;
+      color: #1a1a1a;
+      text-align: left;
+      box-shadow: 0 6px 18px rgba(28,27,94,0.06);
+    }
+    /* Tiebreaker — visuell als "Stichfrage" markiert */
+    .tiebreaker-theme {
+      color: var(--orange) !important;
+      font-weight: 800 !important;
+    }
+    .tiebreaker-card {
+      border: 2px solid var(--orange) !important;
+      box-shadow: 0 12px 36px rgba(247,148,29,0.18) !important;
     }
     .result-scores {
       background: #fff;
@@ -1014,13 +1075,93 @@
     };
 
     const TYPES = {
-      sicherheit:   { name: "Sicherheit",   emoji: "🟠", color: "#F7941D", desc: "Halt, Klarheit, Ordnung — du gibst Struktur und Verlässlichkeit." },
-      beziehung:    { name: "Beziehung",    emoji: "🩷", color: "#E91E8C", desc: "Verbindung, Nähe, Gemeinschaft — du hältst Menschen zusammen." },
-      veraenderung: { name: "Veränderung",  emoji: "🔵", color: "#2E2D8E", desc: "Wachstum, Neues, Entwicklung — du treibst Wandel voran." },
-      erfuellung:   { name: "Erfüllung",    emoji: "🟢", color: "#7CC142", desc: "Sinn, Selbstbestimmung, Selbstfindung — du folgst deinem inneren Kompass." }
+      sicherheit:   { name: "Sicherheit",   emoji: "🟠", color: "#F7941D", short: "Halt, Klarheit, Ordnung — du gibst Struktur und Verlässlichkeit." },
+      beziehung:    { name: "Beziehung",    emoji: "🩷", color: "#E91E8C", short: "Verbindung, Nähe, Gemeinschaft — du hältst Menschen zusammen." },
+      veraenderung: { name: "Veränderung",  emoji: "🔵", color: "#2E2D8E", short: "Wachstum, Neues, Entwicklung — du treibst Wandel voran." },
+      erfuellung:   { name: "Erfüllung",    emoji: "🟢", color: "#7CC142", short: "Sinn, Selbstbestimmung, Selbstfindung — du folgst deinem inneren Kompass." }
     };
 
-    const QUESTIONS = [
+    // ╔═══════════════════════════════════════════════════════════════╗
+    // ║  HIER ALLE TEXTE EDITIERBAR                                   ║
+    // ║  Result-Texte: 5 Rollen × 4 Typen = 20 Texte                  ║
+    // ║  Tiebreaker:   6 Stichfragen (eine pro Typ-Paarung)           ║
+    // ║  Format: einfach Text in den Anführungszeichen ändern         ║
+    // ╚═══════════════════════════════════════════════════════════════╝
+
+    let RESULT_TEXTS = {
+      schulleitung: {
+        sicherheit:   "Als Schulleitung mit Sicherheits-Wertetyp gibst du deinem Kollegium und deiner Schule Halt. Du sorgst für klare Strukturen, verlässliche Prozesse und eine Schule, auf die Eltern und Träger zählen können. Deine Stärke: Stabilität in unsicheren Zeiten. Wertearbeit gibt deiner Stabilität Tiefe — nicht nur Regeln, sondern gemeinsam getragene Werte.",
+        beziehung:    "Als Schulleitung mit Beziehungs-Wertetyp hältst du dein Kollegium zusammen. Du siehst die Menschen hinter den Rollen, vermittelst zwischen Lagern und schaffst eine Schule, in der man sich aufgehoben fühlt. Deine Stärke: Verbundenheit. Wertearbeit gibt deiner Wärme Substanz — gemeinsame Werte machen aus Beziehungen ein Tragwerk.",
+        veraenderung: "Als Schulleitung mit Veränderungs-Wertetyp treibst du deine Schule voran. Du erkennst, was geht, packst neue Ideen an und scheust den Wandel nicht. Deine Stärke: Mut zur Veränderung. Wertearbeit gibt deinem Wandel Richtung — gemeinsame Werte sorgen dafür, dass Veränderung nicht spaltet, sondern verbindet.",
+        erfuellung:   "Als Schulleitung mit Erfüllungs-Wertetyp führst du authentisch — aus innerer Klarheit. Du gehst nicht den Weg, den andere erwarten, sondern den, der dir und deiner Schule entspricht. Deine Stärke: Sinnführung. Wertearbeit gibt deiner Sinnsuche Form — wenn alle ihre Werte kennen, finden mehr Menschen ihren Sinn an deiner Schule."
+      },
+      lehrkraft: {
+        sicherheit:   "Als Lehrkraft mit Sicherheits-Wertetyp gibst du deinen Schüler:innen Halt. Du sorgst für klare Regeln, verlässliche Strukturen und einen Klassenraum, in dem Lernen möglich ist. Deine Stärke: Verlässlichkeit. Wertearbeit gibt deiner Disziplin Tiefe — Regeln, die alle verstehen und tragen, statt Regeln, die ausgehalten werden.",
+        beziehung:    "Als Lehrkraft mit Beziehungs-Wertetyp siehst du jeden einzelnen Schüler. Du baust Vertrauen auf, vermittelst bei Konflikten und schaffst eine Klasse, in der niemand übersehen wird. Deine Stärke: Verbundenheit. Wertearbeit gibt deiner Empathie Werkzeug — eine gemeinsame Werte-Sprache macht aus deiner Stärke das Fundament der ganzen Schule.",
+        veraenderung: "Als Lehrkraft mit Veränderungs-Wertetyp probierst du Neues. Du holst frische Methoden ins Klassenzimmer, traust dich auch da, wo andere bremsen. Deine Stärke: Innovation. Wertearbeit gibt deinem Wandel Anker — wenn das Kollegium gemeinsame Werte teilt, wird aus deinen Experimenten gemeinsame Schulentwicklung.",
+        erfuellung:   "Als Lehrkraft mit Erfüllungs-Wertetyp unterrichtest du authentisch. Du machst nicht, was 'man halt so macht', sondern was, woran du wirklich glaubst. Deine Stärke: Echtheit. Wertearbeit gibt deiner Authentizität Resonanz — wenn alle ihre Werte kennen, dürfen mehr Lehrkräfte echt sein."
+      },
+      schueler: {
+        sicherheit:   "Du bist Sicherheits-Typ. Du suchst Halt. Du magst klare Regeln, verlässliche Menschen und brauchst Strukturen, in denen du dich orientieren kannst. Deine Stärke: Du gibst anderen Halt, weil du selbst gut geerdet bist. Wenn deine Schule mit Werten arbeitet, lernst du nicht nur Regeln auswendig — sondern verstehst, wofür sie da sind.",
+        beziehung:    "Du bist Beziehungs-Typ. Menschen sind dein wichtigster Anker. Du spürst Stimmungen, vermittelst bei Streit und kämpfst für deine Freunde. Deine Stärke: Wenn du da bist, fühlt sich keine:r allein. Wenn deine Schule mit Werten arbeitet, lernst du, was Verbundenheit wirklich bedeutet — und dass auch andere darauf angewiesen sind.",
+        veraenderung: "Du bist Veränderungs-Typ. Du willst was bewegen. Du erkennst, was nicht mehr passt, und hast den Mut, es anzusprechen. Deine Stärke: Du bringst frischen Wind. Wenn deine Schule mit Werten arbeitet, kannst du deinen Wandel-Drive auf etwas richten, was wirklich zählt — statt im Konflikt mit Älteren zu zerschellen.",
+        erfuellung:   "Du bist Erfüllungs-Typ. Du folgst deinem Bauch. Du machst nicht mit, nur weil 'alle es machen' — du suchst, was sich wirklich richtig anfühlt. Deine Stärke: Authentizität. Wenn deine Schule mit Werten arbeitet, findest du andere, die genauso ticken — und musst dich nicht mehr verstellen."
+      },
+      eltern: {
+        sicherheit:   "Als Elternteil mit Sicherheits-Wertetyp gibst du deinem Kind Halt. Du sorgst für klare Regeln, verlässlichen Alltag und ein Zuhause, in dem dein Kind weiß, woran es ist. Deine Stärke: Stabilität als Boden. Wenn die Schule deines Kindes mit Werten arbeitet, ergänzen sich euer Halt zuhause und die Verlässlichkeit in der Schule — dein Kind hat ZWEI sichere Räume.",
+        beziehung:    "Als Elternteil mit Beziehungs-Wertetyp siehst du dein Kind. Wirklich. Du spürst, was los ist, und hältst Kontakt — auch wenn's anstrengend wird. Deine Stärke: Verbindung als Boden. Wenn die Schule deines Kindes mit Werten arbeitet, lernen auch Lehrkräfte, jedes Kind als Mensch zu sehen — und dein Kind erlebt diese Verbundenheit nicht nur zuhause.",
+        veraenderung: "Als Elternteil mit Veränderungs-Wertetyp lässt du dein Kind wachsen. Du erkennst, wenn es Zeit ist loszulassen, Neues zuzulassen, anders zu sein als andere Familien. Deine Stärke: Du gibst Raum für Entwicklung. Wenn die Schule deines Kindes mit Werten arbeitet, wird auch dort Raum für individuelles Wachstum geschaffen — dein Kind muss nicht in eine Schablone passen.",
+        erfuellung:   "Als Elternteil mit Erfüllungs-Wertetyp lebst du deinem Kind ein authentisches Leben vor. Du machst nicht, was 'man halt so macht', sondern was wirklich zu dir passt. Deine Stärke: Du zeigst, wie ein selbstbestimmtes Leben aussieht. Wenn die Schule deines Kindes mit Werten arbeitet, lernt dein Kind: Es ist okay, eigene Wege zu gehen."
+      },
+      sonstige: {
+        sicherheit:   "Du bist Sicherheits-Typ. Du gibst Struktur. Wo immer du bist, sorgst du für Verlässlichkeit, klare Regeln und das Gefühl, dass man sich auf dich verlassen kann. Deine Stärke: Stabilität für andere. Wertearbeit verleiht deiner Klarheit Tiefe — du weißt nicht nur WAS gilt, sondern auch WARUM.",
+        beziehung:    "Du bist Beziehungs-Typ. Du verbindest Menschen. Du siehst, wer eine Brücke braucht, vermittelst, hältst Gruppen zusammen. Deine Stärke: Du machst Gemeinschaft möglich. Wertearbeit gibt deiner Verbundenheit Substanz — gemeinsame Werte machen aus Sympathie ein Fundament.",
+        veraenderung: "Du bist Veränderungs-Typ. Du gestaltest. Wo andere abwarten, packst du an. Du siehst Möglichkeiten und scheust nicht das Risiko. Deine Stärke: Du bringst Bewegung. Wertearbeit gibt deinem Wandel Richtung — Veränderung mit gemeinsamen Werten ist Entwicklung, nicht Aktionismus.",
+        erfuellung:   "Du bist Erfüllungs-Typ. Du folgst deinem Kompass. Du gehst nicht den Weg, den andere erwarten, sondern den, der zu dir passt. Deine Stärke: Authentizität. Wertearbeit gibt deinem Sinn Resonanz — wenn andere ihre Werte auch kennen, findest du deine Leute."
+      }
+    };
+
+    // Stichfragen — werden nur bei Gleichstand zwischen 2 Typen eingeblendet
+    // Reihenfolge der Werte ist alphabetisch im Key (sicherheit-beziehung, nicht beziehung-sicherheit)
+    let TIEBREAKERS = {
+      "beziehung-sicherheit": {
+        scenario: "Letzte Stichfrage: Du musst gerade entscheiden zwischen einer klaren Regel und einer mitfühlenden Ausnahme. Was wiegt für dich am Ende mehr?",
+        a: { value: "Empathie",       action: "Mitgefühl geht vor Regel — der Mensch zuerst.",                        type: "beziehung"  },
+        b: { value: "Zuverlässigkeit", action: "Klare Regeln geben Halt — auch wenn's wehtut.",                        type: "sicherheit" }
+      },
+      "sicherheit-veraenderung": {
+        scenario: "Letzte Stichfrage: Etwas Bewährtes funktioniert solide, aber nicht mehr ganz zeitgemäß. Was wiegt für dich am Ende mehr?",
+        a: { value: "Tradition", action: "Was sich bewährt hat, hat seinen Wert — bewahren.",                        type: "sicherheit"   },
+        b: { value: "Mut",       action: "Stillstand ist Rückschritt — verändern, auch wenn's risikoreich ist.",     type: "veraenderung" }
+      },
+      "erfuellung-sicherheit": {
+        scenario: "Letzte Stichfrage: Du sollst eine Pflicht erfüllen, die dir aber innerlich nicht entspricht. Was wiegt für dich am Ende mehr?",
+        a: { value: "Pflichtbewusstsein", action: "Verlässlichkeit zählt — auch wenn's mir nicht entspricht.",  type: "sicherheit" },
+        b: { value: "Authentizität",      action: "Wenn's mir nicht entspricht, kann ich's nicht ehrlich tun.", type: "erfuellung" }
+      },
+      "beziehung-veraenderung": {
+        scenario: "Letzte Stichfrage: Du willst eine Beziehung schützen, aber dafür müsstest du einen Wandel verhindern. Was wiegt für dich am Ende mehr?",
+        a: { value: "Loyalität", action: "Verbindungen halten zählt mehr — Stabilität für die Menschen.",     type: "beziehung"    },
+        b: { value: "Verantwortung", action: "Wandel ist nötig, auch wenn Beziehungen darunter leiden.",       type: "veraenderung" }
+      },
+      "beziehung-erfuellung": {
+        scenario: "Letzte Stichfrage: Du musst zwischen einer wichtigen Beziehung und deinem Bauchgefühl wählen. Was wiegt für dich am Ende mehr?",
+        a: { value: "Treue",         action: "Verbindungen sind das Wichtigste — sie halten mich.",             type: "beziehung" },
+        b: { value: "Authentizität", action: "Ich kann nur ich sein, wenn ich meinem Gefühl folge.",            type: "erfuellung" }
+      },
+      "erfuellung-veraenderung": {
+        scenario: "Letzte Stichfrage: Du könntest aktiv die Welt um dich verändern oder erstmal in dich gehen und herausfinden, was wirklich zu dir passt. Was wiegt für dich am Ende mehr?",
+        a: { value: "Selbstverwirklichung", action: "Ich muss erst wissen, wer ich bin — dann gestalte ich.",  type: "erfuellung"   },
+        b: { value: "Gestaltungswille",     action: "Ich packe an und gestalte aktiv. Selbsterkenntnis kommt im Tun.", type: "veraenderung" }
+      }
+    };
+
+    // ╔═══════════════════════════════════════════════════════════════╗
+    // ║  ENDE TEXT-BEREICH — ab hier nur noch Logik                   ║
+    // ╚═══════════════════════════════════════════════════════════════╝
+
+
+    let QUESTIONS = [
       {
         id: 1,
         theme: "Bewährtes wird aufgeweicht",
@@ -1183,6 +1324,7 @@
       role: null,
       currentQ: 0,
       answers: [],   // [{ q: 1, choice: 'a', type: 'beziehung', value: 'Empathie' }, ...]
+      pendingTiebreaker: null,  // { key: 'beziehung-veraenderung' } wenn Stichfrage nötig
       lead: { vorname: "", nachname: "", email: "" },
       result: null
     };
@@ -1251,13 +1393,42 @@
       html += `<p class="scenario">${escapeHtml(r.scenario)}</p>`;
       html += '</div>';
       html += '<div class="answers">';
-      html += `<button class="answer-card" onclick="answer('a')">`;
+      html += `<button class="answer-card" data-type="${r.a.type}" onclick="answer('a')">`;
+      html += `<div class="card-peek"></div>`;
       html += `<span class="value-name">${escapeHtml(r.a.value)}</span>`;
       html += `<span class="action">${escapeHtml(r.a.action)}</span>`;
       html += '</button>';
-      html += `<button class="answer-card" onclick="answer('b')">`;
+      html += `<button class="answer-card" data-type="${r.b.type}" onclick="answer('b')">`;
+      html += `<div class="card-peek"></div>`;
       html += `<span class="value-name">${escapeHtml(r.b.value)}</span>`;
       html += `<span class="action">${escapeHtml(r.b.action)}</span>`;
+      html += '</button>';
+      html += '</div></div>';
+      content.innerHTML = html;
+      content.style.animation = "none";
+      void content.offsetWidth;
+      content.style.animation = "fadeIn 0.4s ease";
+      scrollToTest();
+    }
+
+    function renderTiebreaker() {
+      setProgress(false);
+      const tb = TIEBREAKERS[state.pendingTiebreaker.key];
+      let html = '<div class="state-question">';
+      html += '<div class="question-theme tiebreaker-theme">⚖️ Stichfrage · Gleichstand auflösen</div>';
+      html += '<div class="question-card tiebreaker-card">';
+      html += `<p class="scenario">${escapeHtml(tb.scenario)}</p>`;
+      html += '</div>';
+      html += '<div class="answers">';
+      html += `<button class="answer-card" data-type="${tb.a.type}" onclick="answerTiebreaker('a')">`;
+      html += `<div class="card-peek"></div>`;
+      html += `<span class="value-name">${escapeHtml(tb.a.value)}</span>`;
+      html += `<span class="action">${escapeHtml(tb.a.action)}</span>`;
+      html += '</button>';
+      html += `<button class="answer-card" data-type="${tb.b.type}" onclick="answerTiebreaker('b')">`;
+      html += `<div class="card-peek"></div>`;
+      html += `<span class="value-name">${escapeHtml(tb.b.value)}</span>`;
+      html += `<span class="action">${escapeHtml(tb.b.action)}</span>`;
       html += '</button>';
       html += '</div></div>';
       content.innerHTML = html;
@@ -1327,11 +1498,15 @@
       const order = ["sicherheit","beziehung","veraenderung","erfuellung"];
       const max = Math.max(...Object.values(scores));
 
+      // Rollen-spezifischer Langtext aus RESULT_TEXTS (oben editierbar)
+      const longText = (RESULT_TEXTS[state.role] && RESULT_TEXTS[state.role][state.result.type]) || t.short;
+
       let html = '<div class="state-result">';
       html += '<div class="badge">Dein Werte-Typ</div>';
       html += `<div class="result-emoji">${t.emoji}</div>`;
       html += `<div class="result-type-name" style="color:${t.color}">${t.name}</div>`;
-      html += `<p class="result-type-desc">${escapeHtml(t.desc)}</p>`;
+      html += `<p class="result-type-desc">${escapeHtml(t.short)}</p>`;
+      html += `<div class="result-type-long">${escapeHtml(longText)}</div>`;
 
       html += '<div class="result-scores">';
       order.forEach(k => {
@@ -1376,10 +1551,58 @@
         state.currentQ++;
         renderQuestion();
       } else {
-        renderTease();
+        checkAndResolveTie();
       }
     }
     window.answer = answer;
+
+    // Prüft Score-Stand. Wenn klarer Sieger → Tease. Wenn Gleichstand → Stichfrage.
+    function checkAndResolveTie() {
+      const scores = calcScores();
+      const max = Math.max(...Object.values(scores));
+      const winners = Object.entries(scores).filter(([k,v]) => v === max).map(([k]) => k);
+
+      if (winners.length === 1) {
+        // Klarer Sieger
+        state.result = { scores: scores, type: winners[0] };
+        renderTease();
+        return;
+      }
+
+      // Tie: nimm die ersten 2 Top-Typen alphabetisch, suche passende Stichfrage
+      const [t1, t2] = winners.slice(0, 2).sort();
+      const key = t1 + "-" + t2;
+      const tb = TIEBREAKERS[key];
+      if (!tb) {
+        // Sollte nie passieren — Fallback Random
+        state.result = { scores: scores, type: winners[Math.floor(Math.random() * winners.length)] };
+        renderTease();
+        return;
+      }
+      state.pendingTiebreaker = { key: key };
+      renderTiebreaker();
+    }
+
+    function answerTiebreaker(choice) {
+      const tb = TIEBREAKERS[state.pendingTiebreaker.key];
+      const picked = tb[choice];
+      state.answers.push({ q: 'tb', choice: choice, type: picked.type, value: picked.value, tiebreaker: true });
+      state.pendingTiebreaker = null;
+
+      // Re-Check — sollte jetzt klarer Sieger sein (außer 3+way Tie originally)
+      const scores = calcScores();
+      const max = Math.max(...Object.values(scores));
+      const winners = Object.entries(scores).filter(([k,v]) => v === max).map(([k]) => k);
+
+      if (winners.length === 1) {
+        state.result = { scores: scores, type: winners[0] };
+      } else {
+        // 3+way Tie war ursprünglich da — Random Fallback
+        state.result = { scores: scores, type: winners[Math.floor(Math.random() * winners.length)] };
+      }
+      renderTease();
+    }
+    window.answerTiebreaker = answerTiebreaker;
 
     function calcScores() {
       const scores = { sicherheit: 0, beziehung: 0, veraenderung: 0, erfuellung: 0 };
@@ -1449,11 +1672,11 @@
       btn.disabled = true;
       btn.textContent = "Wird gesendet...";
 
-      const scores       = calcScores();
-      const typeKey      = determineType(scores);
-      const typeLetter   = TYPE_TO_LETTER[typeKey];
-      const utm          = getUTM();
-      state.result = { scores: scores, type: typeKey };
+      // state.result wurde schon in checkAndResolveTie/answerTiebreaker gesetzt
+      const scores     = state.result.scores;
+      const typeKey    = state.result.type;
+      const typeLetter = TYPE_TO_LETTER[typeKey];
+      const utm        = getUTM();
 
       renderLoading();
 
@@ -1495,8 +1718,74 @@
     }
     window.submitLead = submitLead;
 
+    // ═══════════════ Content-Loader (Supabase → überschreibt Code-Defaults) ═══════════════
+
+    function transformQuestions(rows) {
+      const grouped = {};
+      rows.forEach(row => {
+        if (!grouped[row.question_id]) {
+          grouped[row.question_id] = { id: row.question_id, theme: row.theme, roles: {} };
+        }
+        grouped[row.question_id].roles[row.role] = {
+          scenario: row.scenario,
+          a: { value: row.answer_a_value, action: row.answer_a_action, type: row.answer_a_type },
+          b: { value: row.answer_b_value, action: row.answer_b_action, type: row.answer_b_type }
+        };
+      });
+      return Object.values(grouped).sort((a, b) => a.id - b.id);
+    }
+
+    function transformResults(rows) {
+      const grouped = {};
+      rows.forEach(row => {
+        if (!grouped[row.role]) grouped[row.role] = {};
+        grouped[row.role][row.type] = row.text;
+      });
+      return grouped;
+    }
+
+    function transformTiebreakers(rows) {
+      const grouped = {};
+      rows.forEach(row => {
+        grouped[row.pair_key] = {
+          scenario: row.scenario,
+          a: { value: row.a_value, action: row.a_action, type: row.a_type },
+          b: { value: row.b_value, action: row.b_action, type: row.b_type }
+        };
+      });
+      return grouped;
+    }
+
+    async function loadContentFromSupabase() {
+      try {
+        const headers = { "apikey": SUPABASE_KEY, "Authorization": `Bearer ${SUPABASE_KEY}` };
+        const [qRes, rRes, tRes] = await Promise.all([
+          fetch(`${SUPABASE_URL}/rest/v1/minitest_questions?select=*&order=question_id`, { headers }),
+          fetch(`${SUPABASE_URL}/rest/v1/minitest_results_text?select=*`,                  { headers }),
+          fetch(`${SUPABASE_URL}/rest/v1/minitest_tiebreakers?select=*`,                   { headers })
+        ]);
+        if (qRes.ok) {
+          const rows = await qRes.json();
+          if (rows.length > 0) { QUESTIONS = transformQuestions(rows); console.log("[Minitest] Questions aus DB geladen:", rows.length); }
+        }
+        if (rRes.ok) {
+          const rows = await rRes.json();
+          if (rows.length > 0) { RESULT_TEXTS = transformResults(rows); console.log("[Minitest] Result-Texte aus DB geladen:", rows.length); }
+        }
+        if (tRes.ok) {
+          const rows = await tRes.json();
+          if (rows.length > 0) { TIEBREAKERS = transformTiebreakers(rows); console.log("[Minitest] Tiebreakers aus DB geladen:", rows.length); }
+        }
+      } catch (e) {
+        console.warn("[Minitest] Content-Load fehlgeschlagen, nutze Code-Defaults:", e);
+      }
+    }
+
     // ═══════════════ Init ═══════════════
     document.addEventListener("DOMContentLoaded", function() {
+      // Inhalte aus Supabase laden (async, non-blocking)
+      // User sieht initial die Code-Defaults — werden ersetzt sobald DB-Antwort da
+      loadContentFromSupabase();
       renderRoleSelector();
     });
   </script>
