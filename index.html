@@ -122,8 +122,8 @@ function ImgBox(props) {
   return (
     <div style={{
       aspectRatio: props.ratio || "21/9",
-      minHeight: "clamp(180px, 22vw, 240px)",
-      maxHeight: 320,
+      minHeight: "clamp(200px, 24vw, 280px)",
+      maxHeight: 420,
       borderRadius: 0,
       background: hasSrc ? "#0a0a14" : "linear-gradient(135deg, " + BLUE + "10, " + PINK + "06)",
       display: "flex", alignItems: "flex-start", justifyContent: "flex-start",
@@ -135,7 +135,7 @@ function ImgBox(props) {
     }}>
       {hasSrc ? (
         <React.Fragment>
-          <img src={props.src} alt={props.label || ""} onError={function() { setError(true); }} style={{ width: "100%", height: "100%", objectFit: "cover", position: "absolute", inset: 0 }} />
+          <img src={props.src} alt={props.label || ""} onError={function() { setError(true); }} style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "center 30%", position: "absolute", inset: 0 }} />
           {(props.quote || props.title) && <div style={{ position: "absolute", inset: 0, background: "linear-gradient(180deg, rgba(0,0,0,0.75) 0%, rgba(0,0,0,0.4) 40%, rgba(0,0,0,0.1) 70%, rgba(0,0,0,0) 100%)", pointerEvents: "none" }} />}
           {props.tag && <div style={{ position: "absolute", top: "clamp(20px, 3vw, 40px)", left: "max(24px, calc(50% - 550px))", background: accent, color: "#fff", fontSize: 12, fontWeight: 800, letterSpacing: 2, textTransform: "uppercase", padding: "6px 14px", borderRadius: 99, zIndex: 2 }}>{props.tag}</div>}
           {(props.quote || props.title) && (
