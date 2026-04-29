@@ -311,7 +311,7 @@ function ValueSchool() {
 
       {/* ═══════════ WAS SCHULEN HERAUSFORDERT ═══════════ */}
       {/* Layout: Image left, numbered list right — like PDF slide 3 */}
-      <section style={{ background: "#fff", padding: "0 24px clamp(60px,10vw,100px)", position: "relative", overflow: "hidden" }}>
+      <section style={{ background: "#fff", padding: "clamp(60px,10vw,100px) 24px", position: "relative", overflow: "hidden" }}>
         <Starburst color={PINK} size={280} bottom="-60px" left="-80px" opacity={0.06} />
         <Starburst color={ORANGE} size={160} bottom="-40px" right="-40px" opacity={0.06} />
         <div style={{ maxWidth: 1000, margin: "0 auto", display: "flex", flexDirection: "column", gap: 32, position: "relative", zIndex: 1 }}>
@@ -356,7 +356,7 @@ function ValueSchool() {
 
       {/* ═══════════ WAS DAS PROJEKT BEWIRKT ═══════════ */}
       {/* Layout: Text left, image right — like PDF slide 5 */}
-      <section style={{ background: "#fff", padding: "0 24px clamp(60px,10vw,100px)" }}>
+      <section style={{ background: WARM, padding: "clamp(60px,10vw,100px) 24px" }}>
         <div style={{ maxWidth: 1000, margin: "0 auto", display: "flex", flexDirection: "column", gap: 32 }}>
           <FadeIn>
             <div>
@@ -365,7 +365,7 @@ function ValueSchool() {
           </FadeIn>
 
               <p style={{ fontSize: 15, color: TXT, lineHeight: 1.8, marginBottom: 16 }}>
-                Was verändert sich konkret an Ihrer Schule? Weniger Konflikte im Alltag, mehr Eigenverantwortung bei Schülerinnen und Schülern, ein Kollegium mit gemeinsamer Haltung — und eine Schulgemeinschaft, die weiß, wofür sie steht.
+                Was verändert sich konkret an deiner Schule? Weniger Konflikte im Alltag, mehr Eigenverantwortung bei Schülerinnen und Schülern, ein Kollegium mit gemeinsamer Haltung — und eine Schulgemeinschaft, die weiß, wofür sie steht.
               </p>
 
               <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: 14, marginTop: 8 }}>
@@ -497,7 +497,7 @@ function ValueSchool() {
 
       {/* ═══════════ 5 MODULE ═══════════ */}
       {/* Layout: 5 colored cards in a row — like PDF slide 6 */}
-      <section id="module" style={{ background: WARM, padding: "clamp(60px,10vw,100px) 24px", position: "relative", overflow: "hidden" }}>
+      <section id="module" style={{ background: "#fff", padding: "clamp(60px,10vw,100px) 24px", position: "relative", overflow: "hidden" }}>
         <Starburst color={BLUE} size={300} top="-100px" right="-80px" opacity={0.06} />
         <Starburst color={PINK} size={180} bottom="-60px" left="-40px" opacity={0.05} />
         <div style={{ maxWidth: 1100, margin: "0 auto" }}>
@@ -551,6 +551,38 @@ function ValueSchool() {
               <span style={{ fontSize: 13, color: MUTED }}>VALUE Community (nachhaltige Verankerung) + VALUE School Finance (Förderer & Sponsoren)</span>
             </div>
           </FadeIn>
+        </div>
+      </section>
+
+      {/* ═══════════ SO LÄUFT'S AB ═══════════ */}
+      <section style={{ background: WARM, padding: "clamp(60px,10vw,90px) 24px", position: "relative", overflow: "hidden" }}>
+        <Starburst color={CYAN} size={240} top="-80px" right="-60px" opacity={0.06} />
+        <div style={{ maxWidth: 1000, margin: "0 auto", position: "relative", zIndex: 1 }}>
+          <FadeIn>
+            <div style={{ textAlign: "center", marginBottom: 36 }}>
+              <span style={{ fontSize: 13, fontWeight: 700, color: BLUE, textTransform: "uppercase", letterSpacing: 3 }}>So läuft's ab</span>
+              <h2 style={{ fontFamily: BANG, fontSize: "clamp(30px, 5vw, 48px)", fontWeight: 400, letterSpacing: 2, textTransform: "uppercase", color: BLUE, marginTop: 8, lineHeight: 1.15, letterSpacing: "-0.03em" }}>
+                Vom Erstgespräch <span style={{ color: ORANGE }}>bis zum Start</span>
+              </h2>
+            </div>
+          </FadeIn>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))", gap: 18 }}>
+            {[
+              { n: "01", c: CYAN, t: "Erstgespräch", d: "50 Min, kostenfrei, online. Wir hören zu und verstehen, wo deine Schule steht." },
+              { n: "02", c: ORANGE, t: "Modulauswahl & Förderung", d: "Wir schlagen passende Module vor — und prüfen, welche Fördermittel für dich in Frage kommen." },
+              { n: "03", c: GREEN, t: "Start", d: "Termine, Vorbereitung, los geht's. Wir begleiten dich vom ersten Workshop an." },
+            ].map(function (x, i) {
+              return (
+                <FadeIn key={i} delay={i * 0.08}>
+                  <div style={{ background: "#fff", borderRadius: 18, padding: "26px 22px", border: "1px solid " + x.c + "25", boxShadow: "0 4px 16px rgba(28,27,94,0.05)", height: "100%" }}>
+                    <div style={{ fontFamily: BANG, fontSize: 32, color: x.c, letterSpacing: 1, lineHeight: 1, marginBottom: 12 }}>{x.n}</div>
+                    <div style={{ fontFamily: HEAD, fontSize: 17, fontWeight: 800, color: BLUE, marginBottom: 6, textTransform: "uppercase", letterSpacing: 1 }}>{x.t}</div>
+                    <div style={{ fontSize: 14, color: MUTED, lineHeight: 1.55 }}>{x.d}</div>
+                  </div>
+                </FadeIn>
+              );
+            })}
+          </div>
         </div>
       </section>
 
@@ -689,7 +721,7 @@ function ValueSchool() {
 
       {/* ═══════════ DAS MACHT ES BESONDERS ═══════════ */}
       {/* Layout: Text left, image right — like PDF slide 8 */}
-      <section style={{ background: WARM, padding: "0 24px clamp(60px,10vw,100px)", position: "relative", overflow: "hidden" }}>
+      <section style={{ background: WARM, padding: "clamp(60px,10vw,100px) 24px", position: "relative", overflow: "hidden" }}>
         <Starburst color={GREEN} size={220} bottom="-60px" right="-60px" opacity={0.06} />
         <Starburst color={ORANGE} size={160} bottom="-40px" left="-40px" opacity={0.06} />
         <div style={{ maxWidth: 1000, margin: "0 auto", display: "flex", flexDirection: "column", gap: 32 }}>
@@ -703,8 +735,6 @@ function ValueSchool() {
                 { c: ORANGE, t: "Werte entdecken — ohne dass es sich wie Unterricht anfühlt.", d: "Keine Vorträge, keine Arbeitsblätter. Schülerinnen und Schüler spielen, reflektieren und entdecken ihre Werte durch Erlebnisse — mit Methoden aus über 70.000 verkauften Wertespielen." },
                 { c: PINK, t: "Sofort hohe Beteiligung — ohne Überzeugungsarbeit.", d: "Der spielerische Ansatz holt auch die ab, die bei klassischen Formaten abschalten. Lehrkräfte berichten: Die Energie im Raum ist sofort da." },
                 { c: CYAN, t: "Es stärkt Schülerinnen und Schüler, Klassen und schulische Strukturen zugleich.", d: "Das Projekt verbindet individuelle Werteentwicklung mit gemeinsamen Leitlinien für Klassen und Schule." },
-                { c: GREEN, t: "Nachhaltigkeit durch Befähigung der Schule.", d: "Lehrkräfte erhalten Materialien und Methoden, um Wertebildung eigenständig weiterzuführen und dauerhaft im Schulalltag zu verankern." },
-                { c: BLUE, t: "Fundiert, aber konsequent praxisnah.", d: "Die Inhalte basieren auf der Schwartz-Wertetheorie und aktueller SEL-Forschung, werden aber in spielerische, direkt einsetzbare Formate für den Schulalltag übersetzt." },
                 { c: "#8B5CF6", t: "Kein Extra-Aufwand für Lehrkräfte.", d: "Alle Module kommen fertig vorbereitet. Externe Trainer leiten die Durchführung. Lehrkräfte können beobachten, mitmachen und übernehmen — in ihrem Tempo." },
               ].map(function (x, i) {
                 return (
@@ -928,4 +958,4 @@ function ValueSchool() {
 ReactDOM.createRoot(document.getElementById('root')).render(React.createElement(ValueSchool));
   </script>
 </body>
-</html>                                                                                                                                      
+</html>                                                                                                                                                      
