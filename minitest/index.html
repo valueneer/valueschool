@@ -432,7 +432,7 @@
     /* Karten-Peek: Karte schaut von UNTEN rechts rein — Werte-Wort am oberen Kartenrand sichtbar */
     .answer-card .card-peek {
       position: absolute;
-      bottom: -160px;       /* 30px tiefer, damit Karten-Spitze nicht über Text */
+      bottom: -195px;       /* Karte ragt nur noch leicht rein, Wertename oberer Rand sichtbar */
       right: 14px;
       width: 198px;
       height: 276px;
@@ -459,7 +459,7 @@
     /* Auf Mobile: Peek kleiner, Padding entsprechend kleiner */
     @media (max-width: 600px) {
       .answer-card { padding: 22px 18px 70px 18px; }
-      .answer-card .card-peek { width: 156px; height: 218px; bottom: -100px; right: 20px; }
+      .answer-card .card-peek { width: 156px; height: 218px; bottom: -135px; right: 20px; }
     }
     .answer-card:hover {
       border-color: var(--blue);
