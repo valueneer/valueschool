@@ -43,7 +43,29 @@ exports.handler = async (event) => {
     };
   }
 
-  const { email, vorname, nachname, rolle, wertetyp, ergebnis_teil_1, ergebnis_teil_2 } = payload;
+  let { email, vorname, nachname, rolle, wertetyp, ergebnis_teil_1, ergebnis_teil_2 } = payload;
+
+  // Sanitize: alle Felder als Plain Text (HTML-Tags raus, HTML-Entities decoden)
+  // Damit Brevo die Texte nicht als HTML rendert und Email-Layout zerschießt
+  function toPlainText(s) {
+    if (typeof s !== 'string') return s;
+    return s
+      .replace(/<[^>]*>/g, '')           // HTML-Tags raus
+      .replace(/&nbsp;/g, ' ')           // gängige Entities
+      .replace(/&amp;/g, '&')
+      .replace(/&lt;/g, '<')
+      .replace(/&gt;/g, '>')
+      .replace(/&quot;/g, '"')
+      .replace(/&#39;/g, "'")
+      .replace(/\s+/g, ' ')              // Multi-Whitespace zusammenfassen
+      .trim();
+  }
+  vorname          = toPlainText(vorname);
+  nachname         = toPlainText(nachname);
+  rolle            = toPlainText(rolle);
+  wertetyp         = toPlainText(wertetyp);
+  ergebnis_teil_1  = toPlainText(ergebnis_teil_1);
+  ergebnis_teil_2  = toPlainText(ergebnis_teil_2);
 
   if (!email || !rolle || !wertetyp) {
     return {
@@ -66,6 +88,8 @@ exports.handler = async (event) => {
         attributes: {
           FIRSTNAME:                 vorname || "",
           LASTNAME:                  nachname || "",
+          VORNAME:                   vorname || "",
+          NACHNAME:                  nachname || "",
           ROLLE:                     rolle,
           TYP_SCHNELLTEST_WERTE:     wertetyp,
           TESTERGEBNIS_TEXT_TEIL_1:  ergebnis_teil_1 || "",
@@ -84,6 +108,8 @@ exports.handler = async (event) => {
       attributes: {
         FIRSTNAME:                 vorname || "",
         LASTNAME:                  nachname || "",
+        VORNAME:                   vorname || "",
+        NACHNAME:                  nachname || "",
         ROLLE:                     rolle,
         TYP_SCHNELLTEST_WERTE:     wertetyp,
         TESTERGEBNIS_TEXT_TEIL_1:  ergebnis_teil_1 || "",
