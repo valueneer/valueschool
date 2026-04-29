@@ -43,7 +43,7 @@ exports.handler = async (event) => {
     };
   }
 
-  const { email, vorname, nachname, rolle, wertetyp } = payload;
+  const { email, vorname, nachname, rolle, wertetyp, ergebnis_teil_1, ergebnis_teil_2 } = payload;
 
   if (!email || !rolle || !wertetyp) {
     return {
@@ -64,10 +64,12 @@ exports.handler = async (event) => {
       body: JSON.stringify({
         email: email,
         attributes: {
-          FIRSTNAME: vorname || "",
-          LASTNAME:  nachname || "",
-          ROLLE:     rolle,
-          "TYP_SCHNELLTEST_WERTE": wertetyp
+          FIRSTNAME:                 vorname || "",
+          LASTNAME:                  nachname || "",
+          ROLLE:                     rolle,
+          TYP_SCHNELLTEST_WERTE:     wertetyp,
+          TESTERGEBNIS_TEXT_TEIL_1:  ergebnis_teil_1 || "",
+          TESTERGEBNIS_TEXT_TEIL_2:  ergebnis_teil_2 || ""
         },
         listIds: [BREVO_LIST_ID],
         updateEnabled: true
@@ -80,10 +82,12 @@ exports.handler = async (event) => {
     const sentPayload = {
       email: email,
       attributes: {
-        FIRSTNAME: vorname || "",
-        LASTNAME:  nachname || "",
-        ROLLE:     rolle,
-        "TYP_SCHNELLTEST_WERTE": wertetyp
+        FIRSTNAME:                 vorname || "",
+        LASTNAME:                  nachname || "",
+        ROLLE:                     rolle,
+        TYP_SCHNELLTEST_WERTE:     wertetyp,
+        TESTERGEBNIS_TEXT_TEIL_1:  ergebnis_teil_1 || "",
+        TESTERGEBNIS_TEXT_TEIL_2:  ergebnis_teil_2 || ""
       },
       listIds: [BREVO_LIST_ID],
       updateEnabled: true

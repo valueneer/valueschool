@@ -438,12 +438,11 @@
       height: 276px;
       border-radius: 10px;
       transform: none;       /* gerade — keine Rotation (Pixel-Treppchen vermeiden) */
-      box-shadow: 0 -4px 18px rgba(0,0,0,0.15);
       pointer-events: none;
       background-size: cover;
       background-position: center top; /* oberer Teil der Karte = wo der Wert steht */
       background-repeat: no-repeat;
-      background-color: #f0f0f5;
+      background-color: transparent; /* kein grauer Rand hinter transparenter PNG */
       z-index: 0;
       transition: transform 0.25s ease;
     }
@@ -1720,13 +1719,20 @@
         user_agent:   navigator.userAgent
       };
 
+      // Result-Texte für diesen Typ (rollen-spezifisch, mit Fallback auf leer)
+      const rTexts = (RESULT_TEXTS[state.role] && RESULT_TEXTS[state.role][typeKey]) || {};
+      const teil1 = (typeof rTexts === 'object' && rTexts.teil_1) ? rTexts.teil_1 : (typeof rTexts === 'string' ? rTexts : '');
+      const teil2 = (typeof rTexts === 'object' && rTexts.teil_2) ? rTexts.teil_2 : '';
+
       // 2) Brevo (Funnel-Push via Netlify Function)
       const brevoPayload = {
-        email:     state.lead.email,
-        vorname:   state.lead.vorname,
-        nachname:  state.lead.nachname,
-        rolle:     ROLES[state.role].label,
-        wertetyp:  typeLetter
+        email:               state.lead.email,
+        vorname:             state.lead.vorname,
+        nachname:            state.lead.nachname,
+        rolle:               ROLES[state.role].label,
+        wertetyp:            typeLetter,
+        ergebnis_teil_1:     teil1,
+        ergebnis_teil_2:     teil2
       };
 
       // Submit-Pipeline (Supabase + Brevo parallel)
@@ -1764,7 +1770,11 @@
       const grouped = {};
       rows.forEach(row => {
         if (!grouped[row.role]) grouped[row.role] = {};
-        grouped[row.role][row.type] = row.text;
+        // Neue Struktur: TEIL_1 + TEIL_2 (mit Fallback auf alten "text"-Eintrag)
+        grouped[row.role][row.type] = {
+          teil_1: row.text_teil_1 || row.text || '',
+          teil_2: row.text_teil_2 || ''
+        };
       });
       return grouped;
     }
