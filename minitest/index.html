@@ -418,7 +418,7 @@
       background: #fff;
       border: 2px solid #e8e8ee;
       border-radius: 18px;
-      padding: 22px 80px 22px 20px;  /* mehr rechts, damit Text die Karten-Peek nicht überlappt */
+      padding: 22px 60px 22px 20px;  /* mehr rechts, damit Text die Karten-Peek nicht überlappt */
       cursor: pointer;
       transition: all 0.2s ease;
       font-family: var(--body);
@@ -429,34 +429,27 @@
       position: relative;
       overflow: hidden;
     }
-    /* Karten-Peek (Dummy für Valueneers-Karten, später durch echte Bilder ersetzbar) */
+    /* Karten-Peek: echte Valueneers-Karte ragt von oben rechts in die Antwort-Box rein */
     .answer-card .card-peek {
       position: absolute;
-      top: -28px;
+      top: -38px;
       right: -22px;
-      width: 88px;
-      height: 124px;
-      border-radius: 12px;
-      transform: rotate(16deg);
-      box-shadow: 0 8px 22px rgba(0,0,0,0.18);
+      width: 64px;
+      height: 90px;
+      border-radius: 6px;
+      transform: rotate(14deg);
+      box-shadow: 0 6px 16px rgba(0,0,0,0.18);
       pointer-events: none;
-      border: 3px solid #fff;
-      display: flex;
-      align-items: flex-end;
-      justify-content: center;
-      padding-bottom: 14px;
-      font-size: 28px;
-      color: #fff;
+      background-size: cover;
+      background-position: center top;
+      background-repeat: no-repeat;
+      background-color: #f0f0f5; /* Fallback wenn Bild fehlt */
       z-index: 0;
       transition: transform 0.25s ease;
     }
     .answer-card:hover .card-peek {
-      transform: rotate(8deg) translate(-6px, 4px);
+      transform: rotate(6deg) translate(-4px, 4px);
     }
-    .answer-card[data-type="sicherheit"]   .card-peek { background: linear-gradient(155deg, #F7941D, #C46B0B); }
-    .answer-card[data-type="beziehung"]    .card-peek { background: linear-gradient(155deg, #E91E8C, #A1135E); }
-    .answer-card[data-type="veraenderung"] .card-peek { background: linear-gradient(155deg, #5754C8, #2E2D8E); }
-    .answer-card[data-type="erfuellung"]   .card-peek { background: linear-gradient(155deg, #7CC142, #4F8B25); }
     /* Text liegt über dem Peek */
     .answer-card .value-name,
     .answer-card .action {
@@ -465,13 +458,19 @@
     }
     /* Auf Mobile: Peek kleiner, Padding entsprechend kleiner */
     @media (max-width: 600px) {
-      .answer-card { padding: 22px 70px 22px 18px; }
-      .answer-card .card-peek { width: 70px; height: 100px; top: -22px; right: -16px; }
+      .answer-card { padding: 22px 56px 22px 18px; }
+      .answer-card .card-peek { width: 54px; height: 76px; top: -32px; right: -16px; }
     }
     .answer-card:hover {
       border-color: var(--blue);
       transform: translateY(-3px);
       box-shadow: 0 12px 28px rgba(46,45,142,0.15);
+    }
+    /* Browser-default Focus-Outline raus (sah aus wie "ausgewählt") */
+    .answer-card:focus { outline: none; }
+    .answer-card:focus-visible {
+      outline: 2px solid var(--pink);
+      outline-offset: 2px;
     }
     .answer-card .value-name {
       font-family: var(--bang);
@@ -555,10 +554,11 @@
     .lead-form-on-tease {
       margin-bottom: 14px;
     }
+    /* Form ist weiß, also dunkler Text — auch wenn Tease drumherum dunkel ist */
     .consent-on-tease {
-      color: rgba(255,255,255,0.85) !important;
+      color: #555 !important;
     }
-    .consent-on-tease a { color: #fff !important; }
+    .consent-on-tease a { color: var(--pink) !important; }
     .tease-cta-wrap {
       text-align: center;
       margin-top: 20px;
@@ -1023,6 +1023,29 @@
     const SUPABASE_URL = "https://iwsgkwmtsrqpqlahvrhl.supabase.co";
     const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Iml3c2drd210c3JxcHFsYWh2cmhsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ2MjM4ODMsImV4cCI6MjA5MDE5OTg4M30.elfrwQNUhw75rFQ6eRCrXQdKidt3T1WIQmdodyHbzMg";
 
+    // Mapping: Wertname → Karten-Bilddatei (PNG in /minitest/cards/)
+    const CARD_FILE_MAP = {
+      "Abenteuer": "abenteuer.png", "Abwechslung": "abwechslung.png", "Achtsamkeit": "achtsamkeit.png",
+      "Andersartigkeit": "andersartigkeit.png", "Anerkennung": "anerkennung.png", "Aufgeschlossenheit": "aufgeschlossenheit.png",
+      "Ausgeglichenheit": "ausgeglichenheit.png", "Authentizität": "authentizitaet.png", "Begeisterung": "begeisterung.png",
+      "Bildung": "bildung.png", "Disziplin": "disziplin.png", "Ehre": "ehre.png", "Ehrlichkeit": "ehrlichkeit.png",
+      "Einfluss": "einfluss.png", "Empathie": "empathie.png", "Entwicklung": "entwicklung.png", "Erfolg": "erfolg.png",
+      "Familie": "familie.png", "Flexibilität": "flexibilitaet.png", "Freiheit": "freiheit.png", "Freude": "freude.png",
+      "Freundschaft": "freundschaft.png", "Gelassenheit": "gelassenheit.png", "Gerechtigkeit": "gerechtigkeit.png",
+      "Geselligkeit": "geselligkeit.png", "Gesundheit": "gesundheit.png", "Glaube": "glaube.png", "Harmonie": "harmonie.png",
+      "Humor": "humor.png", "Innovation": "innovation.png", "Kreativität": "kreativitaet.png", "Leistung": "leistung.png",
+      "Loyalität": "loyalitaet.png", "Mitgefühl": "mitgefuehl.png", "Mut": "mut.png", "Nachhaltigkeit": "nachhaltigkeit.png",
+      "Respekt": "respekt.png", "Ruhe": "ruhe.png", "Rücksichtnahme": "ruecksichtnahme.png",
+      "Selbstverwirklichung": "selbstverwirklichung.png", "Sicherheit": "sicherheit.png", "Spiritualität": "spiritualitaet.png",
+      "Spontaneität": "spontaneitaet.png", "Toleranz": "toleranz.png", "Tradition": "tradition.png", "Treue": "treue.png",
+      "Unabhängigkeit": "unabhaengigkeit.png", "Verantwortung": "verantwortung.png", "Zugehörigkeit": "zugehoerigkeit.png",
+      "Zuverlässigkeit": "zuverlaessigkeit.png", "Zärtlichkeit": "zaertlichkeit.png", "Ästhetik": "aesthetik.png"
+    };
+    function cardUrlFor(value) {
+      const file = CARD_FILE_MAP[value];
+      return file ? `cards/${file}` : null;
+    }
+
     // Mapping unsere 4 Typen → Brevo-Attribut "TYP-SCHNELLTEST_WERTE" (A-G slots)
     // Vorläufig: A/B/C/D, Klärung mit Matthias steht noch aus
     const TYPE_TO_LETTER = {
@@ -1146,7 +1169,7 @@
       },
       "erfuellung-sicherheit": {
         scenario: "Letzte Stichfrage: Du sollst eine Pflicht erfüllen, die dir aber innerlich nicht entspricht. Was wiegt für dich am Ende mehr?",
-        a: { value: "Pflichtbewusstsein", action: "Verlässlichkeit zählt, auch wenn's mir nicht entspricht.",  type: "sicherheit" },
+        a: { value: "Disziplin",          action: "Verlässlichkeit zählt, auch wenn's mir nicht entspricht.",  type: "sicherheit" },
         b: { value: "Authentizität",      action: "Wenn's mir nicht entspricht, kann ich's nicht ehrlich tun.", type: "erfuellung" }
       },
       "beziehung-veraenderung": {
@@ -1162,7 +1185,7 @@
       "erfuellung-veraenderung": {
         scenario: "Letzte Stichfrage: Du könntest aktiv die Welt um dich verändern oder erstmal in dich gehen und herausfinden, was wirklich zu dir passt. Was wiegt für dich am Ende mehr?",
         a: { value: "Selbstverwirklichung", action: "Ich muss erst wissen, wer ich bin, dann gestalte ich.",  type: "erfuellung"   },
-        b: { value: "Gestaltungswille",     action: "Ich packe an und gestalte aktiv. Selbsterkenntnis kommt im Tun.", type: "veraenderung" }
+        b: { value: "Verantwortung",        action: "Ich packe an und gestalte aktiv. Selbsterkenntnis kommt im Tun.", type: "veraenderung" }
       }
     };
 
@@ -1401,14 +1424,16 @@
       html += '<div class="question-card">';
       html += `<p class="scenario">${escapeHtml(r.scenario)}</p>`;
       html += '</div>';
+      const aUrl = cardUrlFor(r.a.value);
+      const bUrl = cardUrlFor(r.b.value);
       html += '<div class="answers">';
       html += `<button class="answer-card" data-type="${r.a.type}" onclick="answer('a')">`;
-      html += `<div class="card-peek"></div>`;
+      html += aUrl ? `<div class="card-peek" style="background-image:url('${aUrl}')"></div>` : `<div class="card-peek"></div>`;
       html += `<span class="value-name">${escapeHtml(r.a.value)}</span>`;
       html += `<span class="action">${escapeHtml(r.a.action)}</span>`;
       html += '</button>';
       html += `<button class="answer-card" data-type="${r.b.type}" onclick="answer('b')">`;
-      html += `<div class="card-peek"></div>`;
+      html += bUrl ? `<div class="card-peek" style="background-image:url('${bUrl}')"></div>` : `<div class="card-peek"></div>`;
       html += `<span class="value-name">${escapeHtml(r.b.value)}</span>`;
       html += `<span class="action">${escapeHtml(r.b.action)}</span>`;
       html += '</button>';
@@ -1428,14 +1453,16 @@
       html += '<div class="question-card tiebreaker-card">';
       html += `<p class="scenario">${escapeHtml(tb.scenario)}</p>`;
       html += '</div>';
+      const tbAUrl = cardUrlFor(tb.a.value);
+      const tbBUrl = cardUrlFor(tb.b.value);
       html += '<div class="answers">';
       html += `<button class="answer-card" data-type="${tb.a.type}" onclick="answerTiebreaker('a')">`;
-      html += `<div class="card-peek"></div>`;
+      html += tbAUrl ? `<div class="card-peek" style="background-image:url('${tbAUrl}')"></div>` : `<div class="card-peek"></div>`;
       html += `<span class="value-name">${escapeHtml(tb.a.value)}</span>`;
       html += `<span class="action">${escapeHtml(tb.a.action)}</span>`;
       html += '</button>';
       html += `<button class="answer-card" data-type="${tb.b.type}" onclick="answerTiebreaker('b')">`;
-      html += `<div class="card-peek"></div>`;
+      html += tbBUrl ? `<div class="card-peek" style="background-image:url('${tbBUrl}')"></div>` : `<div class="card-peek"></div>`;
       html += `<span class="value-name">${escapeHtml(tb.b.value)}</span>`;
       html += `<span class="action">${escapeHtml(tb.b.action)}</span>`;
       html += '</button>';
@@ -1537,6 +1564,7 @@
     window.selectRole = selectRole;
 
     function answer(choice) {
+      if (document.activeElement && document.activeElement.blur) document.activeElement.blur();
       const q = QUESTIONS[state.currentQ];
       const r = q.roles[state.role];
       const picked = r[choice];
@@ -1579,6 +1607,7 @@
     }
 
     function answerTiebreaker(choice) {
+      if (document.activeElement && document.activeElement.blur) document.activeElement.blur();
       const tb = TIEBREAKERS[state.pendingTiebreaker.key];
       const picked = tb[choice];
       state.answers.push({ q: 'tb', choice: choice, type: picked.type, value: picked.value, tiebreaker: true });
