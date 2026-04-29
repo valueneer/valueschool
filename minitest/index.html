@@ -1769,4 +1769,31 @@
         }
         if (tRes.ok) {
           const rows = await tRes.json();
-          if (rows.length > 0) { TIEBREAKERS = transformTiebreakers(ro
+          if (rows.length > 0) { TIEBREAKERS = transformTiebreakers(rows); console.log("[Minitest] Tiebreakers aus DB geladen:", rows.length); }
+        }
+      } catch (e) {
+        console.warn("[Minitest] Content-Load fehlgeschlagen, nutze Code-Defaults:", e);
+      }
+    }
+
+    // ═══════════════ Init ═══════════════
+    document.addEventListener("DOMContentLoaded", function() {
+      // Inhalte aus Supabase laden (async, non-blocking)
+      // User sieht initial die Code-Defaults, werden ersetzt sobald DB-Antwort da
+      loadContentFromSupabase();
+      renderRoleSelector();
+    });
+  </script>
+
+  <footer>
+    <div>
+      <a href="https://value-school.de">value-school.de</a>·
+      <a href="https://value-school.de#kontakt">Kontakt</a>·
+      <a href="https://value-school.de#impressum">Impressum</a>·
+      <a href="https://value-school.de#datenschutz">Datenschutz</a>
+    </div>
+    <div class="footer-meta">Value School ist ein gemeinnütziges Wertebildungsprogramm.</div>
+  </footer>
+
+</body>
+</html>
