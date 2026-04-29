@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Welcher Werte-Typ bist du? — Value School Minitest</title>
-  <meta name="description" content="5 echte Konfliktszenarien aus deinem Schulalltag. 1 Minute. Am Ende kennst du deinen Werte-Typ — und weißt, was deine Schule wirklich braucht.">
+  <title>Welcher Werte-Typ bist du?,Value School Minitest</title>
+  <meta name="description" content="5 echte Konfliktszenarien aus deinem Schulalltag. 1 Minute. Am Ende kennst du deinen Werte-Typ, und weißt, was deine Schule wirklich braucht.">
 
   <!-- Brevo Tracking -->
   <script src="https://cdn.brevo.com/js/sdk-loader.js" async></script>
@@ -418,7 +418,7 @@
       background: #fff;
       border: 2px solid #e8e8ee;
       border-radius: 18px;
-      padding: 22px 20px;
+      padding: 22px 80px 22px 20px;  /* mehr rechts, damit Text die Karten-Peek nicht überlappt */
       cursor: pointer;
       transition: all 0.2s ease;
       font-family: var(--body);
@@ -463,8 +463,10 @@
       position: relative;
       z-index: 1;
     }
-    .answer-card .value-name {
-      max-width: calc(100% - 60px);
+    /* Auf Mobile: Peek kleiner, Padding entsprechend kleiner */
+    @media (max-width: 600px) {
+      .answer-card { padding: 22px 70px 22px 18px; }
+      .answer-card .card-peek { width: 70px; height: 100px; top: -22px; right: -16px; }
     }
     .answer-card:hover {
       border-color: var(--blue);
@@ -548,7 +550,15 @@
       line-height: 1.65;
       margin-bottom: 18px;
     }
-    .tease-text:last-of-type { margin-bottom: 32px; }
+    .tease-text:last-of-type { margin-bottom: 28px; }
+    /* Lead-Form auf Tease-Hintergrund (helle Form auf dunkelblau) */
+    .lead-form-on-tease {
+      margin-bottom: 14px;
+    }
+    .consent-on-tease {
+      color: rgba(255,255,255,0.85) !important;
+    }
+    .consent-on-tease a { color: #fff !important; }
     .tease-cta-wrap {
       text-align: center;
       margin-top: 20px;
@@ -712,7 +722,7 @@
       text-align: left;
       box-shadow: 0 6px 18px rgba(28,27,94,0.06);
     }
-    /* Tiebreaker — visuell als "Stichfrage" markiert */
+    /* Tiebreaker, visuell als "Stichfrage" markiert */
     .tiebreaker-theme {
       color: var(--orange) !important;
       font-weight: 800 !important;
@@ -927,9 +937,22 @@
     <div class="hero-inner">
       <span class="badge">🧭 1-Min-Wertetest · für die Schule</span>
       <h1>Spür mal, wie <span class="accent">krass</span> das ist.</h1>
-      <p class="lead">5 echte Konfliktszenarien aus deinem Schulalltag. 1 Minute. Am Ende kennst du deinen Werte-Typ — und weißt, was deine Schule wirklich braucht.</p>
+      <p class="lead">5 echte Konfliktszenarien aus deinem Schulalltag. 1 Minute. Am Ende kennst du deinen Werte-Typ, und weißt, was deine Schule wirklich braucht.</p>
       <a href="#test" class="cta-btn">Test starten →</a>
       <div class="cta-meta">Kostenfrei · 1 Minute · DSGVO-konform</div>
+    </div>
+  </section>
+
+  <!-- TEST -->
+  <section id="test" class="test-section">
+    <div class="test-container">
+      <div class="test-progress" id="testProgress" style="display:none">
+        <div class="progress-track"><div class="progress-bar" id="progressBar"></div></div>
+        <div class="progress-text" id="progressText">Frage 1 von 5</div>
+      </div>
+      <div class="test-content" id="testContent">
+        <!-- gets filled by JS -->
+      </div>
     </div>
   </section>
 
@@ -937,16 +960,16 @@
   <section class="why-section">
     <div class="why-inner">
       <h2>Warum Werte in der Schule alles entscheiden</h2>
-      <p class="sub">Drei Zahlen, die die ganze Geschichte erzählen — und warum dieser Test dich nicht kalt lässt.</p>
+      <p class="sub">Drei Zahlen, die die ganze Geschichte erzählen, und warum dieser Test dich nicht kalt lässt.</p>
       <div class="stats-grid">
         <div class="stat-card pink">
           <div class="stat">90%</div>
-          <p class="text">der Menschen kennen ihre eigenen Werte nicht wirklich. Wer sich selbst nicht kennt, wird zum Spielball äußerer Einflüsse — und gibt diesen Zustand an die nächste Generation weiter.</p>
+          <p class="text">der Menschen kennen ihre eigenen Werte nicht wirklich. Wer sich selbst nicht kennt, wird zum Spielball äußerer Einflüsse, und gibt diesen Zustand an die nächste Generation weiter.</p>
           <div class="src">Eurich, 2018</div>
         </div>
         <div class="stat-card orange">
           <div class="stat">+11%</div>
-          <p class="text">bessere Schulleistungen in Programmen, die Werte- und Selbstbewusstsein integrieren. Wertebildung macht Schule messbar besser — wissenschaftlich belegt.</p>
+          <p class="text">bessere Schulleistungen in Programmen, die Werte- und Selbstbewusstsein integrieren. Wertebildung macht Schule messbar besser, wissenschaftlich belegt.</p>
           <div class="src">Durlak et al., Meta-Analyse 2011</div>
         </div>
         <div class="stat-card cyan">
@@ -966,7 +989,7 @@
         <div class="what-item">
           <div class="num">01</div>
           <div class="title">Dein Werte-Typ</div>
-          <div class="desc">Persönliche Auswertung — bist du Sicherheits-, Beziehungs-, Veränderungs- oder Erfüllungs-Typ?</div>
+          <div class="desc">Persönliche Auswertung, bist du Sicherheits-, Beziehungs-, Veränderungs- oder Erfüllungs-Typ?</div>
         </div>
         <div class="what-item">
           <div class="num">02</div>
@@ -976,21 +999,8 @@
         <div class="what-item">
           <div class="num">03</div>
           <div class="title">Dein nächster Schritt</div>
-          <div class="desc">Konkrete Hinweise, wie du Wertebildung an deiner Schule ins Rollen bringst.</div>
+          <div class="desc">Erste Anregungen, wie du Wertebildung an deiner Schule ins Rollen bringen kannst.</div>
         </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- TEST -->
-  <section id="test" class="test-section">
-    <div class="test-container">
-      <div class="test-progress" id="testProgress" style="display:none">
-        <div class="progress-track"><div class="progress-bar" id="progressBar"></div></div>
-        <div class="progress-text" id="progressText">Frage 1 von 5</div>
-      </div>
-      <div class="test-content" id="testContent">
-        <!-- gets filled by JS -->
       </div>
     </div>
   </section>
@@ -1006,7 +1016,7 @@
 
   <script>
     // ═══════════════════════════════════════════
-    // VALUE SCHOOL MINITEST — Logic
+    // VALUE SCHOOL MINITEST, Logic
     // ═══════════════════════════════════════════
 
     // Supabase (gleiches Projekt wie der alte Wertetest)
@@ -1014,7 +1024,7 @@
     const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Iml3c2drd210c3JxcHFsYWh2cmhsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ2MjM4ODMsImV4cCI6MjA5MDE5OTg4M30.elfrwQNUhw75rFQ6eRCrXQdKidt3T1WIQmdodyHbzMg";
 
     // Mapping unsere 4 Typen → Brevo-Attribut "TYP-SCHNELLTEST_WERTE" (A-G slots)
-    // Vorläufig: A/B/C/D — Klärung mit Matthias steht noch aus
+    // Vorläufig: A/B/C/D, Klärung mit Matthias steht noch aus
     const TYPE_TO_LETTER = {
       sicherheit:   "A",
       beziehung:    "B",
@@ -1035,7 +1045,7 @@
       schulleitung: {
         headline: "Spürst du's?",
         paragraphs: [
-          "Diese Konflikte sind keine Phantasie — sie sitzen täglich auf deinem Schreibtisch. Reformen vs. Bewährtes. Loyalität vs. Klarheit. Pädagogik vs. Politik.",
+          "Diese Konflikte sind keine Phantasie, sie sitzen täglich auf deinem Schreibtisch. Reformen vs. Bewährtes. Loyalität vs. Klarheit. Pädagogik vs. Politik.",
           "Du bist nicht allein damit. Hunderte Schulleitungen in Deutschland navigieren gerade dieselben Werte-Konflikte. Meistens ohne Sprache dafür.",
           "Genau hier setzt Wertebildung an: Mit gemeinsamer Werte-Sprache werden diese Konflikte zu Dialog statt zu Streit. Klarheit für dich. Halt fürs Kollegium. Zukunft für die Schule."
         ]
@@ -1043,42 +1053,42 @@
       lehrkraft: {
         headline: "Spürst du's?",
         paragraphs: [
-          "Diese Szenen kennst du. Aus dem Klassenzimmer, dem Lehrerzimmer, dem Eltern­gespräch. Es sind keine Konstrukte — es ist dein Alltag.",
-          "Du bist nicht allein damit. Tausende Lehrkräfte stehen vor genau diesen Werte-Konflikten — Tag für Tag, oft ohne dass jemand sie dafür sieht.",
+          "Diese Szenen kennst du. Aus dem Klassenzimmer, dem Lehrerzimmer, dem Eltern­gespräch. Es sind keine Konstrukte, es ist dein Alltag.",
+          "Du bist nicht allein damit. Tausende Lehrkräfte stehen vor genau diesen Werte-Konflikten, Tag für Tag, oft ohne dass jemand sie dafür sieht.",
           "Genau hier setzt Wertebildung an: Wenn deine Schule eine gemeinsame Werte-Sprache hat, wirst du nicht mehr allein gelassen mit diesen Entscheidungen. Sie werden gemeinsam getragen."
         ]
       },
       schueler: {
         headline: "Spürst du's?",
         paragraphs: [
-          "Das sind echte Situationen — aus deiner Klasse, deiner Familie, deinem Leben. Du erkennst sie sofort, oder?",
-          "Du bist nicht allein damit. Tausende junge Menschen stehen gerade vor denselben Fragen — was ist mir wichtig, wofür stehe ich ein, wann lass ich los?",
-          "Wenn du deine Werte kennst, wirst du sicherer in deinen Entscheidungen. Du weißt, wofür du dich einsetzt — und kannst dich vom Druck anderer befreien."
+          "Das sind echte Situationen, aus deiner Klasse, deiner Familie, deinem Leben. Du erkennst sie sofort, oder?",
+          "Du bist nicht allein damit. Tausende junge Menschen stehen gerade vor denselben Fragen, was ist mir wichtig, wofür stehe ich ein, wann lass ich los?",
+          "Wenn du deine Werte kennst, wirst du sicherer in deinen Entscheidungen. Du weißt, wofür du dich einsetzt, und kannst dich vom Druck anderer befreien."
         ]
       },
       eltern: {
         headline: "Spürst du's?",
         paragraphs: [
-          "Diese Situationen kennst du — von zuhause, von der Schule, vom Elternabend. Sie machen müde, weil es selten klare Antworten gibt.",
+          "Diese Situationen kennst du, von zuhause, von der Schule, vom Elternabend. Sie machen müde, weil es selten klare Antworten gibt.",
           "Du bist nicht allein damit. Tausende Eltern stehen vor denselben Werte-Konflikten: Bewährtes weitergeben oder Neues zulassen? Eingreifen oder vertrauen?",
-          "Genau hier setzt Wertebildung an: Wenn dein Kind seine Werte kennt — und die Schule eine gemeinsame Werte-Sprache hat — wird Erziehung zu Dialog statt zu Streit. Du musst nicht mehr alles allein tragen."
+          "Genau hier setzt Wertebildung an: Wenn dein Kind seine Werte kennt, und die Schule eine gemeinsame Werte-Sprache hat, wird Erziehung zu Dialog statt zu Streit. Du musst nicht mehr alles allein tragen."
         ]
       },
       sonstige: {
         headline: "Spürst du's?",
         paragraphs: [
-          "Diese Konflikte sind keine Phantasie — sie passieren in jedem Umfeld, in dem Menschen miteinander leben, lernen oder arbeiten.",
-          "Du bist nicht allein damit. Werte-Konflikte sind die unsichtbare Reibung in fast jeder Entscheidung — beruflich, privat, gesellschaftlich.",
-          "Wer seine Werte kennt — und die Werte der anderen — entscheidet bewusster, kommuniziert klarer und kommt schneller zu tragfähigen Lösungen. Genau dafür gibt's Wertebildung."
+          "Diese Konflikte sind keine Phantasie, sie passieren in jedem Umfeld, in dem Menschen miteinander leben, lernen oder arbeiten.",
+          "Du bist nicht allein damit. Werte-Konflikte sind die unsichtbare Reibung in fast jeder Entscheidung, beruflich, privat, gesellschaftlich.",
+          "Wer seine Werte kennt, und die Werte der anderen, entscheidet bewusster, kommuniziert klarer und kommt schneller zu tragfähigen Lösungen. Genau dafür gibt's Wertebildung."
         ]
       }
     };
 
     const TYPES = {
-      sicherheit:   { name: "Sicherheit",   emoji: "🟠", color: "#F7941D", short: "Halt, Klarheit, Ordnung — du gibst Struktur und Verlässlichkeit." },
-      beziehung:    { name: "Beziehung",    emoji: "🩷", color: "#E91E8C", short: "Verbindung, Nähe, Gemeinschaft — du hältst Menschen zusammen." },
-      veraenderung: { name: "Veränderung",  emoji: "🔵", color: "#2E2D8E", short: "Wachstum, Neues, Entwicklung — du treibst Wandel voran." },
-      erfuellung:   { name: "Erfüllung",    emoji: "🟢", color: "#7CC142", short: "Sinn, Selbstbestimmung, Selbstfindung — du folgst deinem inneren Kompass." }
+      sicherheit:   { name: "Sicherheit",   emoji: "🟠", color: "#F7941D", short: "Halt, Klarheit, Ordnung, du gibst Struktur und Verlässlichkeit." },
+      beziehung:    { name: "Beziehung",    emoji: "🩷", color: "#E91E8C", short: "Verbindung, Nähe, Gemeinschaft, du hältst Menschen zusammen." },
+      veraenderung: { name: "Veränderung",  emoji: "🔵", color: "#2E2D8E", short: "Wachstum, Neues, Entwicklung, du treibst Wandel voran." },
+      erfuellung:   { name: "Erfüllung",    emoji: "🟢", color: "#7CC142", short: "Sinn, Selbstbestimmung, Selbstfindung, du folgst deinem inneren Kompass." }
     };
 
     // ╔═══════════════════════════════════════════════════════════════╗
@@ -1090,74 +1100,74 @@
 
     let RESULT_TEXTS = {
       schulleitung: {
-        sicherheit:   "Als Schulleitung mit Sicherheits-Wertetyp gibst du deinem Kollegium und deiner Schule Halt. Du sorgst für klare Strukturen, verlässliche Prozesse und eine Schule, auf die Eltern und Träger zählen können. Deine Stärke: Stabilität in unsicheren Zeiten. Wertearbeit gibt deiner Stabilität Tiefe — nicht nur Regeln, sondern gemeinsam getragene Werte.",
-        beziehung:    "Als Schulleitung mit Beziehungs-Wertetyp hältst du dein Kollegium zusammen. Du siehst die Menschen hinter den Rollen, vermittelst zwischen Lagern und schaffst eine Schule, in der man sich aufgehoben fühlt. Deine Stärke: Verbundenheit. Wertearbeit gibt deiner Wärme Substanz — gemeinsame Werte machen aus Beziehungen ein Tragwerk.",
-        veraenderung: "Als Schulleitung mit Veränderungs-Wertetyp treibst du deine Schule voran. Du erkennst, was geht, packst neue Ideen an und scheust den Wandel nicht. Deine Stärke: Mut zur Veränderung. Wertearbeit gibt deinem Wandel Richtung — gemeinsame Werte sorgen dafür, dass Veränderung nicht spaltet, sondern verbindet.",
-        erfuellung:   "Als Schulleitung mit Erfüllungs-Wertetyp führst du authentisch — aus innerer Klarheit. Du gehst nicht den Weg, den andere erwarten, sondern den, der dir und deiner Schule entspricht. Deine Stärke: Sinnführung. Wertearbeit gibt deiner Sinnsuche Form — wenn alle ihre Werte kennen, finden mehr Menschen ihren Sinn an deiner Schule."
+        sicherheit:   "Als Schulleitung mit Sicherheits-Wertetyp gibst du deinem Kollegium und deiner Schule Halt. Du sorgst für klare Strukturen, verlässliche Prozesse und eine Schule, auf die Eltern und Träger zählen können. Deine Stärke: Stabilität in unsicheren Zeiten. Wertearbeit gibt deiner Stabilität Tiefe, nicht nur Regeln, sondern gemeinsam getragene Werte.",
+        beziehung:    "Als Schulleitung mit Beziehungs-Wertetyp hältst du dein Kollegium zusammen. Du siehst die Menschen hinter den Rollen, vermittelst zwischen Lagern und schaffst eine Schule, in der man sich aufgehoben fühlt. Deine Stärke: Verbundenheit. Wertearbeit gibt deiner Wärme Substanz, gemeinsame Werte machen aus Beziehungen ein Tragwerk.",
+        veraenderung: "Als Schulleitung mit Veränderungs-Wertetyp treibst du deine Schule voran. Du erkennst, was geht, packst neue Ideen an und scheust den Wandel nicht. Deine Stärke: Mut zur Veränderung. Wertearbeit gibt deinem Wandel Richtung, gemeinsame Werte sorgen dafür, dass Veränderung nicht spaltet, sondern verbindet.",
+        erfuellung:   "Als Schulleitung mit Erfüllungs-Wertetyp führst du authentisch, aus innerer Klarheit. Du gehst nicht den Weg, den andere erwarten, sondern den, der dir und deiner Schule entspricht. Deine Stärke: Sinnführung. Wertearbeit gibt deiner Sinnsuche Form, wenn alle ihre Werte kennen, finden mehr Menschen ihren Sinn an deiner Schule."
       },
       lehrkraft: {
-        sicherheit:   "Als Lehrkraft mit Sicherheits-Wertetyp gibst du deinen Schüler:innen Halt. Du sorgst für klare Regeln, verlässliche Strukturen und einen Klassenraum, in dem Lernen möglich ist. Deine Stärke: Verlässlichkeit. Wertearbeit gibt deiner Disziplin Tiefe — Regeln, die alle verstehen und tragen, statt Regeln, die ausgehalten werden.",
-        beziehung:    "Als Lehrkraft mit Beziehungs-Wertetyp siehst du jeden einzelnen Schüler. Du baust Vertrauen auf, vermittelst bei Konflikten und schaffst eine Klasse, in der niemand übersehen wird. Deine Stärke: Verbundenheit. Wertearbeit gibt deiner Empathie Werkzeug — eine gemeinsame Werte-Sprache macht aus deiner Stärke das Fundament der ganzen Schule.",
-        veraenderung: "Als Lehrkraft mit Veränderungs-Wertetyp probierst du Neues. Du holst frische Methoden ins Klassenzimmer, traust dich auch da, wo andere bremsen. Deine Stärke: Innovation. Wertearbeit gibt deinem Wandel Anker — wenn das Kollegium gemeinsame Werte teilt, wird aus deinen Experimenten gemeinsame Schulentwicklung.",
-        erfuellung:   "Als Lehrkraft mit Erfüllungs-Wertetyp unterrichtest du authentisch. Du machst nicht, was 'man halt so macht', sondern was, woran du wirklich glaubst. Deine Stärke: Echtheit. Wertearbeit gibt deiner Authentizität Resonanz — wenn alle ihre Werte kennen, dürfen mehr Lehrkräfte echt sein."
+        sicherheit:   "Als Lehrkraft mit Sicherheits-Wertetyp gibst du deinen Schülern Halt. Du sorgst für klare Regeln, verlässliche Strukturen und einen Klassenraum, in dem Lernen möglich ist. Deine Stärke: Verlässlichkeit. Wertearbeit gibt deiner Disziplin Tiefe, Regeln, die alle verstehen und tragen, statt Regeln, die ausgehalten werden.",
+        beziehung:    "Als Lehrkraft mit Beziehungs-Wertetyp siehst du jeden einzelnen Schüler. Du baust Vertrauen auf, vermittelst bei Konflikten und schaffst eine Klasse, in der niemand übersehen wird. Deine Stärke: Verbundenheit. Wertearbeit gibt deiner Empathie Werkzeug, eine gemeinsame Werte-Sprache macht aus deiner Stärke das Fundament der ganzen Schule.",
+        veraenderung: "Als Lehrkraft mit Veränderungs-Wertetyp probierst du Neues. Du holst frische Methoden ins Klassenzimmer, traust dich auch da, wo andere bremsen. Deine Stärke: Innovation. Wertearbeit gibt deinem Wandel Anker, wenn das Kollegium gemeinsame Werte teilt, wird aus deinen Experimenten gemeinsame Schulentwicklung.",
+        erfuellung:   "Als Lehrkraft mit Erfüllungs-Wertetyp unterrichtest du authentisch. Du machst nicht, was 'man halt so macht', sondern was, woran du wirklich glaubst. Deine Stärke: Echtheit. Wertearbeit gibt deiner Authentizität Resonanz, wenn alle ihre Werte kennen, dürfen mehr Lehrkräfte echt sein."
       },
       schueler: {
-        sicherheit:   "Du bist Sicherheits-Typ. Du suchst Halt. Du magst klare Regeln, verlässliche Menschen und brauchst Strukturen, in denen du dich orientieren kannst. Deine Stärke: Du gibst anderen Halt, weil du selbst gut geerdet bist. Wenn deine Schule mit Werten arbeitet, lernst du nicht nur Regeln auswendig — sondern verstehst, wofür sie da sind.",
-        beziehung:    "Du bist Beziehungs-Typ. Menschen sind dein wichtigster Anker. Du spürst Stimmungen, vermittelst bei Streit und kämpfst für deine Freunde. Deine Stärke: Wenn du da bist, fühlt sich keine:r allein. Wenn deine Schule mit Werten arbeitet, lernst du, was Verbundenheit wirklich bedeutet — und dass auch andere darauf angewiesen sind.",
-        veraenderung: "Du bist Veränderungs-Typ. Du willst was bewegen. Du erkennst, was nicht mehr passt, und hast den Mut, es anzusprechen. Deine Stärke: Du bringst frischen Wind. Wenn deine Schule mit Werten arbeitet, kannst du deinen Wandel-Drive auf etwas richten, was wirklich zählt — statt im Konflikt mit Älteren zu zerschellen.",
-        erfuellung:   "Du bist Erfüllungs-Typ. Du folgst deinem Bauch. Du machst nicht mit, nur weil 'alle es machen' — du suchst, was sich wirklich richtig anfühlt. Deine Stärke: Authentizität. Wenn deine Schule mit Werten arbeitet, findest du andere, die genauso ticken — und musst dich nicht mehr verstellen."
+        sicherheit:   "Du bist Sicherheits-Typ. Du suchst Halt. Du magst klare Regeln, verlässliche Menschen und brauchst Strukturen, in denen du dich orientieren kannst. Deine Stärke: Du gibst anderen Halt, weil du selbst gut geerdet bist. Wenn deine Schule mit Werten arbeitet, lernst du nicht nur Regeln auswendig, sondern verstehst, wofür sie da sind.",
+        beziehung:    "Du bist Beziehungs-Typ. Menschen sind dein wichtigster Anker. Du spürst Stimmungen, vermittelst bei Streit und kämpfst für deine Freunde. Deine Stärke: Wenn du da bist, fühlt sich keine:r allein. Wenn deine Schule mit Werten arbeitet, lernst du, was Verbundenheit wirklich bedeutet, und dass auch andere darauf angewiesen sind.",
+        veraenderung: "Du bist Veränderungs-Typ. Du willst was bewegen. Du erkennst, was nicht mehr passt, und hast den Mut, es anzusprechen. Deine Stärke: Du bringst frischen Wind. Wenn deine Schule mit Werten arbeitet, kannst du deinen Wandel-Drive auf etwas richten, was wirklich zählt, statt im Konflikt mit Älteren zu zerschellen.",
+        erfuellung:   "Du bist Erfüllungs-Typ. Du folgst deinem Bauch. Du machst nicht mit, nur weil 'alle es machen',du suchst, was sich wirklich richtig anfühlt. Deine Stärke: Authentizität. Wenn deine Schule mit Werten arbeitet, findest du andere, die genauso ticken, und musst dich nicht mehr verstellen."
       },
       eltern: {
-        sicherheit:   "Als Elternteil mit Sicherheits-Wertetyp gibst du deinem Kind Halt. Du sorgst für klare Regeln, verlässlichen Alltag und ein Zuhause, in dem dein Kind weiß, woran es ist. Deine Stärke: Stabilität als Boden. Wenn die Schule deines Kindes mit Werten arbeitet, ergänzen sich euer Halt zuhause und die Verlässlichkeit in der Schule — dein Kind hat ZWEI sichere Räume.",
-        beziehung:    "Als Elternteil mit Beziehungs-Wertetyp siehst du dein Kind. Wirklich. Du spürst, was los ist, und hältst Kontakt — auch wenn's anstrengend wird. Deine Stärke: Verbindung als Boden. Wenn die Schule deines Kindes mit Werten arbeitet, lernen auch Lehrkräfte, jedes Kind als Mensch zu sehen — und dein Kind erlebt diese Verbundenheit nicht nur zuhause.",
-        veraenderung: "Als Elternteil mit Veränderungs-Wertetyp lässt du dein Kind wachsen. Du erkennst, wenn es Zeit ist loszulassen, Neues zuzulassen, anders zu sein als andere Familien. Deine Stärke: Du gibst Raum für Entwicklung. Wenn die Schule deines Kindes mit Werten arbeitet, wird auch dort Raum für individuelles Wachstum geschaffen — dein Kind muss nicht in eine Schablone passen.",
+        sicherheit:   "Als Elternteil mit Sicherheits-Wertetyp gibst du deinem Kind Halt. Du sorgst für klare Regeln, verlässlichen Alltag und ein Zuhause, in dem dein Kind weiß, woran es ist. Deine Stärke: Stabilität als Boden. Wenn die Schule deines Kindes mit Werten arbeitet, ergänzen sich euer Halt zuhause und die Verlässlichkeit in der Schule, dein Kind hat ZWEI sichere Räume.",
+        beziehung:    "Als Elternteil mit Beziehungs-Wertetyp siehst du dein Kind. Wirklich. Du spürst, was los ist, und hältst Kontakt, auch wenn's anstrengend wird. Deine Stärke: Verbindung als Boden. Wenn die Schule deines Kindes mit Werten arbeitet, lernen auch Lehrkräfte, jedes Kind als Mensch zu sehen, und dein Kind erlebt diese Verbundenheit nicht nur zuhause.",
+        veraenderung: "Als Elternteil mit Veränderungs-Wertetyp lässt du dein Kind wachsen. Du erkennst, wenn es Zeit ist loszulassen, Neues zuzulassen, anders zu sein als andere Familien. Deine Stärke: Du gibst Raum für Entwicklung. Wenn die Schule deines Kindes mit Werten arbeitet, wird auch dort Raum für individuelles Wachstum geschaffen, dein Kind muss nicht in eine Schablone passen.",
         erfuellung:   "Als Elternteil mit Erfüllungs-Wertetyp lebst du deinem Kind ein authentisches Leben vor. Du machst nicht, was 'man halt so macht', sondern was wirklich zu dir passt. Deine Stärke: Du zeigst, wie ein selbstbestimmtes Leben aussieht. Wenn die Schule deines Kindes mit Werten arbeitet, lernt dein Kind: Es ist okay, eigene Wege zu gehen."
       },
       sonstige: {
-        sicherheit:   "Du bist Sicherheits-Typ. Du gibst Struktur. Wo immer du bist, sorgst du für Verlässlichkeit, klare Regeln und das Gefühl, dass man sich auf dich verlassen kann. Deine Stärke: Stabilität für andere. Wertearbeit verleiht deiner Klarheit Tiefe — du weißt nicht nur WAS gilt, sondern auch WARUM.",
-        beziehung:    "Du bist Beziehungs-Typ. Du verbindest Menschen. Du siehst, wer eine Brücke braucht, vermittelst, hältst Gruppen zusammen. Deine Stärke: Du machst Gemeinschaft möglich. Wertearbeit gibt deiner Verbundenheit Substanz — gemeinsame Werte machen aus Sympathie ein Fundament.",
-        veraenderung: "Du bist Veränderungs-Typ. Du gestaltest. Wo andere abwarten, packst du an. Du siehst Möglichkeiten und scheust nicht das Risiko. Deine Stärke: Du bringst Bewegung. Wertearbeit gibt deinem Wandel Richtung — Veränderung mit gemeinsamen Werten ist Entwicklung, nicht Aktionismus.",
-        erfuellung:   "Du bist Erfüllungs-Typ. Du folgst deinem Kompass. Du gehst nicht den Weg, den andere erwarten, sondern den, der zu dir passt. Deine Stärke: Authentizität. Wertearbeit gibt deinem Sinn Resonanz — wenn andere ihre Werte auch kennen, findest du deine Leute."
+        sicherheit:   "Du bist Sicherheits-Typ. Du gibst Struktur. Wo immer du bist, sorgst du für Verlässlichkeit, klare Regeln und das Gefühl, dass man sich auf dich verlassen kann. Deine Stärke: Stabilität für andere. Wertearbeit verleiht deiner Klarheit Tiefe, du weißt nicht nur WAS gilt, sondern auch WARUM.",
+        beziehung:    "Du bist Beziehungs-Typ. Du verbindest Menschen. Du siehst, wer eine Brücke braucht, vermittelst, hältst Gruppen zusammen. Deine Stärke: Du machst Gemeinschaft möglich. Wertearbeit gibt deiner Verbundenheit Substanz, gemeinsame Werte machen aus Sympathie ein Fundament.",
+        veraenderung: "Du bist Veränderungs-Typ. Du gestaltest. Wo andere abwarten, packst du an. Du siehst Möglichkeiten und scheust nicht das Risiko. Deine Stärke: Du bringst Bewegung. Wertearbeit gibt deinem Wandel Richtung, Veränderung mit gemeinsamen Werten ist Entwicklung, nicht Aktionismus.",
+        erfuellung:   "Du bist Erfüllungs-Typ. Du folgst deinem Kompass. Du gehst nicht den Weg, den andere erwarten, sondern den, der zu dir passt. Deine Stärke: Authentizität. Wertearbeit gibt deinem Sinn Resonanz, wenn andere ihre Werte auch kennen, findest du deine Leute."
       }
     };
 
-    // Stichfragen — werden nur bei Gleichstand zwischen 2 Typen eingeblendet
+    // Stichfragen, werden nur bei Gleichstand zwischen 2 Typen eingeblendet
     // Reihenfolge der Werte ist alphabetisch im Key (sicherheit-beziehung, nicht beziehung-sicherheit)
     let TIEBREAKERS = {
       "beziehung-sicherheit": {
         scenario: "Letzte Stichfrage: Du musst gerade entscheiden zwischen einer klaren Regel und einer mitfühlenden Ausnahme. Was wiegt für dich am Ende mehr?",
-        a: { value: "Empathie",       action: "Mitgefühl geht vor Regel — der Mensch zuerst.",                        type: "beziehung"  },
-        b: { value: "Zuverlässigkeit", action: "Klare Regeln geben Halt — auch wenn's wehtut.",                        type: "sicherheit" }
+        a: { value: "Empathie",       action: "Mitgefühl geht vor Regel, der Mensch zuerst.",                        type: "beziehung"  },
+        b: { value: "Zuverlässigkeit", action: "Klare Regeln geben Halt, auch wenn's wehtut.",                        type: "sicherheit" }
       },
       "sicherheit-veraenderung": {
         scenario: "Letzte Stichfrage: Etwas Bewährtes funktioniert solide, aber nicht mehr ganz zeitgemäß. Was wiegt für dich am Ende mehr?",
-        a: { value: "Tradition", action: "Was sich bewährt hat, hat seinen Wert — bewahren.",                        type: "sicherheit"   },
-        b: { value: "Mut",       action: "Stillstand ist Rückschritt — verändern, auch wenn's risikoreich ist.",     type: "veraenderung" }
+        a: { value: "Tradition", action: "Was sich bewährt hat, hat seinen Wert, bewahren.",                        type: "sicherheit"   },
+        b: { value: "Mut",       action: "Stillstand ist Rückschritt, verändern, auch wenn's risikoreich ist.",     type: "veraenderung" }
       },
       "erfuellung-sicherheit": {
         scenario: "Letzte Stichfrage: Du sollst eine Pflicht erfüllen, die dir aber innerlich nicht entspricht. Was wiegt für dich am Ende mehr?",
-        a: { value: "Pflichtbewusstsein", action: "Verlässlichkeit zählt — auch wenn's mir nicht entspricht.",  type: "sicherheit" },
+        a: { value: "Pflichtbewusstsein", action: "Verlässlichkeit zählt, auch wenn's mir nicht entspricht.",  type: "sicherheit" },
         b: { value: "Authentizität",      action: "Wenn's mir nicht entspricht, kann ich's nicht ehrlich tun.", type: "erfuellung" }
       },
       "beziehung-veraenderung": {
         scenario: "Letzte Stichfrage: Du willst eine Beziehung schützen, aber dafür müsstest du einen Wandel verhindern. Was wiegt für dich am Ende mehr?",
-        a: { value: "Loyalität", action: "Verbindungen halten zählt mehr — Stabilität für die Menschen.",     type: "beziehung"    },
+        a: { value: "Loyalität", action: "Verbindungen halten zählt mehr, Stabilität für die Menschen.",     type: "beziehung"    },
         b: { value: "Verantwortung", action: "Wandel ist nötig, auch wenn Beziehungen darunter leiden.",       type: "veraenderung" }
       },
       "beziehung-erfuellung": {
         scenario: "Letzte Stichfrage: Du musst zwischen einer wichtigen Beziehung und deinem Bauchgefühl wählen. Was wiegt für dich am Ende mehr?",
-        a: { value: "Treue",         action: "Verbindungen sind das Wichtigste — sie halten mich.",             type: "beziehung" },
+        a: { value: "Treue",         action: "Verbindungen sind das Wichtigste, sie halten mich.",             type: "beziehung" },
         b: { value: "Authentizität", action: "Ich kann nur ich sein, wenn ich meinem Gefühl folge.",            type: "erfuellung" }
       },
       "erfuellung-veraenderung": {
         scenario: "Letzte Stichfrage: Du könntest aktiv die Welt um dich verändern oder erstmal in dich gehen und herausfinden, was wirklich zu dir passt. Was wiegt für dich am Ende mehr?",
-        a: { value: "Selbstverwirklichung", action: "Ich muss erst wissen, wer ich bin — dann gestalte ich.",  type: "erfuellung"   },
+        a: { value: "Selbstverwirklichung", action: "Ich muss erst wissen, wer ich bin, dann gestalte ich.",  type: "erfuellung"   },
         b: { value: "Gestaltungswille",     action: "Ich packe an und gestalte aktiv. Selbsterkenntnis kommt im Tun.", type: "veraenderung" }
       }
     };
 
     // ╔═══════════════════════════════════════════════════════════════╗
-    // ║  ENDE TEXT-BEREICH — ab hier nur noch Logik                   ║
+    // ║  ENDE TEXT-BEREICH, ab hier nur noch Logik                   ║
     // ╚═══════════════════════════════════════════════════════════════╝
 
 
@@ -1167,12 +1177,12 @@
         theme: "Bewährtes wird aufgeweicht",
         roles: {
           schulleitung: {
-            scenario: "In deinem Kollegium gibt es eine Lehrkraft, die zunehmend von Vorgaben abweicht — kommt zu spät, gibt eigene Regeln raus, ignoriert Vereinbarungen. Das Kollegium wartet auf deine Reaktion. Was tust du?",
+            scenario: "In deinem Kollegium gibt es eine Lehrerin, die zunehmend von Vorgaben abweicht, kommt zu spät, gibt eigene Regeln raus, ignoriert Vereinbarungen. Das Kollegium wartet auf deine Reaktion. Was tust du?",
             a: { value: "Empathie",       action: "Ich frage vorsichtig nach, was eigentlich los ist.",                              type: "beziehung"  },
             b: { value: "Zuverlässigkeit", action: "Ich spreche die Person klar an und setze die Regeln durch.",                     type: "sicherheit" }
           },
           lehrkraft: {
-            scenario: "Eine deiner Schülerinnen hat seit zwei Wochen ihre Hausaufgaben nicht abgegeben. Sie ist sonst absolut zuverlässig. Heute siehst du, wie sie in der Pause weint, willst sie ansprechen — sie wendet sich ab. Morgen ist Notenstichtag. Was tust du?",
+            scenario: "Eine deiner Schülerinnen hat seit zwei Wochen ihre Hausaufgaben nicht abgegeben. Sie ist sonst absolut zuverlässig. Heute siehst du, wie sie in der Pause weint, willst sie ansprechen, sie wendet sich ab. Morgen ist Notenstichtag. Was tust du?",
             a: { value: "Empathie",       action: "Ich gebe ihr Zeit, lass die Hausaufgabe diesmal durchgehen. Die Note kann warten.", type: "beziehung"  },
             b: { value: "Zuverlässigkeit", action: "Ich notiere die fehlende Hausaufgabe wie bei allen anderen.",                      type: "sicherheit" }
           },
@@ -1182,12 +1192,12 @@
             b: { value: "Gerechtigkeit", action: "Ich sage es offen in der Gruppe: So geht's nicht weiter.",     type: "sicherheit" }
           },
           eltern: {
-            scenario: "Bei euch gilt: 30 Minuten Bildschirmzeit am Tag. Dein Kind testet diese Regel ständig — argumentiert, verhandelt, weicht aus. Heute schon eine Stunde länger. Was tust du?",
+            scenario: "Bei euch gilt: 30 Minuten Bildschirmzeit am Tag. Dein Kind testet diese Regel ständig, argumentiert, verhandelt, weicht aus. Heute schon eine Stunde länger. Was tust du?",
             a: { value: "Empathie",       action: "Ich setze mich dazu und frage, was gerade los ist.",                  type: "beziehung"  },
             b: { value: "Zuverlässigkeit", action: "Ich nehme das Gerät weg und erinnere an unsere Vereinbarung.",       type: "sicherheit" }
           },
           sonstige: {
-            scenario: "In deinem Umfeld gibt's eine eingespielte Routine, die alle gut finden. Eine neue Person bricht sie immer wieder — nicht böse, aber konsequent. Andere schauen zu dir. Was tust du?",
+            scenario: "In deinem Umfeld gibt's eine eingespielte Routine, die alle gut finden. Eine neue Person bricht sie immer wieder, nicht böse, aber konsequent. Andere schauen zu dir. Was tust du?",
             a: { value: "Empathie",  action: "Ich suche das Gespräch und versuche zu verstehen, warum.",  type: "beziehung"  },
             b: { value: "Tradition", action: "Ich spreche an: Die Routine gibt's nicht ohne Grund.",      type: "sicherheit" }
           }
@@ -1198,17 +1208,17 @@
         theme: "Du siehst, wie jemand schlecht behandelt wird",
         roles: {
           schulleitung: {
-            scenario: "Du merkst seit Monaten: An eurer Schule entsteht eine schleichende Kultur, in der sich die 'starken' Schüler*innen über die schwächeren stellen. Drei Lehrkräfte haben dich leise drauf angesprochen. Du könntest in der nächsten Schulkonferenz eine offene Aussprache ansetzen — riskierst aber Außenwirkung. Was tust du?",
+            scenario: "Du merkst seit Monaten: An eurer Schule entsteht eine schleichende Kultur, in der sich die 'starken' Schüler über die schwächeren stellen. Drei Lehrer haben dich leise drauf angesprochen. Du könntest in der nächsten Schulkonferenz eine offene Aussprache ansetzen, riskierst aber Außenwirkung. Was tust du?",
             a: { value: "Rücksichtnahme", action: "Ich arbeite leise: Einzelgespräche mit Klassenleitungen, gezielte Maßnahmen pro Klasse.", type: "beziehung" },
             b: { value: "Authentizität", action: "Ich setze die Aussprache an und mache es zum Schulthema. Auch wenn der Ruf leidet.",       type: "erfuellung" }
           },
           lehrkraft: {
-            scenario: "Im Lehrerzimmer wird über einen 'Problemschüler' gelästert — er kassiert wieder eine Vier, sei eh nicht zu retten. Du weißt: Sein Vater liegt schwer krank im Krankenhaus. Wenn du den Hintergrund ausplauderst, verletzt du seine Privatsphäre. Was tust du?",
+            scenario: "Im Lehrerzimmer wird über einen 'Problemschüler' gelästert, er kassiert wieder eine Vier, sei eh nicht zu retten. Du weißt: Sein Vater liegt schwer krank im Krankenhaus. Wenn du den Hintergrund ausplauderst, verletzt du seine Privatsphäre. Was tust du?",
             a: { value: "Rücksichtnahme", action: "Ich werfe einen Satz ein, der lenkt: 'Vielleicht ist da was bei ihm los, was wir nicht wissen.'", type: "beziehung" },
             b: { value: "Authentizität", action: "Ich sage klar: 'So wollen wir nicht über Schüler reden. Punkt.'",                                  type: "erfuellung" }
           },
           schueler: {
-            scenario: "In eurer Klassen-WhatsApp wird seit Tagen über ein Mädchen gelästert, das auf Klassenfahrt mit jemandem im Zelt war. Alle finden's witzig. Sie ist gar nicht in der Gruppe — sie weiß nichts. Wenn du dich einmischst, bist du nächste Woche dran. Was tust du?",
+            scenario: "In eurer Klassen-WhatsApp wird seit Tagen über ein Mädchen gelästert, das auf Klassenfahrt mit jemandem im Zelt war. Alle finden's witzig. Sie ist gar nicht in der Gruppe, sie weiß nichts. Wenn du dich einmischst, bist du nächste Woche dran. Was tust du?",
             a: { value: "Harmonie",     action: "Ich schweige in der Gruppe. Spreche stattdessen sie persönlich an.", type: "beziehung" },
             b: { value: "Authentizität", action: "Ich schreibe in die Gruppe: 'Hört auf, das ist eklig.'",            type: "erfuellung" }
           },
@@ -1229,7 +1239,7 @@
         theme: "Generationenkonflikt",
         roles: {
           schulleitung: {
-            scenario: "Eine Gruppe junger Lehrkräfte schlägt vor, klassische Klassenarbeiten teilweise durch Lernportfolios zu ersetzen. Drei alteingesessene Kollegen lehnen ab: 'Das verwässert die Qualität.' Eltern und Träger werden Fragen stellen. Was tust du?",
+            scenario: "Eine Gruppe junger Lehrerinnen schlägt vor, klassische Klassenarbeiten teilweise durch Lernportfolios zu ersetzen. Drei alteingesessene Kollegen lehnen ab: 'Das verwässert die Qualität.' Eltern und Träger werden Fragen stellen. Was tust du?",
             a: { value: "Aufgeschlossenheit", action: "Ich starte einen Pilot in zwei Klassen, hol die Alteingesessenen ins Pilot-Design rein.", type: "veraenderung" },
             b: { value: "Tradition",          action: "Ich vertage. Für so eine Veränderung müssen alle im Boot sein.",                          type: "sicherheit" }
           },
@@ -1239,17 +1249,17 @@
             b: { value: "Disziplin", action: "Ich sage: Schriftlich ist die Aufgabe für alle, das hat Gründe.",                                     type: "sicherheit" }
           },
           schueler: {
-            scenario: "Beim Familienrat: Du willst dieses Jahr NICHT in den Sommerurlaub — sondern in ein Workcamp, etwas Eigenes machen. Deine Eltern reagieren skeptisch. Wenn du dich durchsetzt, gibt's wochenlang schlechte Stimmung zuhause. Was tust du?",
+            scenario: "Beim Familienrat: Du willst dieses Jahr NICHT in den Sommerurlaub, sondern in ein Workcamp, etwas Eigenes machen. Deine Eltern reagieren skeptisch. Wenn du dich durchsetzt, gibt's wochenlang schlechte Stimmung zuhause. Was tust du?",
             a: { value: "Mut",       action: "Ich erkläre, warum mir das wichtig ist, und sage: Ich mach das. Auch wenn ihr's nicht versteht.", type: "veraenderung" },
-            b: { value: "Tradition", action: "Ich gehe mit. Familienurlaub ist bei uns Tradition — das verschenken wir nicht.",                  type: "sicherheit" }
+            b: { value: "Tradition", action: "Ich gehe mit. Familienurlaub ist bei uns Tradition, das verschenken wir nicht.",                  type: "sicherheit" }
           },
           eltern: {
             scenario: "Dein 17-jähriger Sohn will nach dem Abi NICHT studieren, sondern Wwoofing durch Europa, dann Schreinerlehre. Verwandtschaft (und dein Partner) hat ihn auf BWL ausgerichtet. Wenn du ihn unterstützt, gehst du gegen die Familie. Was tust du?",
-            a: { value: "Aufgeschlossenheit", action: "Ich unterstütze seinen Weg offen — und nehm in Kauf, dass ich's der Verwandtschaft erkläre.", type: "veraenderung" },
+            a: { value: "Aufgeschlossenheit", action: "Ich unterstütze seinen Weg offen, und nehm in Kauf, dass ich's der Verwandtschaft erkläre.", type: "veraenderung" },
             b: { value: "Tradition",          action: "Ich versuche, ihn auf den bewährten Weg zurückzuholen. BWL hält viele Türen offen.",          type: "sicherheit" }
           },
           sonstige: {
-            scenario: "In deinem Umfeld wird etwas Etabliertes radikal in Frage gestellt — wie ihr im Verein entscheidet, in der Firma arbeitet. Eine jüngere Generation will das ganz anders. Du wirst gefragt, wo du stehst. Was tust du?",
+            scenario: "In deinem Umfeld wird etwas Etabliertes radikal in Frage gestellt, wie ihr im Verein entscheidet, in der Firma arbeitet. Eine jüngere Generation will das ganz anders. Du wirst gefragt, wo du stehst. Was tust du?",
             a: { value: "Innovation", action: "Ich stelle mich hinter das Neue und nehme die Reibung mit den Älteren in Kauf.",       type: "veraenderung" },
             b: { value: "Tradition",  action: "Ich verteidige das Bewährte. Es gibt Gründe, warum wir das so machen.",                type: "sicherheit" }
           }
@@ -1260,29 +1270,29 @@
         theme: "Du bist mit deiner Situation nicht happy",
         roles: {
           schulleitung: {
-            scenario: "Du bist seit 8 Jahren Schulleitung. Die Schule läuft gut, die Zahlen stimmen. Aber etwas in dir sagt: Es ist nicht mehr DEIN Projekt. Eine andere Schule sucht eine Leitung — komplett neuer Aufbau. Spannender, aber alles hier — Team, Routinen — bliebe zurück. Was tust du?",
-            a: { value: "Authentizität", action: "Ich höre auf mein Bauchgefühl. Wenn das Feuer hier weg ist, dann muss ich gehen.", type: "erfuellung" },
-            b: { value: "Verantwortung", action: "Ich krempel hier was um. 8 Jahre Aufbau wirft man nicht weg.",                     type: "veraenderung" }
+            scenario: "Du bist seit 8 Jahren Schulleitung. Die Schule läuft gut, die Zahlen stimmen. Aber etwas in dir sagt: Es ist nicht mehr DEIN Projekt. Eine andere Schule sucht eine Leitung, komplett neuer Aufbau. Spannender, aber alles hier, Team, Routinen, bliebe zurück. Was tust du?",
+            a: { value: "Selbstverwirklichung", action: "Ich höre auf mein Bauchgefühl. Wenn das Feuer hier weg ist, dann muss ich gehen.", type: "erfuellung" },
+            b: { value: "Verantwortung",        action: "Ich krempel hier was um. 8 Jahre Aufbau wirft man nicht weg.",                     type: "veraenderung" }
           },
           lehrkraft: {
             scenario: "Seit 12 Jahren Lehrkraft. Du machst deinen Job gut. Aber: Seit Corona spürst du keine echte Verbindung mehr. Manchmal denkst du an Coaching, raus aus der Schule. Aber Familie, Gehalt, Kollegen brauchen dich. Was tust du?",
-            a: { value: "Authentizität", action: "Ich nehme mir die Frage ernst, was wirklich zu mir passt — auch wenn das Veränderung bedeutet.", type: "erfuellung" },
-            b: { value: "Entwicklung",   action: "Ich gestalte meinen Job aktiv um. Bevor ich gehe, hol ich mir den Drive zurück.",                type: "veraenderung" }
+            a: { value: "Freiheit",      action: "Ich nehme mir die Frage ernst, was wirklich zu mir passt, auch wenn das Veränderung bedeutet.", type: "erfuellung" },
+            b: { value: "Entwicklung",   action: "Ich gestalte meinen Job aktiv um. Bevor ich gehe, hol ich mir den Drive zurück.",               type: "veraenderung" }
           },
           schueler: {
-            scenario: "Du bist 15. Schule fühlt sich gerade leer an. Noten okay, Freunde da — aber irgendwas fehlt. Wenn du mit deinen Eltern darüber redest, sagen sie: 'Das ist die Pubertät, das geht vorbei.' Was tust du?",
+            scenario: "Du bist 15. Schule fühlt sich gerade leer an. Noten okay, Freunde da, aber irgendwas fehlt. Wenn du mit deinen Eltern darüber redest, sagen sie: 'Das ist die Pubertät, das geht vorbei.' Was tust du?",
             a: { value: "Selbstverwirklichung", action: "Ich nehm die Sache selbst in die Hand, suche raus was MIR was bedeutet.", type: "erfuellung" },
-            b: { value: "Spontaneität",         action: "Ich probier was Neues aus — andere Hobbys, andere Leute, raus aus der Routine.", type: "veraenderung" }
+            b: { value: "Spontaneität",         action: "Ich probier was Neues aus, andere Hobbys, andere Leute, raus aus der Routine.", type: "veraenderung" }
           },
           eltern: {
-            scenario: "Seit 12 Jahren Elternteil. Es funktioniert alles. Aber du merkst, dass du als 'Mensch' kaum noch vorkommst. Wenn du dich fragst 'wer bin ich noch außerhalb dieser Rollen?' — kommt nicht viel. Was tust du?",
-            a: { value: "Gelassenheit", action: "Ich höre auf mich, frage was ich für MICH brauche — nehme mir konsequent Zeit dafür.", type: "erfuellung" },
+            scenario: "Seit 12 Jahren Elternteil. Es funktioniert alles. Aber du merkst, dass du als 'Mensch' kaum noch vorkommst. Wenn du dich fragst 'wer bin ich noch außerhalb dieser Rollen?',kommt nicht viel. Was tust du?",
+            a: { value: "Gelassenheit", action: "Ich höre auf mich, frage was ich für MICH brauche, nehme mir konsequent Zeit dafür.", type: "erfuellung" },
             b: { value: "Entwicklung",  action: "Ich gestalte meinen Alltag aktiv um, baue neue Routinen ein, suche Neues was mich nährt.", type: "veraenderung" }
           },
           sonstige: {
-            scenario: "Seit Monaten merkst du: Dein Leben ist nicht rund. Es funktioniert alles — Job, Beziehungen, Wohnen. Aber etwas Zentrales fehlt. Du sitzt manchmal abends da und fragst dich: 'Ist das alles?' Was tust du?",
-            a: { value: "Selbstverwirklichung", action: "Ich höre genauer auf mich — was wirklich passt, was mich nährt, was Sinn ergibt.", type: "erfuellung" },
-            b: { value: "Verantwortung",        action: "Ich nehme das Heft in die Hand und gestalte aktiv um — was auch immer dran ist.",   type: "veraenderung" }
+            scenario: "Seit Monaten merkst du: Dein Leben ist nicht rund. Es funktioniert alles, Job, Beziehungen, Wohnen. Aber etwas Zentrales fehlt. Du sitzt manchmal abends da und fragst dich: 'Ist das alles?' Was tust du?",
+            a: { value: "Selbstverwirklichung", action: "Ich höre genauer auf mich, was wirklich passt, was mich nährt, was Sinn ergibt.", type: "erfuellung" },
+            b: { value: "Verantwortung",        action: "Ich nehme das Heft in die Hand und gestalte aktiv um, was auch immer dran ist.",   type: "veraenderung" }
           }
         }
       },
@@ -1291,29 +1301,29 @@
         theme: "Konflikt mit jemandem in deinem Umfeld",
         roles: {
           schulleitung: {
-            scenario: "Der Schulträger teilt dir mit: Eure Personalmittel werden nächstes Jahr gekürzt — du sollst eine Stelle einsparen. Du könntest die Streichung 'durchwinken' und im Kollegium politisch mildern — oder vor dem Träger offen Position beziehen. Politisch riskant. Was tust du?",
+            scenario: "Der Schulträger teilt dir mit: Eure Personalmittel werden nächstes Jahr gekürzt, du sollst eine Stelle einsparen. Du könntest die Streichung 'durchwinken' und im Kollegium politisch mildern, oder vor dem Träger offen Position beziehen. Politisch riskant. Was tust du?",
             a: { value: "Loyalität",     action: "Ich versuche, die Streichung intern abzufedern und investiere meine Energie ins Kollegium.", type: "beziehung" },
-            b: { value: "Verantwortung", action: "Ich beziehe öffentlich Position gegen den Träger — auch wenn's mich politisch was kostet.",  type: "veraenderung" }
+            b: { value: "Verantwortung", action: "Ich beziehe öffentlich Position gegen den Träger, auch wenn's mich politisch was kostet.",  type: "veraenderung" }
           },
           lehrkraft: {
-            scenario: "Du hast einen langen Konflikt mit einem Elternteil über die Bewertung des Kindes. Es eskaliert: Schriftliche Beschwerde an die Schulleitung, du seist 'voreingenommen'. Du weißt: Du hast korrekt bewertet — aber dieser Konflikt zieht sich monatelang. Was tust du?",
-            a: { value: "Toleranz",      action: "Ich treffe mich mit den Eltern, höre genau zu, suche einen Weg — auch wenn ich Kompromisse machen muss.", type: "beziehung" },
+            scenario: "Du hast einen langen Konflikt mit einem Elternteil über die Bewertung des Kindes. Es eskaliert: Schriftliche Beschwerde an die Schulleitung, du seist 'voreingenommen'. Du weißt: Du hast korrekt bewertet, aber dieser Konflikt zieht sich monatelang. Was tust du?",
+            a: { value: "Toleranz",      action: "Ich treffe mich mit den Eltern, höre genau zu, suche einen Weg, auch wenn ich Kompromisse machen muss.", type: "beziehung" },
             b: { value: "Verantwortung", action: "Ich bleibe bei meiner Einschätzung. Würde ich nachgeben, würden andere Eltern denken: Wer laut ist, bekommt Recht.", type: "veraenderung" }
           },
           schueler: {
-            scenario: "Du hast einen schweren Konflikt mit deiner besten Freundin / deinem besten Freund. Es geht um etwas Grundlegendes — ihr habt unterschiedliche Werte. Eine Stimme sagt: 'Lass die Freundschaft retten.' Eine andere: 'Vielleicht wachsen wir auseinander.' Was tust du?",
+            scenario: "Du hast einen schweren Konflikt mit deiner besten Freundin / deinem besten Freund. Es geht um etwas Grundlegendes, ihr habt unterschiedliche Werte. Eine Stimme sagt: 'Lass die Freundschaft retten.' Eine andere: 'Vielleicht wachsen wir auseinander.' Was tust du?",
             a: { value: "Treue", action: "Ich mache den ersten Schritt, kämpfe um die Freundschaft. Wir kennen uns zu lange.", type: "beziehung" },
-            b: { value: "Mut",   action: "Ich sage, was Sache ist — und akzeptiere, wenn das die Freundschaft beendet.",       type: "veraenderung" }
+            b: { value: "Mut",   action: "Ich sage, was Sache ist, und akzeptiere, wenn das die Freundschaft beendet.",       type: "veraenderung" }
           },
           eltern: {
-            scenario: "Seit Monaten Spannung mit deinem Partner über die Erziehung eures Kindes. Beim letzten Streit habt ihr euch tief verletzt. Bald ist Eltern-Sprechstunde — und ihr werdet vor der Lehrerin gemeinsam darstellen müssen, wie ihr zuhause vorgeht. Was tust du?",
-            a: { value: "Toleranz",      action: "Ich suche einen gemeinsamen Weg, der für uns beide tragbar ist — auch wenn ich Abstriche machen muss.", type: "beziehung" },
+            scenario: "Seit Monaten Spannung mit deinem Partner über die Erziehung eures Kindes. Beim letzten Streit habt ihr euch tief verletzt. Bald ist Eltern-Sprechstunde, und ihr werdet vor der Lehrerin gemeinsam darstellen müssen, wie ihr zuhause vorgeht. Was tust du?",
+            a: { value: "Toleranz",      action: "Ich suche einen gemeinsamen Weg, der für uns beide tragbar ist, auch wenn ich Abstriche machen muss.", type: "beziehung" },
             b: { value: "Verantwortung", action: "Ich beziehe Position für meinen Erziehungsstil, auch wenn's neuen Streit gibt.",                          type: "veraenderung" }
           },
           sonstige: {
-            scenario: "Du hast ein dauerhaftes Reibungsverhältnis mit jemandem in deinem Umfeld — Verein, Freundeskreis, Familie. Es belastet dich seit Monaten. Du könntest weiter aushalten oder die Situation aufbrechen. Was tust du?",
+            scenario: "Du hast ein dauerhaftes Reibungsverhältnis mit jemandem in deinem Umfeld, Verein, Freundeskreis, Familie. Es belastet dich seit Monaten. Du könntest weiter aushalten oder die Situation aufbrechen. Was tust du?",
             a: { value: "Toleranz",      action: "Ich suche das Gespräch, will die Verbindung halten und einen Weg finden, der für beide trägt.", type: "beziehung" },
-            b: { value: "Verantwortung", action: "Ich bringe es auf den Punkt — auch wenn die Beziehung das nicht überlebt.",                      type: "veraenderung" }
+            b: { value: "Verantwortung", action: "Ich bringe es auf den Punkt, auch wenn die Beziehung das nicht überlebt.",                      type: "veraenderung" }
           }
         }
       }
@@ -1388,7 +1398,6 @@
       setProgress(true, qIdx + 1, QUESTIONS.length);
 
       let html = '<div class="state-question">';
-      html += `<div class="question-theme">Szenario · ${escapeHtml(q.theme)}</div>`;
       html += '<div class="question-card">';
       html += `<p class="scenario">${escapeHtml(r.scenario)}</p>`;
       html += '</div>';
@@ -1447,10 +1456,19 @@
       t.paragraphs.forEach(p => {
         html += `<p class="tease-text">${escapeHtml(p)}</p>`;
       });
-      html += '<div class="tease-cta-wrap">';
-      html += '<button class="cta-btn-pink" onclick="renderLeadForm()">Mein Ergebnis sehen →</button>';
-      html += '<div class="tease-meta">1 Klick · 1 Mail · komplette Auswertung</div>';
-      html += '</div></div>';
+      // Lead-Form direkt darunter (gebündelt mit Tease)
+      html += '<form class="lead-form lead-form-on-tease" onsubmit="submitLead(event)">';
+      html += '<input type="text" name="vorname" placeholder="Vorname" required autocomplete="given-name">';
+      html += '<input type="text" name="nachname" placeholder="Nachname" required autocomplete="family-name">';
+      html += '<input type="email" name="email" placeholder="Email" required autocomplete="email">';
+      html += '<label class="consent consent-on-tease">';
+      html += '<input type="checkbox" required>';
+      html += '<span>Ich bin einverstanden, dass meine Auswertung an meine Email-Adresse geschickt wird. Mehr in der <a href="https://value-school.de#datenschutz" target="_blank">Datenschutzerklärung</a>.</span>';
+      html += '</label>';
+      html += '<button type="submit" id="leadBtn">Mein Ergebnis anfordern →</button>';
+      html += '</form>';
+      html += '<div class="tease-meta">1 Klick, 1 Mail, deine Auswertung</div>';
+      html += '</div>';
       content.innerHTML = html;
       content.style.animation = "none";
       void content.offsetWidth;
@@ -1493,38 +1511,15 @@
 
     function renderResult() {
       setProgress(false);
-      const t = TYPES[state.result.type];
-      const scores = state.result.scores;
-      const order = ["sicherheit","beziehung","veraenderung","erfuellung"];
-      const max = Math.max(...Object.values(scores));
-
-      // Rollen-spezifischer Langtext aus RESULT_TEXTS (oben editierbar)
-      const longText = (RESULT_TEXTS[state.role] && RESULT_TEXTS[state.role][state.result.type]) || t.short;
 
       let html = '<div class="state-result">';
-      html += '<div class="badge">Dein Werte-Typ</div>';
-      html += `<div class="result-emoji">${t.emoji}</div>`;
-      html += `<div class="result-type-name" style="color:${t.color}">${t.name}</div>`;
-      html += `<p class="result-type-desc">${escapeHtml(t.short)}</p>`;
-      html += `<div class="result-type-long">${escapeHtml(longText)}</div>`;
-
-      html += '<div class="result-scores">';
-      order.forEach(k => {
-        const tt = TYPES[k];
-        const sc = scores[k] || 0;
-        const pct = max > 0 ? (sc / max) * 100 : 0;
-        html += '<div class="score-row">';
-        html += `<div class="score-label" style="color:${tt.color}">${tt.name}</div>`;
-        html += `<div class="score-bar-track"><div class="score-bar-fill" style="width:${pct}%;background:${tt.color}"></div></div>`;
-        html += `<div class="score-value" style="color:${tt.color}">${sc}</div>`;
-        html += '</div>';
-      });
-      html += '</div>';
-
-      html += '<div class="result-note">📩 <strong>Deine ausführliche Auswertung</strong> mit konkreten nächsten Schritten — was das für dich UND deine Schule bedeutet — bekommst du in den nächsten Minuten per Mail. Bitte schau auch in den Spam-Ordner.</div>';
-
+      html += '<div class="result-emoji">📩</div>';
+      html += '<div class="result-type-name" style="color:#7CC142">Check deine Mails!</div>';
+      html += '<p class="result-type-desc">Wir haben dir gerade eine Bestätigungs-Mail geschickt.</p>';
+      html += '<div class="result-note"><strong>Klick den Bestätigungs-Link in der Mail.</strong> Sobald das passiert ist, schicken wir dir dein Werte-Typ-Ergebnis und erste Anregungen für dich und deine Schule.<br><br>Tipp: Schau auch im Spam-Ordner, manchmal landet die Mail dort.</div>';
       html += '<a href="https://value-school.de" class="result-cta">Mehr über Value School →</a>';
       html += '</div>';
+
       content.innerHTML = html;
       content.style.animation = "none";
       void content.offsetWidth;
@@ -1560,7 +1555,7 @@
     function checkAndResolveTie() {
       const scores = calcScores();
       const max = Math.max(...Object.values(scores));
-      const winners = Object.entries(scores).filter(([k,v]) => v === max).map(([k]) => k);
+      const winners = Object.entries(scores).filter(([k, v]) => v === max).map(([k]) => k);
 
       if (winners.length === 1) {
         // Klarer Sieger
@@ -1574,7 +1569,7 @@
       const key = t1 + "-" + t2;
       const tb = TIEBREAKERS[key];
       if (!tb) {
-        // Sollte nie passieren — Fallback Random
+        // Sollte nie passieren, Fallback Random
         state.result = { scores: scores, type: winners[Math.floor(Math.random() * winners.length)] };
         renderTease();
         return;
@@ -1589,15 +1584,15 @@
       state.answers.push({ q: 'tb', choice: choice, type: picked.type, value: picked.value, tiebreaker: true });
       state.pendingTiebreaker = null;
 
-      // Re-Check — sollte jetzt klarer Sieger sein (außer 3+way Tie originally)
+      // Re-Check, sollte jetzt klarer Sieger sein (außer 3+way Tie originally)
       const scores = calcScores();
       const max = Math.max(...Object.values(scores));
-      const winners = Object.entries(scores).filter(([k,v]) => v === max).map(([k]) => k);
+      const winners = Object.entries(scores).filter(([k, v]) => v === max).map(([k]) => k);
 
       if (winners.length === 1) {
         state.result = { scores: scores, type: winners[0] };
       } else {
-        // 3+way Tie war ursprünglich da — Random Fallback
+        // 3+way Tie war ursprünglich da, Random Fallback
         state.result = { scores: scores, type: winners[Math.floor(Math.random() * winners.length)] };
       }
       renderTease();
@@ -1612,7 +1607,7 @@
 
     function determineType(scores) {
       const max = Math.max(...Object.values(scores));
-      const winners = Object.entries(scores).filter(([k,v]) => v === max).map(([k]) => k);
+      const winners = Object.entries(scores).filter(([k, v]) => v === max).map(([k]) => k);
       // Tiebreaker: simple random pick (TODO: dedicated tiebreaker question)
       return winners[Math.floor(Math.random() * winners.length)];
     }
@@ -1774,31 +1769,4 @@
         }
         if (tRes.ok) {
           const rows = await tRes.json();
-          if (rows.length > 0) { TIEBREAKERS = transformTiebreakers(rows); console.log("[Minitest] Tiebreakers aus DB geladen:", rows.length); }
-        }
-      } catch (e) {
-        console.warn("[Minitest] Content-Load fehlgeschlagen, nutze Code-Defaults:", e);
-      }
-    }
-
-    // ═══════════════ Init ═══════════════
-    document.addEventListener("DOMContentLoaded", function() {
-      // Inhalte aus Supabase laden (async, non-blocking)
-      // User sieht initial die Code-Defaults — werden ersetzt sobald DB-Antwort da
-      loadContentFromSupabase();
-      renderRoleSelector();
-    });
-  </script>
-
-  <footer>
-    <div>
-      <a href="https://value-school.de">value-school.de</a>·
-      <a href="https://value-school.de#kontakt">Kontakt</a>·
-      <a href="https://value-school.de#impressum">Impressum</a>·
-      <a href="https://value-school.de#datenschutz">Datenschutz</a>
-    </div>
-    <div class="footer-meta">Value School ist ein gemeinnütziges Wertebildungsprogramm.</div>
-  </footer>
-
-</body>
-</html>
+          if (rows.length > 0) { TIEBREAKERS = transformTiebreakers(ro
