@@ -121,7 +121,9 @@ function ImgBox(props) {
   var accent = props.accent || PINK;
   return (
     <div style={{
-      aspectRatio: props.ratio || "21/9", borderRadius: 0,
+      aspectRatio: props.ratio || "21/9",
+      minHeight: "clamp(300px, 38vw, 480px)",
+      borderRadius: 0,
       background: hasSrc ? "#0a0a14" : "linear-gradient(135deg, " + BLUE + "10, " + PINK + "06)",
       display: "flex", alignItems: "flex-start", justifyContent: "flex-start",
       border: "none", overflow: "hidden",
@@ -136,7 +138,7 @@ function ImgBox(props) {
           {(props.quote || props.title) && <div style={{ position: "absolute", inset: 0, background: "linear-gradient(180deg, rgba(0,0,0,0.75) 0%, rgba(0,0,0,0.4) 40%, rgba(0,0,0,0.1) 70%, rgba(0,0,0,0) 100%)", pointerEvents: "none" }} />}
           {props.tag && <div style={{ position: "absolute", top: "clamp(20px, 3vw, 40px)", left: "max(24px, calc(50% - 550px))", background: accent, color: "#fff", fontSize: 12, fontWeight: 800, letterSpacing: 2, textTransform: "uppercase", padding: "6px 14px", borderRadius: 99, zIndex: 2 }}>{props.tag}</div>}
           {(props.quote || props.title) && (
-            <div style={{ position: "relative", zIndex: 1, width: "100%", paddingTop: "clamp(90px, 10vw, 130px)" }}>
+            <div style={{ position: "relative", zIndex: 1, width: "100%", paddingTop: "clamp(40px, 8vw, 130px)" }}>
               <div style={{ maxWidth: 1100, margin: "0 auto", padding: "0 24px", color: "#fff" }}>
                 {props.kicker && <div style={{ display: "inline-block", fontSize: 12, fontWeight: 800, color: "#fff", textTransform: "uppercase", letterSpacing: 3, background: accent, padding: "6px 14px", borderRadius: 99, marginBottom: 14 }}>{props.kicker}</div>}
                 {props.title && <h2 style={{ fontFamily: BANG, fontSize: "clamp(30px, 5vw, 56px)", fontWeight: 400, letterSpacing: 2, lineHeight: 1.05, textTransform: "uppercase", color: "#fff", textShadow: "0 4px 20px rgba(0,0,0,0.5)", maxWidth: 860, margin: 0 }}>{props.title}</h2>}
@@ -207,6 +209,16 @@ function ValueSchool() {
   var sent = ss[0]; var setSent = ss[1];
   var ts = useState(false);
   var showTeam = ts[0]; var setShowTeam = ts[1];
+  var fcs = useState(false);
+  var showFloating = fcs[0]; var setShowFloating = fcs[1];
+  useEffect(function () {
+    function onScroll() {
+      setShowFloating(window.scrollY > window.innerHeight * 0.7);
+    }
+    window.addEventListener("scroll", onScroll, { passive: true });
+    onScroll();
+    return function () { window.removeEventListener("scroll", onScroll); };
+  }, []);
   function go(id) { var el = document.getElementById(id); if (el) el.scrollIntoView({ behavior: "smooth" }); }
 
   return (
@@ -239,11 +251,6 @@ function ValueSchool() {
 
         <div style={{ maxWidth: 880, margin: "0 auto", padding: "36px 24px 40px", textAlign: "center", position: "relative", zIndex: 1 }}>
           <FadeIn>
-            <div style={{ display: "inline-flex", gap: 8, marginBottom: 20, flexWrap: "wrap", justifyContent: "center" }}>
-              {[["💪", "Stark werden"], ["🎯", "Sich selbst kennen"], ["🗳️", "Haltung zeigen"]].map(function (b) {
-                return <span key={b[1]} style={{ background: "rgba(255,255,255,0.12)", color: "#fff", padding: "6px 14px", borderRadius: 99, fontSize: 13, fontWeight: 600, letterSpacing: 0.5, backdropFilter: "blur(8px)", border: "1px solid rgba(255,255,255,0.18)" }}>{b[0]} {b[1]}</span>;
-              })}
-            </div>
             <h1 style={{ fontFamily: BANG, fontSize: "clamp(48px, 9vw, 96px)", fontWeight: 400, color: "#fff", lineHeight: 0.95, letterSpacing: 3, marginBottom: 20, textTransform: "uppercase", textShadow: "0 4px 24px rgba(0,0,0,0.4)" }}>
               <span style={{ color: ORANGE }}>Werte</span> bewegen<br /><span style={{ color: GREEN }}>Schule</span>
             </h1>
@@ -430,14 +437,7 @@ function ValueSchool() {
               })}
             </div>
           </FadeIn>
-          <FadeIn delay={0.2}>
-            <Fact dark color={CYAN} stat="264" text="Jugendliche in einer Nature-Studie: Wer sich selbst emotional kennt, zeigt signifikant mehr Resilienz, ein stärkeres Selbstbild und höhere Lebensmotivation. Sich kennen ist kein Luxus — es ist Schutz." src="Scientific Reports, 2024" />
-          </FadeIn>
-          <FadeIn delay={0.3}>
-            <p style={{ fontFamily: BANG, fontSize: "clamp(22px, 3.5vw, 36px)", color: "#fff", textAlign: "center", letterSpacing: 3, textTransform: "uppercase", textShadow: "0 2px 20px rgba(0,0,0,0.5)", marginTop: 50, marginBottom: 0 }}>
-              Wer sich kennt, <span style={{ color: ORANGE }}>steht sicher.</span>
-            </p>
-          </FadeIn>
+
         </div>
       </section>
 
@@ -936,7 +936,7 @@ function ValueSchool() {
         </div>
       </footer>
 
-      {/* ═══════════ FLOATING MINITEST CTA ═══════════ */}
+      {/* ═══════════ FLOATING MINITEST CTA — erscheint erst nach Hero ═══════════ */}
       <a href="/minitest/" style={{
         position: "fixed", bottom: 24, right: 24, zIndex: 200,
         background: "linear-gradient(135deg, " + PINK + ", " + ORANGE + ")",
@@ -944,10 +944,12 @@ function ValueSchool() {
         fontFamily: HEAD, fontSize: 16, fontWeight: 800, letterSpacing: 0.5,
         textDecoration: "none", display: "inline-flex", alignItems: "center", gap: 10,
         boxShadow: "0 12px 40px rgba(233,30,140,0.5), 0 0 0 4px rgba(255,255,255,0.4)",
-        cursor: "pointer", transition: "transform 0.25s ease, box-shadow 0.25s ease",
-      }}
-        onMouseEnter={function (e) { e.currentTarget.style.transform = "scale(1.06)"; }}
-        onMouseLeave={function (e) { e.currentTarget.style.transform = "scale(1)"; }}>
+        cursor: "pointer",
+        opacity: showFloating ? 1 : 0,
+        transform: showFloating ? "translateY(0)" : "translateY(80px)",
+        pointerEvents: showFloating ? "auto" : "none",
+        transition: "opacity 0.3s ease, transform 0.3s ease, box-shadow 0.25s ease",
+      }}>
         <span style={{ fontSize: 20 }}>🧭</span> 1-Min-Wertetest
       </a>
     </div>
