@@ -838,6 +838,36 @@
       text-transform: uppercase;
     }
 
+    /* BRIDGE — was nach dem Test passiert (dezent, kein zweiter Pitch) */
+    .after-section {
+      background: #f5f5f7;
+      padding: clamp(50px, 8vw, 80px) 24px;
+      text-align: center;
+    }
+    .after-inner {
+      max-width: 720px;
+      margin: 0 auto;
+    }
+    .after-badge {
+      display: inline-block;
+      font-family: var(--bang);
+      font-size: 14px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--blue);
+      background: rgba(46,45,142,0.08);
+      padding: 7px 16px;
+      border-radius: 99px;
+      margin-bottom: 18px;
+    }
+    .after-line {
+      font-size: clamp(15px, 1.7vw, 17px);
+      color: #444;
+      line-height: 1.6;
+      margin: 0;
+    }
+    .after-line strong { color: var(--blue); font-weight: 700; }
+
     /* FINAL CTA */
     .final-cta {
       background: linear-gradient(135deg, var(--pink) 0%, var(--orange) 100%);
@@ -1012,6 +1042,14 @@
           <div class="desc">Konkrete Hebel, wie du Wertebildung in Schule oder Familie ins Rollen bringst.</div>
         </div>
       </div>
+    </div>
+  </section>
+
+  <!-- BRIDGE: Was nach dem Test -->
+  <section class="after-section">
+    <div class="after-inner">
+      <div class="after-badge">Und nach dem Test?</div>
+      <p class="after-line">Dein Ergebnis kommt per Mail — kein Tracking, kein Spam. Wer Wertebildung in seine <strong>Schule</strong> oder <strong>Familie</strong> tragen will, kann sich melden: <strong>gemeinnützig</strong>, oft komplett über <strong>Fördermittel</strong> finanziert.</p>
     </div>
   </section>
 
