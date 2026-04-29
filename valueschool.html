@@ -220,7 +220,7 @@ function ValueSchool() {
             {[["Module", "module"]].map(function (item) {
               return <button key={item[1]} onClick={function () { go(item[1]); }} style={{ background: "none", border: "none", color: "rgba(255,255,255,0.7)", fontSize: 14, fontWeight: 500, cursor: "pointer" }}>{item[0]}</button>;
             })}
-            <button onClick={function () { go("kontakt"); }} style={{ background: GREEN, color: "#fff", border: "none", borderRadius: 99, padding: "10px 24px", fontSize: 14, fontWeight: 700, cursor: "pointer", fontFamily: HEAD }}>Jetzt anfragen</button>
+            <button onClick={function () { go("kontakt"); }} style={{ background: GREEN, color: "#fff", border: "none", borderRadius: 99, padding: "10px 24px", fontSize: 14, fontWeight: 700, cursor: "pointer", fontFamily: HEAD }}>Erstgespräch buchen</button>
           </div>
         </div>
       </nav>
@@ -258,8 +258,8 @@ function ValueSchool() {
           </FadeIn>
           <FadeIn delay={0.25}>
             <div style={{ display: "flex", gap: 16, justifyContent: "center", flexWrap: "wrap" }}>
-<a href="/minitest/" style={{ background: "linear-gradient(135deg, " + PINK + ", " + ORANGE + ")", color: "#fff", border: "none", borderRadius: 99, padding: "20px 44px", fontSize: 19, fontWeight: 800, cursor: "pointer", fontFamily: HEAD, boxShadow: "0 12px 40px rgba(233,30,140,0.45)", textDecoration: "none", display: "inline-flex", alignItems: "center", gap: 10 }}><span style={{ fontSize: 22 }}>🧭</span> 1-Min-Wertetest starten</a>
-              <button onClick={function () { go("kontakt"); }} style={{ background: "rgba(255,255,255,0.12)", color: "#fff", border: "1.5px solid rgba(255,255,255,0.4)", borderRadius: 99, padding: "20px 36px", fontSize: 17, fontWeight: 600, cursor: "pointer", fontFamily: HEAD, backdropFilter: "blur(8px)" }}>Jetzt anfragen</button>
+<a href="/minitest/" style={{ background: "linear-gradient(135deg, " + PINK + ", " + ORANGE + ")", color: "#fff", border: "none", borderRadius: 99, padding: "20px 44px", fontSize: 19, fontWeight: 800, cursor: "pointer", fontFamily: HEAD, boxShadow: "0 12px 40px rgba(233,30,140,0.45)", textDecoration: "none", display: "inline-flex", alignItems: "center", gap: 10 }}><span style={{ fontSize: 22 }}>🧭</span> Wo stehst du? 1-Min-Test</a>
+              <button onClick={function () { go("kontakt"); }} style={{ background: "rgba(255,255,255,0.12)", color: "#fff", border: "1.5px solid rgba(255,255,255,0.4)", borderRadius: 99, padding: "20px 36px", fontSize: 17, fontWeight: 600, cursor: "pointer", fontFamily: HEAD, backdropFilter: "blur(8px)" }}>Erstgespräch buchen</button>
             </div>
           </FadeIn>
         </div>
