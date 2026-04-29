@@ -67,7 +67,7 @@ exports.handler = async (event) => {
           FIRSTNAME: vorname || "",
           LASTNAME:  nachname || "",
           ROLLE:     rolle,
-          "TYP-SCHNELLTEST_WERTE": wertetyp
+          "TYP_SCHNELLTEST_WERTE": wertetyp
         },
         listIds: [BREVO_LIST_ID],
         updateEnabled: true
@@ -76,19 +76,41 @@ exports.handler = async (event) => {
 
     const data = await res.json().catch(() => null);
 
+    // Was wir gesendet haben (für Debug im Browser-Network-Tab)
+    const sentPayload = {
+      email: email,
+      attributes: {
+        FIRSTNAME: vorname || "",
+        LASTNAME:  nachname || "",
+        ROLLE:     rolle,
+        "TYP_SCHNELLTEST_WERTE": wertetyp
+      },
+      listIds: [BREVO_LIST_ID],
+      updateEnabled: true
+    };
+
     if (!res.ok) {
-      console.error("Brevo API error:", res.status, data);
+      console.error("Brevo API error:", res.status, data, "Sent:", sentPayload);
       return {
         statusCode: res.status,
         headers: { "Access-Control-Allow-Origin": "*" },
-        body: JSON.stringify({ error: "Brevo API error", details: data })
+        body: JSON.stringify({
+          error: "Brevo API error",
+          brevo_status: res.status,
+          brevo_response: data,
+          sent_payload: sentPayload
+        })
       };
     }
 
     return {
       statusCode: 200,
       headers: { "Access-Control-Allow-Origin": "*" },
-      body: JSON.stringify({ success: true, data: data })
+      body: JSON.stringify({
+        success: true,
+        brevo_response: data,
+        sent_payload: sentPayload
+      })
     };
   } catch (err) {
     console.error("Brevo fetch error:", err);
