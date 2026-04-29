@@ -1732,4 +1732,96 @@
       // Submit-Pipeline (Supabase + Brevo parallel)
       try {
         await Promise.allSettled([
-          saveToSupabase(supaPayload).catch(e => { console.warn("Supabase
+          saveToSupabase(supaPayload).catch(e => { console.warn("Supabase save failed:", e); }),
+          pushToBrevo(brevoPayload).catch(e => { console.warn("Brevo push failed:", e); })
+        ]);
+      } catch (e) {
+        console.warn("Submit pipeline error:", e);
+      }
+
+      renderResult();
+    }
+    window.submitLead = submitLead;
+
+    // ═══════════════ Content-Loader (Supabase → überschreibt Code-Defaults) ═══════════════
+
+    function transformQuestions(rows) {
+      const grouped = {};
+      rows.forEach(row => {
+        if (!grouped[row.question_id]) {
+          grouped[row.question_id] = { id: row.question_id, theme: row.theme, roles: {} };
+        }
+        grouped[row.question_id].roles[row.role] = {
+          scenario: row.scenario,
+          a: { value: row.answer_a_value, action: row.answer_a_action, type: row.answer_a_type },
+          b: { value: row.answer_b_value, action: row.answer_b_action, type: row.answer_b_type }
+        };
+      });
+      return Object.values(grouped).sort((a, b) => a.id - b.id);
+    }
+
+    function transformResults(rows) {
+      const grouped = {};
+      rows.forEach(row => {
+        if (!grouped[row.role]) grouped[row.role] = {};
+        grouped[row.role][row.type] = row.text;
+      });
+      return grouped;
+    }
+
+    function transformTiebreakers(rows) {
+      const grouped = {};
+      rows.forEach(row => {
+        grouped[row.pair_key] = {
+          scenario: row.scenario,
+          a: { value: row.a_value, action: row.a_action, type: row.a_type },
+          b: { value: row.b_value, action: row.b_action, type: row.b_type }
+        };
+      });
+      return grouped;
+    }
+
+    async function loadContentFromSupabase() {
+      try {
+        const headers = { "apikey": SUPABASE_KEY, "Authorization": `Bearer ${SUPABASE_KEY}` };
+        const [qRes, rRes, tRes] = await Promise.all([
+          fetch(`${SUPABASE_URL}/rest/v1/minitest_questions?select=*&order=question_id`, { headers }),
+          fetch(`${SUPABASE_URL}/rest/v1/minitest_results_text?select=*`,                  { headers }),
+          fetch(`${SUPABASE_URL}/rest/v1/minitest_tiebreakers?select=*`,                   { headers })
+        ]);
+        if (qRes.ok) {
+          const rows = await qRes.json();
+          if (rows.length > 0) { QUESTIONS = transformQuestions(rows); console.log("[Minitest] Questions aus DB geladen:", rows.length); }
+        }
+        if (rRes.ok) {
+          const rows = await rRes.json();
+          if (rows.length > 0) { RESULT_TEXTS = transformResults(rows); console.log("[Minitest] Result-Texte aus DB geladen:", rows.length); }
+        }
+        if (tRes.ok) {
+          const rows = await tRes.json();
+          if (rows.length > 0) { TIEBREAKERS = transformTiebreakers(rows); console.log("[Minitest] Tiebreakers aus DB geladen:", rows.length); }
+        }
+      } catch (e) {
+        console.warn("[Minitest] Content-Load fehlgeschlagen, nutze Code-Defaults:", e);
+      }
+    }
+
+    // ═══════════════ Init ═══════════════
+    document.addEventListener("DOMContentLoaded", function() {
+      loadContentFromSupabase();
+      renderRoleSelector();
+    });
+  </script>
+
+  <footer>
+    <div>
+      <a href="https://value-school.de">value-school.de</a>·
+      <a href="https://value-school.de#kontakt">Kontakt</a>·
+      <a href="https://value-school.de#impressum">Impressum</a>·
+      <a href="https://value-school.de#datenschutz">Datenschutz</a>
+    </div>
+    <div class="footer-meta">Value School ist ein gemeinnütziges Wertebildungsprogramm.</div>
+  </footer>
+
+</body>
+</html>
