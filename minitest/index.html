@@ -432,12 +432,12 @@
     /* Karten-Peek: Karte schaut von UNTEN rechts rein — Werte-Wort am oberen Kartenrand sichtbar */
     .answer-card .card-peek {
       position: absolute;
-      bottom: -130px;       /* 30px höher als vorher */
-      right: 14px;          /* 30px weiter nach links (war -16) */
-      width: 198px;         /* +20% */
-      height: 276px;        /* +20% */
+      bottom: -160px;       /* 30px tiefer, damit Karten-Spitze nicht über Text */
+      right: 14px;
+      width: 198px;
+      height: 276px;
       border-radius: 10px;
-      transform: rotate(6deg);
+      transform: none;       /* gerade — keine Rotation (Pixel-Treppchen vermeiden) */
       box-shadow: 0 -4px 18px rgba(0,0,0,0.15);
       pointer-events: none;
       background-size: cover;
@@ -448,7 +448,7 @@
       transition: transform 0.25s ease;
     }
     .answer-card:hover .card-peek {
-      transform: rotate(2deg) translate(-4px, -8px); /* schiebt sich beim Hover etwas raus */
+      transform: translateY(-8px); /* schiebt sich beim Hover etwas raus */
     }
     /* Text liegt über dem Peek */
     .answer-card .value-name,
@@ -924,6 +924,7 @@
       .cta-btn, .cta-btn-light { padding: 18px 32px; font-size: 18px; }
     }
   </style>
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;utf8,<svg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 100 100%27><polygon points=%2750,5 60,35 92,35 66,55 76,88 50,68 24,88 34,55 8,35 40,35%27 fill=%27%23E91E8C%27 stroke=%27%232E2D8E%27 stroke-width=%273%27/><text x=%2750%27 y=%2762%27 text-anchor=%27middle%27 font-family=%27Arial Black,sans-serif%27 font-size=%2728%27 font-weight=%27900%27 fill=%27%23fff%27>V</text></svg>">
 </head>
 <body>
 
@@ -1731,98 +1732,4 @@
       // Submit-Pipeline (Supabase + Brevo parallel)
       try {
         await Promise.allSettled([
-          saveToSupabase(supaPayload).catch(e => { console.warn("Supabase save failed:", e); }),
-          pushToBrevo(brevoPayload).catch(e => { console.warn("Brevo push failed:", e); })
-        ]);
-      } catch (e) {
-        console.warn("Submit pipeline error:", e);
-      }
-
-      renderResult();
-    }
-    window.submitLead = submitLead;
-
-    // ═══════════════ Content-Loader (Supabase → überschreibt Code-Defaults) ═══════════════
-
-    function transformQuestions(rows) {
-      const grouped = {};
-      rows.forEach(row => {
-        if (!grouped[row.question_id]) {
-          grouped[row.question_id] = { id: row.question_id, theme: row.theme, roles: {} };
-        }
-        grouped[row.question_id].roles[row.role] = {
-          scenario: row.scenario,
-          a: { value: row.answer_a_value, action: row.answer_a_action, type: row.answer_a_type },
-          b: { value: row.answer_b_value, action: row.answer_b_action, type: row.answer_b_type }
-        };
-      });
-      return Object.values(grouped).sort((a, b) => a.id - b.id);
-    }
-
-    function transformResults(rows) {
-      const grouped = {};
-      rows.forEach(row => {
-        if (!grouped[row.role]) grouped[row.role] = {};
-        grouped[row.role][row.type] = row.text;
-      });
-      return grouped;
-    }
-
-    function transformTiebreakers(rows) {
-      const grouped = {};
-      rows.forEach(row => {
-        grouped[row.pair_key] = {
-          scenario: row.scenario,
-          a: { value: row.a_value, action: row.a_action, type: row.a_type },
-          b: { value: row.b_value, action: row.b_action, type: row.b_type }
-        };
-      });
-      return grouped;
-    }
-
-    async function loadContentFromSupabase() {
-      try {
-        const headers = { "apikey": SUPABASE_KEY, "Authorization": `Bearer ${SUPABASE_KEY}` };
-        const [qRes, rRes, tRes] = await Promise.all([
-          fetch(`${SUPABASE_URL}/rest/v1/minitest_questions?select=*&order=question_id`, { headers }),
-          fetch(`${SUPABASE_URL}/rest/v1/minitest_results_text?select=*`,                  { headers }),
-          fetch(`${SUPABASE_URL}/rest/v1/minitest_tiebreakers?select=*`,                   { headers })
-        ]);
-        if (qRes.ok) {
-          const rows = await qRes.json();
-          if (rows.length > 0) { QUESTIONS = transformQuestions(rows); console.log("[Minitest] Questions aus DB geladen:", rows.length); }
-        }
-        if (rRes.ok) {
-          const rows = await rRes.json();
-          if (rows.length > 0) { RESULT_TEXTS = transformResults(rows); console.log("[Minitest] Result-Texte aus DB geladen:", rows.length); }
-        }
-        if (tRes.ok) {
-          const rows = await tRes.json();
-          if (rows.length > 0) { TIEBREAKERS = transformTiebreakers(rows); console.log("[Minitest] Tiebreakers aus DB geladen:", rows.length); }
-        }
-      } catch (e) {
-        console.warn("[Minitest] Content-Load fehlgeschlagen, nutze Code-Defaults:", e);
-      }
-    }
-
-    // ═══════════════ Init ═══════════════
-    document.addEventListener("DOMContentLoaded", function() {
-      // Inhalte aus Supabase laden (async, non-blocking)
-      // User sieht initial die Code-Defaults, werden ersetzt sobald DB-Antwort da
-      loadContentFromSupabase();
-      renderRoleSelector();
-    });
-  </script>
-
-  <footer>
-    <div>
-      <a href="https://value-school.de">value-school.de</a>·
-      <a href="https://value-school.de#kontakt">Kontakt</a>·
-      <a href="https://value-school.de#impressum">Impressum</a>·
-      <a href="https://value-school.de#datenschutz">Datenschutz</a>
-    </div>
-    <div class="footer-meta">Value School ist ein gemeinnütziges Wertebildungsprogramm.</div>
-  </footer>
-
-</body>
-</html>
+          saveToSupabase(supaPayload).catch(e => { console.warn("Supabase
