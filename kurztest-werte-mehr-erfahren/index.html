@@ -153,18 +153,7 @@
       overflow: hidden;
     }
     .case-card.pink { background: linear-gradient(170deg, #fff 0%, rgba(233,30,140,0.05) 100%); border-color: rgba(233,30,140,0.25); }
-    .case-card .label {
-      display: inline-block;
-      font-family: var(--bang);
-      font-size: 14px;
-      letter-spacing: 2px;
-      padding: 5px 14px;
-      border-radius: 99px;
-      margin-bottom: 18px;
-      text-transform: uppercase;
-    }
-    .case-card .label.orange { background: var(--orange); color: #fff; }
-    .case-card .label.pink { background: var(--pink); color: #fff; }
+    .case-card.green { background: linear-gradient(170deg, #fff 0%, rgba(124,193,66,0.06) 100%); border-color: rgba(124,193,66,0.30); }
     .case-card h3 {
       font-family: var(--bang);
       font-size: clamp(22px, 3vw, 28px);
@@ -409,17 +398,21 @@
 
       <div class="case-grid">
         <div class="case-card">
-          <span class="label orange">Case 1: Orientierungslosigkeit</span>
           <h3>Lisa, 14, scrollt seit zwei Stunden</h3>
           <p class="story">Mathe-Hausaufgabe? Drama mit der besten Freundin? Berufsorientierung? Für alles fehlt ihr die Energie und der innere Kompass. Drei Fenster geöffnet, alle gleich laut, alles gleich gleichgültig. Nicht weil sie faul ist. Sondern weil sie nicht weiß, was ihr eigentlich wichtig ist.</p>
           <div class="case-tag">📱 Reizüberflutung trifft Wertelücke</div>
         </div>
 
         <div class="case-card pink">
-          <span class="label pink">Case 2: Fremdbestimmung & Stress</span>
           <h3>Markus, 17, soll wissen was er will</h3>
           <p class="story">BWL-Studium, sagt der Vater. Kreative Selbstständigkeit, sagt die Mutter. Reisen, sagt der beste Freund. Markus ist überfordert, weil ihm niemand beigebracht hat, in sich selbst nachzuhorchen. Er entscheidet nichts und verpasst alles. Schweigen aus Mangel an eigener Stimme.</p>
           <div class="case-tag">🎯 Erwartungen treffen Werte-Vakuum</div>
+        </div>
+
+        <div class="case-card green">
+          <h3>Jonas, 13, mag's nicht, aber sagt nichts</h3>
+          <p class="story">Pausenhof. Zwei aus seiner Klasse machen sich über einen Mitschüler lustig. Jonas mag den Mitschüler, findet das nicht okay. Sagt aber nichts. Nicht weil er Angst hat. Sondern weil er nicht weiß, was er sagen soll, ohne dass es selbst nach Stress klingt. Abends erzählt er's seiner Schwester. Die fragt: Warum hast du nichts gesagt? Er sagt: Weiß auch nicht. Wusste nicht wie.</p>
+          <div class="case-tag">🤐 Haltung ohne Worte</div>
         </div>
       </div>
 
