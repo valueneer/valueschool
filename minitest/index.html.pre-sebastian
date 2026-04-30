@@ -974,10 +974,10 @@
   <!-- HERO -->
   <section class="hero">
     <div class="hero-inner">
-      <span class="badge">🧭 1-Minuten-Wertetest</span>
+      <span class="badge">🧭 1-Min-Wertetest · für Schule & Familie</span>
       <h1>Spür mal, wie <span class="accent">krass</span> das ist.</h1>
-      <p class="lead">Wenn du weißt, was dir wichtig ist, verändert sich mehr, als du denkst. 5 echte Szenarien aus dem Schulalltag. 1 Minute. Dein Werte-Typ.</p>
-      <p class="lead-sub">Für Lehrkräfte, Schulleitungen, Eltern und Schüler:innen.</p>
+      <p class="lead">Junge Menschen finden zu ihren Werten, wenn die Erwachsenen um sie herum wissen, was sie selbst antreibt. 5 echte Szenarien aus dem Schulalltag. 1 Minute. Dein Werte-Typ.</p>
+      <p class="lead-sub">Für Lehrkräfte, Schulleitungen und Eltern.</p>
       <a href="#test" class="cta-btn">Test starten →</a>
       <div class="cta-meta">Kostenfrei · 1 Minute · DSGVO-konform</div>
     </div>
@@ -1101,11 +1101,11 @@
 
     // Mapping unsere 4 Typen → Brevo-Attribut "TYP-SCHNELLTEST_WERTE" (A-G slots)
     // Vorläufig: A/B/C/D, Klärung mit Matthias steht noch aus
-    const TYPE_TO_NAME = {
-      sicherheit:   "Sicherheit",
-      beziehung:    "Beziehung",
-      veraenderung: "Veränderung",
-      erfuellung:   "Erfüllung"
+    const TYPE_TO_LETTER = {
+      sicherheit:   "A",
+      beziehung:    "B",
+      veraenderung: "C",
+      erfuellung:   "D"
     };
 
     const ROLES = {
@@ -1752,7 +1752,7 @@
       // state.result wurde schon in checkAndResolveTie/answerTiebreaker gesetzt
       const scores     = state.result.scores;
       const typeKey    = state.result.type;
-      const typeName = TYPE_TO_NAME[typeKey];
+      const typeLetter = TYPE_TO_LETTER[typeKey];
       const utm        = getUTM();
 
       renderLoading();
@@ -1783,7 +1783,7 @@
         vorname:             state.lead.vorname,
         nachname:            state.lead.nachname,
         rolle:               ROLES[state.role].label,
-        wertetyp:            typeName,
+        wertetyp:            typeLetter,
         ergebnis_teil_1:     teil1,
         ergebnis_teil_2:     teil2
       };

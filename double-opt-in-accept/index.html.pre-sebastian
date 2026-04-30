@@ -224,7 +224,7 @@
     <span class="badge">Bestätigt</span>
     <h1>Du bist <span class="accent">dabei!</span></h1>
 
-    
+    <p class="lead">Damit ist alles bereit. Deine Werte-Auswertung ist unterwegs.</p>
 
     <!-- ROADMAP -->
     <div class="roadmap">
@@ -241,6 +241,18 @@
         <div class="step-icon">🎯</div>
         <div class="step-text"><strong>Konkrete Schritte für dich und deine Schule.</strong> <small>Direkt in der Mail. Du entscheidest, was passt.</small></div>
       </div>
+    </div>
+
+    <!-- CONVERSION-BLOCK (dezent, nicht aufdringlich) -->
+    <div class="cta-block">
+      <p class="cta-block-text">
+        <strong>Schon jetzt eine Frage?</strong><br>
+        50 Min Erstgespräch — kostenfrei, unverbindlich.
+      </p>
+      <a href="https://calendly.com/lets-play/50min" target="_blank" rel="noopener" class="cta-btn">
+        Termin buchen →
+      </a>
+      <div class="cta-meta">Wir hören zu, kein Verkaufsgespräch.</div>
     </div>
 
     <p class="signature">Bis gleich in deinem Postfach 👋</p>
