@@ -1087,12 +1087,7 @@
       "Selbstverwirklichung": "selbstverwirklichung.png", "Sicherheit": "sicherheit.png", "Spiritualität": "spiritualitaet.png",
       "Spontaneität": "spontaneitaet.png", "Toleranz": "toleranz.png", "Tradition": "tradition.png", "Treue": "treue.png",
       "Unabhängigkeit": "unabhaengigkeit.png", "Verantwortung": "verantwortung.png", "Zugehörigkeit": "zugehoerigkeit.png",
-      "Zuverlässigkeit": "zuverlaessigkeit.png", "Zärtlichkeit": "zaertlichkeit.png", "Ästhetik": "aesthetik.png",
-      // Mappings für Wertenamen aus dem Test, die keine eigene Karte haben
-      "Kontrolle":         "sicherheit.png",
-      "Vertrauen":         "authentizitaet.png",
-      "Selbstvertrauen":   "mut.png",
-      "Selbstbewusstsein": "authentizitaet.png"
+      "Zuverlässigkeit": "zuverlaessigkeit.png", "Zärtlichkeit": "zaertlichkeit.png", "Ästhetik": "aesthetik.png"
     };
     function cardUrlFor(value) {
       const file = CARD_FILE_MAP[value];
@@ -1176,34 +1171,34 @@
 
     let RESULT_TEXTS = {
       schulleitung: {
-        sicherheit:   "Dir sind Sicherheit, Struktur und klare Regeln wichtig — als Schulleitung gibst du deinem Kollegium und deiner Schule damit Halt. Du sorgst für verlässliche Prozesse und eine Schule, auf die Eltern und Träger zählen können. Wenn deine Schule mit Werten arbeitet, wird aus Stabilität gemeinsam getragene Klarheit, nicht Regeln, die ausgehalten werden, sondern Werte, die alle verstehen.",
-        beziehung:    "Dir sind Verbindung, Empathie und Mitgefühl wichtig — als Schulleitung hältst du dein Kollegium damit zusammen. Du siehst die Menschen hinter den Rollen, vermittelst zwischen Lagern und schaffst eine Schule, in der man sich aufgehoben fühlt. Wenn deine Schule mit Werten arbeitet, gewinnt deine Wärme Substanz, gemeinsame Werte machen aus Beziehungen ein Tragwerk.",
-        veraenderung: "Dir sind Entwicklung, Mut und Wandel wichtig — als Schulleitung treibst du deine Schule damit voran. Du erkennst, was geht, packst neue Ideen an und scheust den Wandel nicht. Wenn deine Schule mit Werten arbeitet, bekommt dein Wandel Richtung, gemeinsame Werte sorgen dafür, dass Veränderung nicht spaltet, sondern verbindet.",
-        erfuellung:   "Dir sind Freiheit, Selbstbestimmung und Authentizität wichtig — als Schulleitung führst du damit aus innerer Klarheit. Du gehst nicht den Weg, den andere erwarten, sondern den, der dir und deiner Schule entspricht. Wenn deine Schule mit Werten arbeitet, bekommt deine Sinnsuche Form, wenn alle ihre Werte kennen, finden mehr Menschen ihren Sinn an deiner Schule."
+        sicherheit:   "Als Schulleitung mit Sicherheits-Wertetyp gibst du deinem Kollegium und deiner Schule Halt. Du sorgst für klare Strukturen, verlässliche Prozesse und eine Schule, auf die Eltern und Träger zählen können. Deine Stärke: Stabilität in unsicheren Zeiten. Wertearbeit gibt deiner Stabilität Tiefe, nicht nur Regeln, sondern gemeinsam getragene Werte.",
+        beziehung:    "Als Schulleitung mit Beziehungs-Wertetyp hältst du dein Kollegium zusammen. Du siehst die Menschen hinter den Rollen, vermittelst zwischen Lagern und schaffst eine Schule, in der man sich aufgehoben fühlt. Deine Stärke: Verbundenheit. Wertearbeit gibt deiner Wärme Substanz, gemeinsame Werte machen aus Beziehungen ein Tragwerk.",
+        veraenderung: "Als Schulleitung mit Veränderungs-Wertetyp treibst du deine Schule voran. Du erkennst, was geht, packst neue Ideen an und scheust den Wandel nicht. Deine Stärke: Mut zur Veränderung. Wertearbeit gibt deinem Wandel Richtung, gemeinsame Werte sorgen dafür, dass Veränderung nicht spaltet, sondern verbindet.",
+        erfuellung:   "Als Schulleitung mit Erfüllungs-Wertetyp führst du authentisch, aus innerer Klarheit. Du gehst nicht den Weg, den andere erwarten, sondern den, der dir und deiner Schule entspricht. Deine Stärke: Sinnführung. Wertearbeit gibt deiner Sinnsuche Form, wenn alle ihre Werte kennen, finden mehr Menschen ihren Sinn an deiner Schule."
       },
       lehrkraft: {
-        sicherheit:   "Dir sind Sicherheit, Struktur und klare Regeln wichtig — als Lehrkraft gibst du deinen Schülern damit Halt. Du sorgst für verlässliche Strukturen und einen Klassenraum, in dem Lernen möglich ist. Wenn deine Schule mit Werten arbeitet, gewinnt deine Disziplin Tiefe, Regeln, die alle verstehen und mittragen, statt Regeln, die ausgehalten werden.",
-        beziehung:    "Dir sind Verbindung, Empathie und Mitgefühl wichtig — als Lehrkraft siehst du damit jeden einzelnen Schüler. Du baust Vertrauen auf, vermittelst bei Konflikten und schaffst eine Klasse, in der niemand übersehen wird. Wenn deine Schule mit Werten arbeitet, bekommt deine Empathie Werkzeug, eine gemeinsame Werte-Sprache macht aus deiner Stärke das Fundament der ganzen Schule.",
-        veraenderung: "Dir sind Entwicklung, Mut und Wandel wichtig — als Lehrkraft probierst du damit Neues. Du holst frische Methoden ins Klassenzimmer, traust dich auch da, wo andere bremsen. Wenn deine Schule mit Werten arbeitet, bekommt dein Wandel Anker, wenn das Kollegium gemeinsame Werte teilt, wird aus deinen Experimenten gemeinsame Schulentwicklung.",
-        erfuellung:   "Dir sind Freiheit, Selbstbestimmung und Authentizität wichtig — als Lehrkraft unterrichtest du damit aus dir heraus. Du machst nicht, was 'man halt so macht', sondern was, woran du wirklich glaubst. Wenn deine Schule mit Werten arbeitet, bekommt deine Echtheit Resonanz, wenn alle ihre Werte kennen, dürfen mehr Lehrkräfte echt sein."
+        sicherheit:   "Als Lehrkraft mit Sicherheits-Wertetyp gibst du deinen Schülern Halt. Du sorgst für klare Regeln, verlässliche Strukturen und einen Klassenraum, in dem Lernen möglich ist. Deine Stärke: Verlässlichkeit. Wertearbeit gibt deiner Disziplin Tiefe, Regeln, die alle verstehen und tragen, statt Regeln, die ausgehalten werden.",
+        beziehung:    "Als Lehrkraft mit Beziehungs-Wertetyp siehst du jeden einzelnen Schüler. Du baust Vertrauen auf, vermittelst bei Konflikten und schaffst eine Klasse, in der niemand übersehen wird. Deine Stärke: Verbundenheit. Wertearbeit gibt deiner Empathie Werkzeug, eine gemeinsame Werte-Sprache macht aus deiner Stärke das Fundament der ganzen Schule.",
+        veraenderung: "Als Lehrkraft mit Veränderungs-Wertetyp probierst du Neues. Du holst frische Methoden ins Klassenzimmer, traust dich auch da, wo andere bremsen. Deine Stärke: Innovation. Wertearbeit gibt deinem Wandel Anker, wenn das Kollegium gemeinsame Werte teilt, wird aus deinen Experimenten gemeinsame Schulentwicklung.",
+        erfuellung:   "Als Lehrkraft mit Erfüllungs-Wertetyp unterrichtest du authentisch. Du machst nicht, was 'man halt so macht', sondern was, woran du wirklich glaubst. Deine Stärke: Echtheit. Wertearbeit gibt deiner Authentizität Resonanz, wenn alle ihre Werte kennen, dürfen mehr Lehrkräfte echt sein."
       },
       schueler: {
-        sicherheit:   "Dir sind Sicherheit, Struktur und klare Regeln wichtig — du suchst Halt und magst verlässliche Menschen. Du brauchst Strukturen, in denen du dich orientieren kannst. Du gibst anderen Halt, weil du selbst gut geerdet bist. Wenn deine Schule mit Werten arbeitet, lernst du nicht nur Regeln auswendig, sondern verstehst, wofür sie da sind.",
-        beziehung:    "Dir sind Verbindung, Empathie und Beziehungen wichtig — Menschen sind dein wichtigster Anker. Du spürst Stimmungen, vermittelst bei Streit und kämpfst für deine Freunde. Wenn du da bist, fühlt sich keine:r allein. Wenn deine Schule mit Werten arbeitet, lernst du, was Verbundenheit wirklich bedeutet, und dass auch andere darauf angewiesen sind.",
-        veraenderung: "Dir sind Entwicklung, Mut und Wandel wichtig — du willst was bewegen. Du erkennst, was nicht mehr passt, und hast den Mut, es anzusprechen. Du bringst frischen Wind. Wenn deine Schule mit Werten arbeitet, kannst du deinen Wandel-Drive auf etwas richten, was wirklich zählt, statt im Konflikt mit Älteren zu zerschellen.",
-        erfuellung:   "Dir sind Freiheit, Selbstbestimmung und Authentizität wichtig — du folgst deinem Bauch. Du machst nicht mit, nur weil 'alle es machen', du suchst, was sich wirklich richtig anfühlt. Wenn deine Schule mit Werten arbeitet, findest du andere, die genauso ticken, und musst dich nicht mehr verstellen."
+        sicherheit:   "Du bist Sicherheits-Typ. Du suchst Halt. Du magst klare Regeln, verlässliche Menschen und brauchst Strukturen, in denen du dich orientieren kannst. Deine Stärke: Du gibst anderen Halt, weil du selbst gut geerdet bist. Wenn deine Schule mit Werten arbeitet, lernst du nicht nur Regeln auswendig, sondern verstehst, wofür sie da sind.",
+        beziehung:    "Du bist Beziehungs-Typ. Menschen sind dein wichtigster Anker. Du spürst Stimmungen, vermittelst bei Streit und kämpfst für deine Freunde. Deine Stärke: Wenn du da bist, fühlt sich keine:r allein. Wenn deine Schule mit Werten arbeitet, lernst du, was Verbundenheit wirklich bedeutet, und dass auch andere darauf angewiesen sind.",
+        veraenderung: "Du bist Veränderungs-Typ. Du willst was bewegen. Du erkennst, was nicht mehr passt, und hast den Mut, es anzusprechen. Deine Stärke: Du bringst frischen Wind. Wenn deine Schule mit Werten arbeitet, kannst du deinen Wandel-Drive auf etwas richten, was wirklich zählt, statt im Konflikt mit Älteren zu zerschellen.",
+        erfuellung:   "Du bist Erfüllungs-Typ. Du folgst deinem Bauch. Du machst nicht mit, nur weil 'alle es machen',du suchst, was sich wirklich richtig anfühlt. Deine Stärke: Authentizität. Wenn deine Schule mit Werten arbeitet, findest du andere, die genauso ticken, und musst dich nicht mehr verstellen."
       },
       eltern: {
-        sicherheit:   "Dir sind Sicherheit, Struktur und klare Regeln wichtig — als Elternteil gibst du deinem Kind damit Halt. Du sorgst für verlässlichen Alltag und ein Zuhause, in dem dein Kind weiß, woran es ist. Wenn die Schule deines Kindes mit Werten arbeitet, ergänzen sich euer Halt zuhause und die Verlässlichkeit in der Schule, dein Kind hat zwei sichere Räume.",
-        beziehung:    "Dir sind Verbindung, Empathie und Mitgefühl wichtig — als Elternteil siehst du dein Kind damit wirklich. Du spürst, was los ist, und hältst Kontakt, auch wenn's anstrengend wird. Wenn die Schule deines Kindes mit Werten arbeitet, lernen auch Lehrkräfte, jedes Kind als Mensch zu sehen, und dein Kind erlebt diese Verbundenheit nicht nur zuhause.",
-        veraenderung: "Dir sind Entwicklung, Mut und Wandel wichtig — als Elternteil lässt du dein Kind damit wachsen. Du erkennst, wenn es Zeit ist loszulassen, Neues zuzulassen, anders zu sein als andere Familien. Wenn die Schule deines Kindes mit Werten arbeitet, wird auch dort Raum für individuelles Wachstum geschaffen, dein Kind muss nicht in eine Schablone passen.",
-        erfuellung:   "Dir sind Freiheit, Selbstbestimmung und Authentizität wichtig — als Elternteil lebst du deinem Kind damit ein authentisches Leben vor. Du machst nicht, was 'man halt so macht', sondern was wirklich zu dir passt. Wenn die Schule deines Kindes mit Werten arbeitet, lernt dein Kind: Es ist okay, eigene Wege zu gehen."
+        sicherheit:   "Als Elternteil mit Sicherheits-Wertetyp gibst du deinem Kind Halt. Du sorgst für klare Regeln, verlässlichen Alltag und ein Zuhause, in dem dein Kind weiß, woran es ist. Deine Stärke: Stabilität als Boden. Wenn die Schule deines Kindes mit Werten arbeitet, ergänzen sich euer Halt zuhause und die Verlässlichkeit in der Schule, dein Kind hat ZWEI sichere Räume.",
+        beziehung:    "Als Elternteil mit Beziehungs-Wertetyp siehst du dein Kind. Wirklich. Du spürst, was los ist, und hältst Kontakt, auch wenn's anstrengend wird. Deine Stärke: Verbindung als Boden. Wenn die Schule deines Kindes mit Werten arbeitet, lernen auch Lehrkräfte, jedes Kind als Mensch zu sehen, und dein Kind erlebt diese Verbundenheit nicht nur zuhause.",
+        veraenderung: "Als Elternteil mit Veränderungs-Wertetyp lässt du dein Kind wachsen. Du erkennst, wenn es Zeit ist loszulassen, Neues zuzulassen, anders zu sein als andere Familien. Deine Stärke: Du gibst Raum für Entwicklung. Wenn die Schule deines Kindes mit Werten arbeitet, wird auch dort Raum für individuelles Wachstum geschaffen, dein Kind muss nicht in eine Schablone passen.",
+        erfuellung:   "Als Elternteil mit Erfüllungs-Wertetyp lebst du deinem Kind ein authentisches Leben vor. Du machst nicht, was 'man halt so macht', sondern was wirklich zu dir passt. Deine Stärke: Du zeigst, wie ein selbstbestimmtes Leben aussieht. Wenn die Schule deines Kindes mit Werten arbeitet, lernt dein Kind: Es ist okay, eigene Wege zu gehen."
       },
       sonstige: {
-        sicherheit:   "Dir sind Sicherheit, Struktur und klare Regeln wichtig — du gibst Struktur. Wo immer du bist, sorgst du für Verlässlichkeit und das Gefühl, dass man sich auf dich verlassen kann. Wertearbeit verleiht deiner Klarheit Tiefe, du weißt nicht nur was gilt, sondern auch warum.",
-        beziehung:    "Dir sind Verbindung, Empathie und Mitgefühl wichtig — du verbindest Menschen. Du siehst, wer eine Brücke braucht, vermittelst, hältst Gruppen zusammen. Du machst Gemeinschaft möglich. Wertearbeit gibt deiner Verbundenheit Substanz, gemeinsame Werte machen aus Sympathie ein Fundament.",
-        veraenderung: "Dir sind Entwicklung, Mut und Wandel wichtig — du gestaltest. Wo andere abwarten, packst du an. Du siehst Möglichkeiten und scheust nicht das Risiko. Du bringst Bewegung. Wertearbeit gibt deinem Wandel Richtung, Veränderung mit gemeinsamen Werten ist Entwicklung, nicht Aktionismus.",
-        erfuellung:   "Dir sind Freiheit, Selbstbestimmung und Authentizität wichtig — du folgst deinem Kompass. Du gehst nicht den Weg, den andere erwarten, sondern den, der zu dir passt. Wertearbeit gibt deinem Sinn Resonanz, wenn andere ihre Werte auch kennen, findest du deine Leute."
+        sicherheit:   "Du bist Sicherheits-Typ. Du gibst Struktur. Wo immer du bist, sorgst du für Verlässlichkeit, klare Regeln und das Gefühl, dass man sich auf dich verlassen kann. Deine Stärke: Stabilität für andere. Wertearbeit verleiht deiner Klarheit Tiefe, du weißt nicht nur WAS gilt, sondern auch WARUM.",
+        beziehung:    "Du bist Beziehungs-Typ. Du verbindest Menschen. Du siehst, wer eine Brücke braucht, vermittelst, hältst Gruppen zusammen. Deine Stärke: Du machst Gemeinschaft möglich. Wertearbeit gibt deiner Verbundenheit Substanz, gemeinsame Werte machen aus Sympathie ein Fundament.",
+        veraenderung: "Du bist Veränderungs-Typ. Du gestaltest. Wo andere abwarten, packst du an. Du siehst Möglichkeiten und scheust nicht das Risiko. Deine Stärke: Du bringst Bewegung. Wertearbeit gibt deinem Wandel Richtung, Veränderung mit gemeinsamen Werten ist Entwicklung, nicht Aktionismus.",
+        erfuellung:   "Du bist Erfüllungs-Typ. Du folgst deinem Kompass. Du gehst nicht den Weg, den andere erwarten, sondern den, der zu dir passt. Deine Stärke: Authentizität. Wertearbeit gibt deinem Sinn Resonanz, wenn andere ihre Werte auch kennen, findest du deine Leute."
       }
     };
 
@@ -1254,13 +1249,13 @@
         roles: {
           schulleitung: {
             scenario: "In deinem Kollegium gibt es eine Lehrerin, die zunehmend von Vorgaben abweicht, kommt zu spät, gibt eigene Regeln raus, ignoriert Vereinbarungen. Das Kollegium wartet auf deine Reaktion. Was tust du?",
-            a: { value: "Empathie", action: "Ich frage vorsichtig nach, was eigentlich los ist.",                              type: "beziehung"  },
-            b: { value: "Respekt",  action: "Ich spreche die Person klar an und setze die Regeln durch.",                     type: "sicherheit" }
+            a: { value: "Empathie",       action: "Ich frage vorsichtig nach, was eigentlich los ist.",                              type: "beziehung"  },
+            b: { value: "Zuverlässigkeit", action: "Ich spreche die Person klar an und setze die Regeln durch.",                     type: "sicherheit" }
           },
           lehrkraft: {
             scenario: "Eine deiner Schülerinnen hat seit zwei Wochen ihre Hausaufgaben nicht abgegeben. Sie ist sonst absolut zuverlässig. Heute siehst du, wie sie in der Pause weint, willst sie ansprechen, sie wendet sich ab. Morgen ist Notenstichtag. Was tust du?",
-            a: { value: "Empathie", action: "Ich gebe ihr Zeit, lass die Hausaufgabe diesmal durchgehen. Die Note kann warten.", type: "beziehung"  },
-            b: { value: "Respekt",  action: "Ich notiere die fehlende Hausaufgabe wie bei allen anderen.",                      type: "sicherheit" }
+            a: { value: "Empathie",       action: "Ich gebe ihr Zeit, lass die Hausaufgabe diesmal durchgehen. Die Note kann warten.", type: "beziehung"  },
+            b: { value: "Zuverlässigkeit", action: "Ich notiere die fehlende Hausaufgabe wie bei allen anderen.",                      type: "sicherheit" }
           },
           schueler: {
             scenario: "In eurer Klasse gilt: Bei Gruppenarbeiten machen alle mit. Einer aus eurer Gruppe lässt euch wieder mal die ganze Arbeit machen. Was tust du?",
@@ -1269,13 +1264,13 @@
           },
           eltern: {
             scenario: "Bei euch gilt: 30 Minuten Bildschirmzeit am Tag. Dein Kind testet diese Regel ständig, argumentiert, verhandelt, weicht aus. Heute schon eine Stunde länger. Was tust du?",
-            a: { value: "Empathie",   action: "Ich setze mich dazu und frage, was gerade so los ist.",            type: "beziehung"  },
-            b: { value: "Kontrolle",  action: "Ich nehme das Gerät weg und erinnere an unsere Vereinbarung.",     type: "sicherheit" }
+            a: { value: "Empathie",       action: "Ich setze mich dazu und frage, was gerade los ist.",                  type: "beziehung"  },
+            b: { value: "Zuverlässigkeit", action: "Ich nehme das Gerät weg und erinnere an unsere Vereinbarung.",       type: "sicherheit" }
           },
           sonstige: {
             scenario: "In deinem Umfeld gibt's eine eingespielte Routine, die alle gut finden. Eine neue Person bricht sie immer wieder, nicht böse, aber konsequent. Andere schauen zu dir. Was tust du?",
-            a: { value: "Empathie",        action: "Ich suche das Gespräch und versuche zu verstehen, warum.",  type: "beziehung"  },
-            b: { value: "Zuverlässigkeit", action: "Ich spreche an: Die Routine gibt's nicht ohne Grund.",      type: "sicherheit" }
+            a: { value: "Empathie",  action: "Ich suche das Gespräch und versuche zu verstehen, warum.",  type: "beziehung"  },
+            b: { value: "Tradition", action: "Ich spreche an: Die Routine gibt's nicht ohne Grund.",      type: "sicherheit" }
           }
         }
       },
@@ -1286,27 +1281,27 @@
           schulleitung: {
             scenario: "Du merkst seit Monaten: An eurer Schule entsteht eine schleichende Kultur, in der sich die 'starken' Schüler über die schwächeren stellen. Drei Lehrer haben dich leise drauf angesprochen. Du könntest in der nächsten Schulkonferenz eine offene Aussprache ansetzen, riskierst aber Außenwirkung. Was tust du?",
             a: { value: "Rücksichtnahme", action: "Ich arbeite leise: Einzelgespräche mit Klassenleitungen, gezielte Maßnahmen pro Klasse.", type: "beziehung" },
-            b: { value: "Vertrauen",      action: "Ich setze die Aussprache an und mache es zum Schulthema. Auch wenn der Ruf leidet.",       type: "erfuellung" }
+            b: { value: "Authentizität", action: "Ich setze die Aussprache an und mache es zum Schulthema. Auch wenn der Ruf leidet.",       type: "erfuellung" }
           },
           lehrkraft: {
-            scenario: "Im Lehrerzimmer wird über einen 'Problemschüler' gelästert, er kassiert wieder eine Vier, sei eh nicht zu retten. Du weißt: Es gibt Herausforderungen zuhause. Wenn du den Hintergrund ausplauderst, verletzt du seine Privatsphäre. Was tust du?",
+            scenario: "Im Lehrerzimmer wird über einen 'Problemschüler' gelästert, er kassiert wieder eine Vier, sei eh nicht zu retten. Du weißt: Sein Vater liegt schwer krank im Krankenhaus. Wenn du den Hintergrund ausplauderst, verletzt du seine Privatsphäre. Was tust du?",
             a: { value: "Rücksichtnahme", action: "Ich werfe einen Satz ein, der lenkt: 'Vielleicht ist da was bei ihm los, was wir nicht wissen.'", type: "beziehung" },
-            b: { value: "Authentizität",  action: "Ich sage klar: 'So wollen wir nicht über Schüler reden. Punkt.'",                                  type: "erfuellung" }
+            b: { value: "Authentizität", action: "Ich sage klar: 'So wollen wir nicht über Schüler reden. Punkt.'",                                  type: "erfuellung" }
           },
           schueler: {
-            scenario: "In eurer Klassen-WhatsApp wird seit Tagen über jemanden aus der Nachbarklasse gelästert. Alle finden's witzig. Die Person weiß nichts. Wenn du dich einmischst, bist du vielleicht als nächstes dran. Was tust du?",
-            a: { value: "Harmonie",         action: "Ich schweige in der Gruppe. Spreche stattdessen sie persönlich an.", type: "beziehung" },
-            b: { value: "Selbstvertrauen",  action: "Ich schreibe in die Gruppe: 'Hört auf, das ist eklig.'",            type: "erfuellung" }
+            scenario: "In eurer Klassen-WhatsApp wird seit Tagen über ein Mädchen gelästert, das auf Klassenfahrt mit jemandem im Zelt war. Alle finden's witzig. Sie ist gar nicht in der Gruppe, sie weiß nichts. Wenn du dich einmischst, bist du nächste Woche dran. Was tust du?",
+            a: { value: "Harmonie",     action: "Ich schweige in der Gruppe. Spreche stattdessen sie persönlich an.", type: "beziehung" },
+            b: { value: "Authentizität", action: "Ich schreibe in die Gruppe: 'Hört auf, das ist eklig.'",            type: "erfuellung" }
           },
           eltern: {
             scenario: "Beim Elternabend reden zwei Mütter abfällig über die Familie eines Kindes ('Was wundert man sich, bei DENEN'). Andere nicken. Wenn du widersprichst, machst du dir die einflussreichsten Eltern zum Feind, was deine Kinder spüren werden. Was tust du?",
-            a: { value: "Harmonie",        action: "Ich höre zu, will den Abend nicht kippen. Sage vielleicht danach unter vier Augen etwas.",     type: "beziehung" },
-            b: { value: "Selbstvertrauen", action: "Ich sage laut: 'So reden wir hier nicht über Kinder oder Eltern. Bitte hört auf.'",            type: "erfuellung" }
+            a: { value: "Rücksichtnahme", action: "Ich höre zu, will den Abend nicht kippen. Sage es danach unter vier Augen.",     type: "beziehung" },
+            b: { value: "Authentizität",  action: "Ich sage laut: 'So reden wir hier nicht über Kinder oder Eltern. Bitte hört auf.'", type: "erfuellung" }
           },
           sonstige: {
             scenario: "In deinem Umfeld wird offen abfällig über eine bestimmte Gruppe gesprochen ('die lernen's eh nicht'). Niemand widerspricht. Wenn du das tust, gibt's einen langen Streit und du giltst danach als 'der eine, der das Politische macht'. Was tust du?",
-            a: { value: "Harmonie",        action: "Ich halte mich raus. Das kläre ich nicht in einer Tischrunde.",      type: "beziehung" },
-            b: { value: "Selbstvertrauen", action: "Ich sage offen, was ich denke. Auch wenn ich danach allein dastehe.", type: "erfuellung" }
+            a: { value: "Harmonie",       action: "Ich halte mich raus. Das kläre ich nicht in einer Tischrunde.", type: "beziehung" },
+            b: { value: "Andersartigkeit", action: "Ich sage offen, was ich denke. Auch wenn ich danach allein dastehe.", type: "erfuellung" }
           }
         }
       },
@@ -1315,9 +1310,9 @@
         theme: "Generationenkonflikt",
         roles: {
           schulleitung: {
-            scenario: "Eine Gruppe junger Lehrerinnen schlägt vor, klassische Klassenarbeiten abzuschaffen und stattdessen etwas Neues einzuführen. Drei alteingesessene Kollegen lehnen ab: 'Das bringt doch nichts.' Eltern und Träger werden Fragen stellen. Was tust du?",
-            a: { value: "Mut",        action: "Ich starte einen Pilot in zwei Klassen, hol die Alteingesessenen ins Pilot-Design rein.", type: "veraenderung" },
-            b: { value: "Sicherheit", action: "Ich vertage. Für so eine Veränderung müssen alle im Boot sein.",                          type: "sicherheit" }
+            scenario: "Eine Gruppe junger Lehrerinnen schlägt vor, klassische Klassenarbeiten teilweise durch Lernportfolios zu ersetzen. Drei alteingesessene Kollegen lehnen ab: 'Das verwässert die Qualität.' Eltern und Träger werden Fragen stellen. Was tust du?",
+            a: { value: "Aufgeschlossenheit", action: "Ich starte einen Pilot in zwei Klassen, hol die Alteingesessenen ins Pilot-Design rein.", type: "veraenderung" },
+            b: { value: "Tradition",          action: "Ich vertage. Für so eine Veränderung müssen alle im Boot sein.",                          type: "sicherheit" }
           },
           lehrkraft: {
             scenario: "Eine sehr engagierte Schülerin will ihre Hausaufgabe lieber als Video machen statt als Aufsatz. Pädagogisch wäre das spannend. Aber: andere werden 'Warum darf SIE das?' fragen, der Bewertungsaufwand explodiert, Kollegen gucken schief. Was tust du?",
@@ -1325,14 +1320,14 @@
             b: { value: "Disziplin", action: "Ich sage: Schriftlich ist die Aufgabe für alle, das hat Gründe.",                                     type: "sicherheit" }
           },
           schueler: {
-            scenario: "Beim Familienrat: Du willst dieses Jahr NICHT in den Sommerurlaub, sondern etwas Eigenes machen. Deine Eltern reagieren skeptisch. Wenn du dich durchsetzt, gibt's wochenlang schlechte Stimmung zuhause. Was tust du?",
-            a: { value: "Mut",       action: "Ich erkläre, warum mir das wichtig ist, und sage: Ich mach das.",   type: "veraenderung" },
-            b: { value: "Tradition", action: "Ich gehe mit. Familienurlaub ist bei uns Tradition.",               type: "sicherheit" }
+            scenario: "Beim Familienrat: Du willst dieses Jahr NICHT in den Sommerurlaub, sondern in ein Workcamp, etwas Eigenes machen. Deine Eltern reagieren skeptisch. Wenn du dich durchsetzt, gibt's wochenlang schlechte Stimmung zuhause. Was tust du?",
+            a: { value: "Mut",       action: "Ich erkläre, warum mir das wichtig ist, und sage: Ich mach das. Auch wenn ihr's nicht versteht.", type: "veraenderung" },
+            b: { value: "Tradition", action: "Ich gehe mit. Familienurlaub ist bei uns Tradition, das verschenken wir nicht.",                  type: "sicherheit" }
           },
           eltern: {
-            scenario: "Dein 17-jähriger Sohn will nach dem Abi NICHT studieren, sondern erstmal chillen und schauen, was kommt. Dein Partner sieht den Karriereweg des Sohnes klar vor sich. Wenn du ihn unterstützt, gehst du gegen die Familie. Was tust du?",
+            scenario: "Dein 17-jähriger Sohn will nach dem Abi NICHT studieren, sondern Wwoofing durch Europa, dann Schreinerlehre. Verwandtschaft (und dein Partner) hat ihn auf BWL ausgerichtet. Wenn du ihn unterstützt, gehst du gegen die Familie. Was tust du?",
             a: { value: "Aufgeschlossenheit", action: "Ich unterstütze seinen Weg offen, und nehm in Kauf, dass ich's der Verwandtschaft erkläre.", type: "veraenderung" },
-            b: { value: "Sicherheit",         action: "Ich versuche, ihn auf den bewährten Weg zurückzuholen. BWL hält viele Türen offen.",          type: "sicherheit" }
+            b: { value: "Tradition",          action: "Ich versuche, ihn auf den bewährten Weg zurückzuholen. BWL hält viele Türen offen.",          type: "sicherheit" }
           },
           sonstige: {
             scenario: "In deinem Umfeld wird etwas Etabliertes radikal in Frage gestellt, wie ihr im Verein entscheidet, in der Firma arbeitet. Eine jüngere Generation will das ganz anders. Du wirst gefragt, wo du stehst. Was tust du?",
@@ -1347,8 +1342,8 @@
         roles: {
           schulleitung: {
             scenario: "Du bist seit 8 Jahren Schulleitung. Die Schule läuft gut, die Zahlen stimmen. Aber etwas in dir sagt: Es ist nicht mehr DEIN Projekt. Eine andere Schule sucht eine Leitung, komplett neuer Aufbau. Spannender, aber alles hier, Team, Routinen, bliebe zurück. Was tust du?",
-            a: { value: "Selbstverwirklichung", action: "Ich höre auf mein Bauchgefühl und bewerbe mich bei der anderen Schule.",      type: "erfuellung" },
-            b: { value: "Verantwortung",        action: "Ich kremple hier was um. 8 Jahre Aufbau wirft man nicht weg.",                type: "veraenderung" }
+            a: { value: "Selbstverwirklichung", action: "Ich höre auf mein Bauchgefühl. Wenn das Feuer hier weg ist, dann muss ich gehen.", type: "erfuellung" },
+            b: { value: "Verantwortung",        action: "Ich krempel hier was um. 8 Jahre Aufbau wirft man nicht weg.",                     type: "veraenderung" }
           },
           lehrkraft: {
             scenario: "Seit 12 Jahren Lehrkraft. Du machst deinen Job gut. Aber: Seit Corona spürst du keine echte Verbindung mehr. Manchmal denkst du an Coaching, raus aus der Schule. Aber Familie, Gehalt, Kollegen brauchen dich. Was tust du?",
@@ -1357,18 +1352,18 @@
           },
           schueler: {
             scenario: "Du bist 15. Schule fühlt sich gerade leer an. Noten okay, Freunde da, aber irgendwas fehlt. Wenn du mit deinen Eltern darüber redest, sagen sie: 'Das ist die Pubertät, das geht vorbei.' Was tust du?",
-            a: { value: "Selbstverwirklichung", action: "Ich nehm die Sache selbst in die Hand, suche raus was MIR was bedeutet.",  type: "erfuellung" },
-            b: { value: "Verantwortung",        action: "Ich zieh erstmal durch, vielleicht ändert sich ja noch was.",              type: "veraenderung" }
+            a: { value: "Selbstverwirklichung", action: "Ich nehm die Sache selbst in die Hand, suche raus was MIR was bedeutet.", type: "erfuellung" },
+            b: { value: "Spontaneität",         action: "Ich probier was Neues aus, andere Hobbys, andere Leute, raus aus der Routine.", type: "veraenderung" }
           },
           eltern: {
-            scenario: "Seit 12 Jahren Elternteil. Es funktioniert alles. Aber du merkst, dass du als 'Mensch' kaum noch vorkommst. Wenn du dich fragst 'wer bin ich noch außerhalb dieser Rollen?', kommt nicht viel. Was tust du?",
-            a: { value: "Selbstbewusstsein", action: "Ich höre auf mich, frage was ich für MICH brauche, nehme mir konsequent Zeit dafür.", type: "erfuellung" },
-            b: { value: "Entwicklung",       action: "Ich gestalte meinen Alltag aktiv um, baue neue Routinen ein, suche Neues was mich nährt.", type: "veraenderung" }
+            scenario: "Seit 12 Jahren Elternteil. Es funktioniert alles. Aber du merkst, dass du als 'Mensch' kaum noch vorkommst. Wenn du dich fragst 'wer bin ich noch außerhalb dieser Rollen?',kommt nicht viel. Was tust du?",
+            a: { value: "Gelassenheit", action: "Ich höre auf mich, frage was ich für MICH brauche, nehme mir konsequent Zeit dafür.", type: "erfuellung" },
+            b: { value: "Entwicklung",  action: "Ich gestalte meinen Alltag aktiv um, baue neue Routinen ein, suche Neues was mich nährt.", type: "veraenderung" }
           },
           sonstige: {
             scenario: "Seit Monaten merkst du: Dein Leben ist nicht rund. Es funktioniert alles, Job, Beziehungen, Wohnen. Aber etwas Zentrales fehlt. Du sitzt manchmal abends da und fragst dich: 'Ist das alles?' Was tust du?",
             a: { value: "Selbstverwirklichung", action: "Ich höre genauer auf mich, was wirklich passt, was mich nährt, was Sinn ergibt.", type: "erfuellung" },
-            b: { value: "Verantwortung",        action: "Ich mache erstmal weiter und schaue, was sich mit der Zeit ändert.",              type: "veraenderung" }
+            b: { value: "Verantwortung",        action: "Ich nehme das Heft in die Hand und gestalte aktiv um, was auch immer dran ist.",   type: "veraenderung" }
           }
         }
       },
@@ -1387,7 +1382,7 @@
             b: { value: "Verantwortung", action: "Ich bleibe bei meiner Einschätzung. Würde ich nachgeben, würden andere Eltern denken: Wer laut ist, bekommt Recht.", type: "veraenderung" }
           },
           schueler: {
-            scenario: "Du hast einen schweren Konflikt mit deiner besten Freundin / deinem besten Freund. Es geht um etwas Grundlegendes. Eine Stimme sagt: 'Lass die Freundschaft retten.' Eine andere: 'Vielleicht wachsen wir auseinander.' Was tust du?",
+            scenario: "Du hast einen schweren Konflikt mit deiner besten Freundin / deinem besten Freund. Es geht um etwas Grundlegendes, ihr habt unterschiedliche Werte. Eine Stimme sagt: 'Lass die Freundschaft retten.' Eine andere: 'Vielleicht wachsen wir auseinander.' Was tust du?",
             a: { value: "Treue", action: "Ich mache den ersten Schritt, kämpfe um die Freundschaft. Wir kennen uns zu lange.", type: "beziehung" },
             b: { value: "Mut",   action: "Ich sage, was Sache ist, und akzeptiere, wenn das die Freundschaft beendet.",       type: "veraenderung" }
           },
