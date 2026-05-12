@@ -4,6 +4,40 @@
 
 ---
 
+## 2026-05-12 (Session 5) — Hero: Blur-Filter + Video auch auf Mobile
+
+**Gemacht:**
+- Mobile-Video-Disable rückgängig — Hendrik will Video auf allen Geräten. 6.3 MB werden auf Mobile nachgeladen, das ist akzeptiert.
+- CSS `filter: blur(10px)` aufs Hero-Video und -Poster → atmosphärische Unschärfe, Texte stechen heraus.
+- `transform: scale(1.06)` damit der Blur-Edge die Sektionsränder nicht ausfranst.
+- `prefers-reduced-motion` bleibt drin: bei aktivierter Bewegungsreduktion kein Autoplay-Video, nur (geblurrtes) Standbild.
+- IMG_HERZ Base64 → externes File für nächste Session in OPEN_QUESTIONS geparkt.
+
+---
+
+## 2026-05-12 (Session 4) — Hero-Polish: dunkler Gradient + Mobile-Performance
+
+**Gemacht:**
+- Hero-Gradient verstärkt mit Lila-Stich: rgba(60,30,120,0.72) oben → rgba(28,27,94,0.88) mittig → rgba(20,15,70,0.94) unten. Mehr Bildschärfe für die Hero-Texte.
+- **Mobile-Performance**: Auf Mobilgeräten (≤768px) wird das 6.3-MB-Video komplett ausgeblendet, stattdessen nur statisches hero.jpg-Poster (189 KB). Spart Mobilvolumen.
+- Auch bei `prefers-reduced-motion: reduce` läuft kein Video.
+- `preload="metadata"` aufs Video — Browser lädt nur Header sofort, nicht den ganzen Body.
+- Logos in Sek 6 + ImgBox-Komponente bekommen `loading="lazy"` + `decoding="async"`.
+- valueschool.html und index.html synchron, balance ok (7 sections, 25 FadeIn, 4 Minitest-Links).
+
+**Ladezeit-Bilanz danach:**
+- Desktop: HTML 444 KB + Video-Header + Hero-Poster 189 KB initial, Video-Body progressiv beim Sichtwerden
+- Mobile: HTML 444 KB + Hero-Poster 189 KB — kein Video. Massive Einsparung.
+
+**Wo weitermachen (gleich):**
+Vor Push: Hendrik schaut sich Hero + Mobile-Verhalten an.
+
+**Offen für nächste Session:**
+- IMG_HERZ Base64 (74 KB im HTML) könnte als externes File raus, falls Manifest-Sek bleibt
+- Founder-Story-Konsistenz Hauptseite ↔ /wer-wir-sind/
+
+---
+
 ## 2026-05-12 (Session 3) — Hero-Video + Bilder eingebaut
 
 **Gemacht:**

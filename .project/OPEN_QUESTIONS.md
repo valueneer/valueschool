@@ -17,6 +17,10 @@
 - **Programm-Details:** Die 5 Module — was passiert in jedem? Welche Klassenstufen? Wieviele Tage pro Modul?
 - **Calendly-URL:** echte URL ist `https://calendly.com/wert_voll/kennenlernen` (Hauptseite) und `https://calendly.com/lets-play/50min` (auf /wer-wir-sind/). Soll das einheitlich werden?
 
+### Performance-Quick-Win für nächste Session
+
+IMG_HERZ Base64 in valueschool.html Z37 ist ~74 KB groß. Sobald die Manifest-Sektion (Sek 5) eh angefasst wird, das Bild als externes `/bilder/herz_web.jpg` rausziehen. Spart spürbar HTML-Gewicht und macht initial paint schneller.
+
 ### Konsistenz Founder-Story (HENDRIK-PRIORITÄT NÄCHSTE SESSION)
 
 Hendrik will den Bogen zwischen Hauptseite-Trust-Sektion, Founder-Teaser und `/wer-wir-sind/`-Detail bewusst aufeinander aufbauen lassen — aktuell ist das zu ähnlich. Er macht selbst Anpassungen, will dann mit Claude den Feinschliff. **Wichtig: vor jeder Änderung Kontext einholen — Hendrik bietet aktiv Kontext an, lieber zu viel fragen als zu wenig.**
