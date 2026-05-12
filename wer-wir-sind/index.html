@@ -132,20 +132,29 @@
     }
 
     /* STORY-BLOCK (Reise Werbung → Bizzheroes → Value School) */
-    .story-block { background: #fff; }
+    .story-block { background: #fff; text-align: center; }
+    .story-block .block-inner { text-align: center; }
     .story-block .block-num { background: rgba(46,45,142,0.10); color: var(--blue); }
+    .story-block h2 { text-align: center; }
     .story-block p {
       font-size: clamp(16px, 1.9vw, 18px);
       line-height: 1.75;
       color: var(--txt);
       max-width: 760px;
-      margin-bottom: 22px;
+      margin: 0 auto 22px;
+      text-align: center;
     }
     .story-block p strong { color: var(--blue-dk); }
 
     /* FOUNDER-BLOCK */
-    .founder-block { background: var(--warm); }
+    .founder-block { background: var(--warm); text-align: center; }
+    .founder-block .block-inner { text-align: center; }
+    .founder-block h2 { text-align: center; }
+    .founder-block .intro { margin-left: auto; margin-right: auto; text-align: center; }
     .founder-block .block-num { background: rgba(233,30,140,0.12); color: var(--pink); }
+    .founder-card { text-align: center; }
+    .founder-card .photo { margin-left: auto; margin-right: auto; }
+    .founder-card p { text-align: left; }
     .founders {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
@@ -399,30 +408,10 @@
     </div>
   </section>
 
-  <!-- TRACK-RECORD: Bizzheroes-Logos -->
-  <section class="block track-block">
-    <div class="block-inner">
-      <div class="block-num">03 · Track Record</div>
-      <h2>Diese Unternehmen und Institutionen sind sich <span class="accent">ihrer Werte bewusst</span></h2>
-      <p class="intro">
-        Werbeagenturen, Behörden, Tech-Startups, Coaching-Institute, Mittelstand. Wir haben Wertearbeit in sehr unterschiedlichen Settings geliefert. Was sie eint: am Ende ging es immer um Klarheit, Haltung und gemeinsam getragene Werte.
-      </p>
-
-      <div class="logos-grid">
-        <img src="/logos/jung-von-matt-logo-vector.png" alt="Jung von Matt">
-        <img src="/logos/polizei.jpg" alt="Polizei Hessen">
-        <img src="/logos/playthehype.png" alt="Play the Hype">
-        <img src="/logos/refresh.svg" alt="Refresh">
-        <img src="/logos/fuerstenberg-institut.svg" alt="Fürstenberg Institut">
-        <img src="/logos/ba-group.svg" alt="BA Group">
-      </div>
-    </div>
-  </section>
-
   <!-- USP: Was uns eint -->
   <section class="block usp-block">
     <div class="block-inner">
-      <div class="block-num" style="background: rgba(247,148,29,0.20); color: var(--orange);">04 · Unser Ansatz</div>
+      <div class="block-num" style="background: rgba(247,148,29,0.20); color: var(--orange);">03 · Unser Ansatz</div>
       <h2>Wir machen Veränderung zu <span class="accent">einem Abenteuer</span></h2>
       <p class="intro">
         Was uns als Team ausmacht: spielerische Leichtigkeit. Wir führen Menschen und Organisationen nicht durch einen schweren Change-Prozess, sondern durch ein Erlebnis, das unterhält, berührt und genau dadurch echte Veränderung auslöst.
