@@ -1,65 +1,73 @@
 # Value School — Landing Page
 
-## Projekt
-Landing Page für **Value School** (value-school.de) — ein gemeinnütziges Wertebildungsprogramm für Schulen.
-Gründer: **Hendrik** (hendrik@valueverse.de), Mitgründer: **Sebastian**.
+## ⚠️ Erste Lese-Pflicht für neue Sessions
 
-## Markenstruktur
-- **Valueverse** — die Methode/Plattform von Hendrik (valueverse.de)
-- **Valueneers** — die Spielemarke (Kartenspiel für Wertebildung)
-- **Value School** — die gemeinnützige Schulinitiative (dieses Projekt)
-- **Bizzheroes** — alter Markenname, wird nicht mehr verwendet
+**Bevor du irgendetwas tust, lies in dieser Reihenfolge:**
+
+1. `.project/VISION.md` — Was wir bauen, für wen, warum
+2. `.project/ROADMAP.md` — Wo wir in welcher Phase stehen
+3. `.project/WEEK.md` — Was diese Woche dran ist
+4. `.project/LOG.md` — Wo wir letzte Session aufgehört haben
+5. `.project/OPEN_QUESTIONS.md` — Was hängt, was Hendrik klären muss
+
+Erst dann arbeiten. Das verhindert Drift und Dopplungen.
+
+---
+
+## Projekt-Kurzfassung
+
+Landing Page für **Value School** (value-school.de) — gemeinnütziges Wertebildungsprogramm für Schulen.
+Gründer: **Hendrik** (hendrik@valueverse.de), Mitgründer: **Sebastian Thamm**.
+
+Markenstruktur, Vision und Tonalität → `.project/VISION.md`.
 
 ## Technik
-- **Einzige Datei**: `valueschool.html` (wird auch als `index.html` kopiert für Netlify)
+
+- **Hauptseite**: `valueschool.html` UND `index.html` (identische Kopien — beide bei jeder Änderung aktualisieren)
 - **Stack**: React 18 + Babel (in-browser), kein Build-Schritt
 - **Base64-Bilder** in separatem `<script>`-Tag (vor dem Babel-Block, um 500KB-Limit zu umgehen)
 - **CSS**: Inline-Styles als React-Objekte
 - **Fonts**: Bangers (Headlines), Outfit + DM Sans (Body)
 - **Farben**: BLUE=#2E2D8E, BLUE_DK=#1C1B5E, PINK=#E91E8C, CYAN=#00BCD4, GREEN=#7CC142, ORANGE=#F7941D
 
+**Unterseiten** (alle plain HTML/CSS, kein React):
+- `/wer-wir-sind/` — Founder-Story, Detail-Bios, USPs
+- `/programm/` — die 5 Module (aktuell NICHT im Hauptfunnel verlinkt → siehe WEEK)
+- `/minitest/` — 1-Min-Wertetest mit Brevo-Anbindung
+- `/kurztest-werte-mehr-erfahren/` — Cases (Lukas, Mia, Jonas)
+- `/double-opt-in-accept/` — DOI-Bestätigungsseite
+- `/finanzierung-schule-check/` — Finanzierungs-Check
+
 ## Hosting & Deployment
+
 - **GitHub**: github.com/valueneer/valueschool (Branch: main)
 - **Hosting**: Netlify (steady-speculoos-56c556), auto-deploy bei Push
 - **Domain**: value-school.de via IONOS (A-Record → 75.2.60.5, CNAME www → Netlify)
-- **Deploy**: `deploy.bat` ausführen (pull → add → commit → push)
+- **Deploy**: GitHub Desktop Push → Netlify zieht in 30–60 Sek nach. Alternativ `deploy.bat`.
 - **Netlify Forms**: Hidden HTML-Form + React fetch POST handler für Kontaktformular
 
-## Seitenstruktur (aktuell)
-1. NAV (schwarz, fixed)
-2. HERO (Hintergrundbild hero.jpg, 80vh, Trigger-Chips, Headline, CTA-Buttons)
-3. WARUM DAS JETZT ZÄHLT — Mission (3 Karten: Resilienz, Mentale Gesundheit, Demokratie)
-4. WAS SCHULEN HERAUSFORDERT (ImgBox + 6 Challenge-Karten + FactGroup)
-5. WARUM WERTE SCHULE STÄRKT (ImgBox + Content + FactGroup)
-6. WAS DAS PROJEKT BEWIRKT (ImgBox + 6 Effekt-Karten + FactGroup)
-7. VISUAL BREAK ("Wer sich kennt, steht sicher")
-8. MANIFEST (dunkelblau, "Unsere Überzeugung")
-9. UNSERE STORY / VALUEVERSE (Methode + Marken + Value School)
-10. 5 MODULE (5 farbige Modulkarten)
-11. PROFESSIONELLE UNTERSTÜTZUNG (2-spaltig: Text/USPs/Gründer/Team)
-12. DAS MACHT ES BESONDERS (ImgBox + 6 USP-Punkte + FactGroup)
-13. WERTETEST TEASER (pink/orange Gradient, CTA)
-14. FÖRDERMITTEL (grüner Gradient)
-15. KONTAKT (Calendly-Platzhalter + Formular)
-16. FOOTER
-17. FLOATING WERTETEST CTA (fixed unten rechts)
+## Hauptseite — aktuelle Sektionen (Stand 12.05.2026)
 
-## Wichtige Komponenten
+1. **NAV** (schwarz, fixed)
+2. **HERO** — "Werte bewegen Schule" + 2 CTAs (1-Min-Test, Erstgespräch)
+3. **WARUM DAS JETZT ZÄHLT** — 3 Mission-Karten (Resilienz, Mental Health, Demokratie)
+4. **WAS SCHULEN HERAUSFORDERT** — Challenge-Karten + Studien
+5. **WAS DAS PROJEKT BEWIRKT** — Effekt-Karten + Studien
+6. **MANIFEST + VISUAL** — "Unsere Überzeugung"
+7. **WARUM WIR DAS KÖNNEN** — Trust-Sektion mit Founder-Teaser, Stats, Logos, CTA zu /wer-wir-sind/
+8. **KONTAKT** — Calendly + Formular
+9. **FOOTER**
+10. **FLOATING MINITEST CTA** (fixed)
+
+**Bekannte Lücken** (Audit 12.05.2026):
+- Sektionen 3–6 sind alle "Warum"-Predigt → für Schulleiter:innen redundant
+- Programm-Sektion (5 Module) fehlt auf Hauptseite — wird in WEEK.md adressiert
+- Keine Kosten/Aufwand-Sektion
+- Keine Schul-Referenz
+
+## Komponenten (in `valueschool.html`)
+
 - **ImgBox**: Vollbild-Bild mit Gradient-Overlay, Kicker/Title/Quote/Tag-Props
 - **Fact**: Kompakte Statistik-Karte mit farbigem Seitenstreifen
 - **FactGroup**: Dunkler Container für wissenschaftliche Belege
-
-## Bekannte Probleme & offene Aufgaben
-- [ ] Calendly-URL: Platzhalter muss durch echte URL ersetzt werden
-- [ ] Mobile-Check: Responsiveness prüfen und optimieren
-- [ ] Marketing-Review: Gesamte Seite final durchscannen
-- [ ] Netlify Forms testen: Prüfen ob Submissions ankommen
-- [ ] index.html: Nach Änderungen an valueschool.html immer auch index.html aktualisieren (Kopie)
-
-## Arbeitsweise mit Hendrik
-- Sprache: Deutsch, duzen, direkt
-- ADHS: Ein Schritt nach dem anderen, max 2-3 Aufgaben pro Woche
-- Entscheiden und führen, nicht ständig nach Optionen fragen
-- Wenn er abschweift: Stopp sagen
-- Claude ist Accountability-Partner UND Marketing-Experte
-- Tippfehler kommen von Windows-Diktierfunktion
+- **FadeIn**: Animati
