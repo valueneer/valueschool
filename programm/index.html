@@ -401,7 +401,7 @@ function ValueSchool() {
               <div style={{ background: WARM, borderRadius: 18, padding: 24, height: "100%", textAlign: "center" }}>
                 <div style={{ fontSize: 13, fontWeight: 700, color: BLUE, textTransform: "uppercase", letterSpacing: 3, marginBottom: 16 }}>Die Gründer</div>
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginBottom: 16 }}>
-                  {[{ name: "Hendrik Martens", img: IMG_HENDRIK, role: "Werte-Trainer & NLP Mastercoach", desc: "Entwickler praktischer Werte- und Reflexionsformate für Kinder, Jugendliche und Erwachsene. Mehrjährige Erfahrung in der Arbeit mit Bildungseinrichtungen." }, { name: "Sebastian Thamm", img: IMG_SEBASTIAN, role: "Unternehmer & Projektleitung", desc: "Erfahrung in Führung, Projektmanagement und Gamification. Abschlüsse in International Management und Strategic Marketing." }].map(function (p) {
+                  {[{ name: "Hendrik Martens", img: "/bilder/hendrik.jpg", role: "Werte-Trainer & NLP Mastercoach", desc: "Entwickler praktischer Werte- und Reflexionsformate für Kinder, Jugendliche und Erwachsene. Mehrjährige Erfahrung in der Arbeit mit Bildungseinrichtungen." }, { name: "Sebastian Thamm", img: "/bilder/sebastian.jpg", role: "Unternehmer & Projektleitung", desc: "Erfahrung in Führung, Projektmanagement und Gamification. Abschlüsse in International Management und Strategic Marketing." }].map(function (p) {
                     return (
                       <div key={p.name} style={{ textAlign: "center" }}>
                         <img src={p.img} alt={p.name} style={{ width: 80, height: 80, borderRadius: 99, objectFit: "cover", margin: "0 auto 8px", display: "block", border: "3px solid " + BLUE + "20" }} />
@@ -467,8 +467,8 @@ function ValueSchool() {
                 <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: 16 }}>
                   {[
                     { name: "Mareike Fell", role: "Zertifizierte Coachin & Trainerin", desc: "dvct e.V., Dozentin an der Fürstenberg Akademie. Systemische Coachin spezialisiert auf Kinder und Jugendliche." },
-                    { name: "Hendrik Martens", img: IMG_HENDRIK, role: "NLP Mastercoach & Werte-Trainer", desc: "Entwickler praktischer Werte- und Reflexionsformate. Erfahrung in Bildungseinrichtungen und Präventionskontext." },
-                    { name: "Sebastian Thamm", img: IMG_SEBASTIAN, role: "Verwaltung & Organisation", desc: "Unternehmer mit Erfahrung in Führung, Gamification und erlebnisorientiertem Lernen. Projektmanagement und Geschäftsmodellentwicklung." },
+                    { name: "Hendrik Martens", img: "/bilder/hendrik.jpg", role: "NLP Mastercoach & Werte-Trainer", desc: "Entwickler praktischer Werte- und Reflexionsformate. Erfahrung in Bildungseinrichtungen und Präventionskontext." },
+                    { name: "Sebastian Thamm", img: "/bilder/sebastian.jpg", role: "Verwaltung & Organisation", desc: "Unternehmer mit Erfahrung in Führung, Gamification und erlebnisorientiertem Lernen. Projektmanagement und Geschäftsmodellentwicklung." },
                   ].map(function (p, i) {
                     return (
                       <div key={i} style={{ background: WARM, borderRadius: 16, padding: "20px 16px", textAlign: "center" }}>

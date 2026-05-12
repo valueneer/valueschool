@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Wer wir sind — Value School</title>
+  <meta name="description" content="Hendrik und Sebastian — die Köpfe hinter Value School. Wertearbeit aus Werbung, Bizzheroes und TeamEscape, jetzt für Schulen.">
+  <meta name="robots" content="noindex,follow">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Outfit:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --blue: #2E2D8E;
+      --blue-dk: #1C1B5E;
+      --pink: #E91E8C;
+      --cyan: #00BCD4;
+      --green: #7CC142;
+      --orange: #F7941D;
+      --warm: #faf6f3;
+      --txt: #2a2a2a;
+      --muted: #666;
+      --bang: 'Bangers', system-ui, sans-serif;
+      --body: 'Outfit', system-ui, sans-serif;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: var(--body);
+      color: var(--txt);
+      background: #fff;
+      -webkit-font-smoothing: antialiased;
+      line-height: 1.55;
+    }
+
+    /* HEADER */
+    header {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 100;
+      background: #000;
+      padding: 14px 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    header .logo { font-family: var(--bang); font-size: 22px; letter-spacing: 2px; color: #fff; text-decoration: none; }
+    header .back { color: rgba(255,255,255,0.7); font-size: 14px; text-decoration: none; }
+    header .back:hover { color: #fff; }
+
+    /* HERO */
+    .hero {
+      background: linear-gradient(160deg, var(--blue-dk) 0%, var(--blue) 100%);
+      color: #fff;
+      padding: 130px 24px 90px;
+      position: relative;
+      overflow: hidden;
+      text-align: center;
+    }
+    .hero::before, .hero::after {
+      content: '';
+      position: absolute;
+      border-radius: 50%;
+      pointer-events: none;
+    }
+    .hero::before { top: -180px; right: -120px; width: 460px; height: 460px; background: radial-gradient(circle, rgba(247,148,29,0.22), transparent 70%); }
+    .hero::after { bottom: -160px; left: -120px; width: 380px; height: 380px; background: radial-gradient(circle, rgba(233,30,140,0.18), transparent 70%); }
+    .hero-inner { max-width: 860px; margin: 0 auto; position: relative; z-index: 1; }
+    .badge {
+      display: inline-block;
+      background: rgba(255,255,255,0.12);
+      color: #fff;
+      padding: 9px 20px;
+      border-radius: 99px;
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      margin-bottom: 26px;
+      border: 1px solid rgba(255,255,255,0.18);
+    }
+    .hero h1 {
+      font-family: var(--bang);
+      font-size: clamp(40px, 7.5vw, 78px);
+      letter-spacing: 2px;
+      line-height: 1.05;
+      margin-bottom: 24px;
+      text-transform: uppercase;
+      text-shadow: 0 4px 22px rgba(0,0,0,0.25);
+    }
+    .hero h1 .accent { color: var(--orange); }
+    .hero .lead {
+      font-size: clamp(17px, 2.2vw, 21px);
+      color: rgba(255,255,255,0.92);
+      max-width: 680px;
+      margin: 0 auto;
+      line-height: 1.55;
+    }
+
+    /* SECTIONS */
+    section.block {
+      padding: clamp(70px, 10vw, 110px) 24px;
+    }
+    .block-inner { max-width: 1000px; margin: 0 auto; }
+    .block h2 {
+      font-family: var(--bang);
+      font-size: clamp(34px, 5.5vw, 54px);
+      letter-spacing: 2px;
+      line-height: 1.1;
+      text-transform: uppercase;
+      color: var(--blue-dk);
+      margin-bottom: 18px;
+    }
+    .block h2 .accent { color: var(--orange); }
+    .block .intro {
+      font-size: clamp(16px, 1.9vw, 19px);
+      color: var(--muted);
+      max-width: 720px;
+      margin-bottom: 40px;
+      line-height: 1.65;
+    }
+    .block-num {
+      display: inline-block;
+      font-family: var(--bang);
+      font-size: 18px;
+      letter-spacing: 2px;
+      padding: 6px 16px;
+      border-radius: 99px;
+      margin-bottom: 16px;
+    }
+
+    /* STORY-BLOCK (Reise Werbung → Bizzheroes → Value School) */
+    .story-block { background: #fff; }
+    .story-block .block-num { background: rgba(46,45,142,0.10); color: var(--blue); }
+    .story-block p {
+      font-size: clamp(16px, 1.9vw, 18px);
+      line-height: 1.75;
+      color: var(--txt);
+      max-width: 760px;
+      margin-bottom: 22px;
+    }
+    .story-block p strong { color: var(--blue-dk); }
+
+    /* FOUNDER-BLOCK */
+    .founder-block { background: var(--warm); }
+    .founder-block .block-num { background: rgba(233,30,140,0.12); color: var(--pink); }
+    .founders {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+      gap: 32px;
+      margin-top: 36px;
+    }
+    .founder-card {
+      background: #fff;
+      border-radius: 22px;
+      padding: clamp(28px, 4vw, 40px);
+      box-shadow: 0 8px 28px rgba(28,27,94,0.06);
+      border-top: 4px solid var(--pink);
+    }
+    .founder-card.sebastian { border-top-color: var(--cyan); }
+    .founder-card .photo {
+      width: 120px;
+      height: 120px;
+      border-radius: 99px;
+      background: #ddd;
+      margin-bottom: 22px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 56px;
+      color: rgba(0,0,0,0.25);
+      overflow: hidden;
+    }
+    .founder-card .photo img { width: 100%; height: 100%; object-fit: cover; }
+    .founder-card h3 {
+      font-family: var(--bang);
+      font-size: clamp(28px, 3.8vw, 36px);
+      letter-spacing: 1.5px;
+      color: var(--blue-dk);
+      margin-bottom: 6px;
+      text-transform: uppercase;
+    }
+    .founder-card .role {
+      font-size: 13px;
+      color: var(--orange);
+      font-weight: 700;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      margin-bottom: 18px;
+    }
+    .founder-card p {
+      font-size: 15px;
+      line-height: 1.7;
+      color: var(--txt);
+      margin-bottom: 14px;
+    }
+    .founder-card p:last-child { margin-bottom: 0; }
+    .founder-card p strong { color: var(--blue-dk); }
+
+    /* TRACK-RECORD / LOGOS */
+    .track-block { background: #fff; }
+    .track-block .block-num { background: rgba(124,193,66,0.15); color: var(--green); }
+    .logos-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: clamp(20px, 4vw, 50px);
+      align-items: center;
+      justify-items: center;
+      padding: 44px 24px;
+      background: var(--warm);
+      border-radius: 22px;
+      border: 1px solid rgba(46,45,142,0.08);
+      margin-top: 32px;
+    }
+    .logos-grid img {
+      max-height: 60px;
+      max-width: 160px;
+      width: auto;
+      height: auto;
+      filter: grayscale(15%);
+      opacity: 0.88;
+      transition: opacity 0.2s, filter 0.2s;
+    }
+    .logos-grid img:hover { opacity: 1; filter: grayscale(0%); }
+
+    /* USP-BLOCK (Was uns eint) */
+    .usp-block {
+      background: linear-gradient(160deg, var(--blue-dk) 0%, var(--blue) 100%);
+      color: #fff;
+      position: relative;
+      overflow: hidden;
+    }
+    .usp-block::before {
+      content: '';
+      position: absolute;
+      top: -100px; right: -80px;
+      width: 320px; height: 320px;
+      background: radial-gradient(circle, rgba(247,148,29,0.20), transparent 70%);
+      border-radius: 50%;
+    }
+    .usp-block .block-inner { position: relative; z-index: 1; }
+    .usp-block h2 { color: #fff; text-shadow: 0 2px 14px rgba(0,0,0,0.2); }
+    .usp-block h2 .accent { color: var(--orange); }
+    .usp-block .intro { color: rgba(255,255,255,0.85); }
+    .usp-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 22px;
+      margin-top: 36px;
+    }
+    .usp-card {
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.18);
+      border-radius: 18px;
+      padding: 28px 24px;
+      backdrop-filter: blur(8px);
+    }
+    .usp-card .title {
+      font-family: var(--bang);
+      font-size: 22px;
+      letter-spacing: 1.5px;
+      color: var(--orange);
+      margin-bottom: 10px;
+      text-transform: uppercase;
+    }
+    .usp-card .desc { font-size: 15px; color: rgba(255,255,255,0.85); line-height: 1.6; }
+
+    /* CTA-BLOCK */
+    .cta-block {
+      background: linear-gradient(135deg, var(--pink) 0%, var(--orange) 100%);
+      color: #fff;
+      padding: clamp(70px, 10vw, 110px) 24px;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+    .cta-block .inner { max-width: 720px; margin: 0 auto; position: relative; z-index: 1; }
+    .cta-block h2 {
+      font-family: var(--bang);
+      font-size: clamp(32px, 5.5vw, 56px);
+      color: #fff;
+      letter-spacing: 2px;
+      line-height: 1.1;
+      margin-bottom: 18px;
+      text-transform: uppercase;
+    }
+    .cta-block .sub { font-size: clamp(16px, 2vw, 19px); color: rgba(255,255,255,0.95); margin-bottom: 32px; line-height: 1.55; }
+    .cta-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      background: #fff;
+      color: var(--pink);
+      border-radius: 99px;
+      padding: 18px 36px;
+      font-family: var(--bang);
+      font-size: 18px;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      text-decoration: none;
+      box-shadow: 0 14px 36px rgba(0,0,0,0.18);
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    .cta-btn:hover { transform: translateY(-2px); box-shadow: 0 18px 42px rgba(0,0,0,0.25); }
+
+    /* FOOTER */
+    footer {
+      background: #000;
+      color: rgba(255,255,255,0.55);
+      padding: 36px 24px;
+      text-align: center;
+      font-size: 13px;
+    }
+    footer a { color: rgba(255,255,255,0.75); text-decoration: none; margin: 0 10px; }
+    footer a:hover { color: #fff; }
+    .footer-meta { margin-top: 12px; font-size: 11px; color: rgba(255,255,255,0.4); letter-spacing: 0.5px; }
+  </style>
+
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;utf8,<svg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 100 100%27><polygon points=%2750,5 60,35 92,35 66,55 76,88 50,68 24,88 34,55 8,35 40,35%27 fill=%27%23E91E8C%27 stroke=%27%232E2D8E%27 stroke-width=%273%27/><text x=%2750%27 y=%2762%27 text-anchor=%27middle%27 font-family=%27Arial Black,sans-serif%27 font-size=%2728%27 font-weight=%27900%27 fill=%27%23fff%27>V</text></svg>">
+</head>
+<body>
+
+  <header>
+    <a href="https://value-school.de" class="logo">VALUE SCHOOL</a>
+    <a href="/" class="back">← Zurück zur Hauptseite</a>
+  </header>
+
+  <!-- HERO -->
+  <section class="hero">
+    <div class="hero-inner">
+      <span class="badge">Wer wir sind</span>
+      <h1>Zwei Wege, <span class="accent">ein Anliegen</span></h1>
+      <p class="lead">
+        Hendrik kommt aus der Werbung. Sebastian aus dem Erlebnis-Business. Was uns eint: die Überzeugung, dass Werte sich nicht erklären lassen — sie müssen erlebt werden.
+      </p>
+    </div>
+  </section>
+
+  <!-- STORY: Reise Werbung → Bizzheroes → Value School -->
+  <section class="block story-block">
+    <div class="block-inner">
+      <div class="block-num">01 · Die Reise</div>
+      <h2>Von der Werbung in die <span class="accent">Schule</span></h2>
+
+      <p>
+        Hendrik hat Wertearbeit nicht in der Schule erfunden. Er hat sie in der Werbung gelebt — vielleicht ohne es damals zu wissen. Bei den großen Agenturen ging es nie nur um Produkte. Es ging immer darum, was Menschen wirklich antreibt. Was zählt. Was bewegt.
+      </p>
+
+      <p>
+        Mit den <strong>Bizzheroes</strong> wurde daraus ein eigenes Programm: Werte in Unternehmen sichtbar machen. Nicht als bunte Plakate an der Wand, sondern als Haltung, die alle tragen. Wir arbeiten mit Tech-Firmen, mit Mittelständlern, mit der Polizei Hessen, mit Werbeagenturen. Überall, wo Menschen besser werden wollen, weil sie wissen, wofür sie stehen.
+      </p>
+
+      <p>
+        Und genau das bringen wir jetzt in die Schule. Weil das, was Unternehmen brauchen, in der Schule beginnt: <strong>Wer früh weiß, was ihm wichtig ist, trifft später bessere Entscheidungen</strong> — für sich, für andere, für die Gesellschaft.
+      </p>
+    </div>
+  </section>
+
+  <!-- FOUNDER: Hendrik + Sebastian Detail-Bios -->
+  <section class="block founder-block">
+    <div class="block-inner">
+      <div class="block-num">02 · Die Köpfe</div>
+      <h2>Hendrik &amp; <span class="accent">Sebastian</span></h2>
+      <p class="intro">
+        Zwei Hintergründe, die sich überraschend gut ergänzen: Storytelling trifft Erlebnis-Architektur. Beides braucht es, um Wertearbeit wirklich wirksam zu machen.
+      </p>
+
+      <div class="founders">
+        <div class="founder-card">
+          <div class="photo"><img src="/bilder/hendrik.jpg" alt="Hendrik Martens"></div>
+          <h3>Hendrik Martens</h3>
+          <div class="role">Werbung · Coach · Valueverse</div>
+          <p>
+            Hendrik kreiert sein Leben lang Erlebnisse, die Menschen bewegen. Erst in der Werbung, wo er für große Marken Geschichten gebaut hat, die wirken. Dann mit eigenen Werbeagenturen. Dann mit YouTube-Formaten, die Reichweiten erreicht haben, die niemand vermutet hätte.
+          </p>
+          <p>
+            Vor fünf Jahren hat er sich komplett dem Thema Werte verschrieben. Als systemischer Coach hat er gelernt, wie man Menschen wirklich an ihre Kernfragen führt. Mit <strong>Valueverse</strong> und <strong>Valueneers</strong> hat er Spiele und Formate entwickelt, die Menschen, Unternehmen und Institutionen zu ihren Werten führen — spielerisch, fundiert, mit echter Tiefe.
+          </p>
+        </div>
+
+        <div class="founder-card sebastian">
+          <div class="photo"><img src="/bilder/sebastian.jpg" alt="Sebastian Thamm"></div>
+          <h3>Sebastian Thamm</h3>
+          <div class="role">TeamEscape · Franchise · Erlebnis</div>
+          <p>
+            Sebastian ist der Mann für intensive Erlebnisse, die skalieren. Bei <strong>TeamEscape</strong> hat er ein Franchise-System mit hunderten Standorten weltweit aufgebaut. Er weiß, was es braucht, damit ein Erlebnis nicht nur einmal funktioniert, sondern an hunderten Orten — ohne dass die Tiefe verloren geht.
+          </p>
+          <p>
+            Diese Erfahrung bringt er bei Value School ein: Wie strukturiert man Wertearbeit so, dass sie an einer Schule genauso wirkt wie an der nächsten? Wie macht man aus einem guten Konzept ein verlässliches Programm? Genau das ist seine Stärke.
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- TRACK-RECORD: Bizzheroes-Logos -->
+  <section class="block track-block">
+    <div class="block-inner">
+      <div class="block-num">03 · Track Record</div>
+      <h2>Diese Welten haben uns <span class="accent">schon vertraut</span></h2>
+      <p class="intro">
+        Werbeagenturen, Behörden, Tech-Startups, Coaching-Institute, Mittelstand. Wir haben Wertearbeit in sehr unterschiedlichen Settings geliefert. Was sie eint: am Ende ging es immer um Klarheit, Haltung und gemeinsam getragene Werte.
+      </p>
+
+      <div class="logos-grid">
+        <img src="/logos/jung-von-matt-logo-vector.png" alt="Jung von Matt">
+        <img src="/logos/polizei.jpg" alt="Polizei Hessen">
+        <img src="/logos/playthehype.png" alt="Play the Hype">
+        <img src="/logos/refresh.svg" alt="Refresh">
+        <img src="/logos/fuerstenberg-institut.svg" alt="Fürstenberg Institut">
+        <img src="/logos/ba-group.svg" alt="BA Group">
+      </div>
+    </div>
+  </section>
+
+  <!-- USP: Was uns eint -->
+  <section class="block usp-block">
+    <div class="block-inner">
+      <div class="block-num" style="background: rgba(247,148,29,0.20); color: var(--orange);">04 · Unser Ansatz</div>
+      <h2>Wir machen Veränderung zu <span class="accent">einem Abenteuer</span></h2>
+      <p class="intro">
+        Was uns als Team ausmacht: spielerische Leichtigkeit. Wir führen Menschen und Organisationen nicht durch einen schweren Change-Prozess, sondern durch ein Erlebnis, das unterhält, berührt und genau dadurch echte Veränderung auslöst.
+      </p>
+
+      <div class="usp-grid">
+        <div class="usp-card">
+          <div class="title">🎭 Storytelling</div>
+          <div class="desc">Werte werden nicht erklärt, sie werden erzählt. So bleiben sie hängen.</div>
+        </div>
+        <div class="usp-card">
+          <div class="title">🎲 Spiel</div>
+          <div class="desc">Spielerische Formate aus zehn Jahren Erfahrung mit Valueneers und TeamEscape.</div>
+        </div>
+        <div class="usp-card">
+          <div class="title">🧠 Systemik</div>
+          <div class="desc">Coaching-Methoden, die wirklich an die Substanz gehen — nicht nur an die Oberfläche.</div>
+        </div>
+        <div class="usp-card">
+          <div class="title">📊 Substanz</div>
+          <div class="desc">Wissenschaftlich fundiert: Schwartz-Wertetheorie, SEL-Forschung. Aber nie trocken.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <section class="cta-block">
+    <div class="inner">
+      <h2>Lust auf ein <span style="color: rgba(255,255,255,0.6);">Gespräch?</span></h2>
+      <p class="sub">
+        50 Minuten Erstgespräch — kostenfrei, online, kein Verkaufsgespräch. Wir hören zu, du erzählst, gemeinsam schauen wir, ob das passt.
+      </p>
+      <a href="https://calendly.com/lets-play/50min" target="_blank" rel="noopener" class="cta-btn">
+        📅 Erstgespräch buchen <span>→</span>
+      </a>
+    </div>
+  </section>
+
+  <footer>
+    <div>
+      <a href="https://value-school.de">value-school.de</a>·
+      <a href="https://value-school.de#kontakt">Kontakt</a>·
+      <a href="https://value-school.de#impressum">Impressum</a>·
+      <a href="https://value-school.de#datenschutz">Datenschutz</a>
+    </div>
+    <div class="footer-meta">Value School ist ein gemeinnütziges Wertebildungsprogramm.</div>
+  </footer>
+
+</body>
+</html>

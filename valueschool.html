@@ -510,6 +510,81 @@ function ValueSchool() {
         </div>
       </section>
 
+      {/* ═══════════ WARUM WIR DAS KÖNNEN ═══════════ */}
+      <section style={{ background: "#fff", padding: "clamp(70px, 10vw, 110px) 24px", position: "relative", overflow: "hidden" }}>
+        <Starburst color={ORANGE} size={300} top="-120px" right="-100px" opacity={0.06} />
+        <Starburst color={CYAN} size={220} bottom="-80px" left="-60px" opacity={0.05} />
+        <div style={{ maxWidth: 1000, margin: "0 auto", position: "relative", zIndex: 1 }}>
+          <FadeIn>
+            <div style={{ textAlign: "center", marginBottom: 28 }}>
+              <span style={{ fontSize: 13, fontWeight: 700, color: BLUE, textTransform: "uppercase", letterSpacing: 3 }}>Warum wir das können</span>
+              <h2 style={{ fontFamily: BANG, fontSize: "clamp(32px, 5.5vw, 54px)", fontWeight: 400, letterSpacing: 2, textTransform: "uppercase", color: BLUE, lineHeight: 1.1, marginBottom: 20, marginTop: 12 }}>
+                Aus Veränderung machen wir <span style={{ color: ORANGE }}>ein Abenteuer.</span>
+              </h2>
+              <p style={{ fontSize: "clamp(16px, 2vw, 19px)", color: TXT, lineHeight: 1.65, maxWidth: 720, margin: "0 auto" }}>
+                Mit Storytelling, Spiel und Erlebnissen, die unter die Haut gehen. Wissenschaftlich fundiert, aber nie trocken.
+              </p>
+            </div>
+          </FadeIn>
+
+          <FadeIn delay={0.12}>
+            <p style={{ fontSize: "clamp(15px, 1.8vw, 17px)", color: TXT, lineHeight: 1.7, maxWidth: 760, margin: "0 auto 44px", textAlign: "center" }}>
+              Den Ansatz haben wir nicht in der Schule erfunden. Hendrik hat ihn in der Werbung gelebt &mdash; vielleicht ohne es damals zu wissen. Mit den <strong>Bizzheroes</strong> haben wir ihn seit Jahren in Unternehmen verfeinert: Werte von der Wand in die Herzen. Mit echten Daten, echten Ergebnissen, echter Kultur.
+            </p>
+          </FadeIn>
+
+          <FadeIn delay={0.2}>
+            <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "center", alignItems: "center", gap: "clamp(24px, 4vw, 56px)", marginBottom: 56, padding: "36px 28px", background: WARM, borderRadius: 22, border: "1px solid " + BLUE + "10" }}>
+              {[
+                { name: "Jung von Matt",         file: "jung-von-matt-logo-vector.png" },
+                { name: "Polizei Hessen",        file: "polizei.jpg" },
+                { name: "Play the Hype",         file: "playthehype.png" },
+                { name: "Refresh",               file: "refresh.svg" },
+                { name: "Fürstenberg Institut",  file: "fuerstenberg-institut.svg" },
+                { name: "BA Group",              file: "ba-group.svg" }
+              ].map(function (logo, i) {
+                return (
+                  <img key={i} src={"/logos/" + logo.file} alt={logo.name}
+                    style={{ height: "clamp(36px, 5vw, 52px)", width: "auto", maxWidth: 150, objectFit: "contain", filter: "grayscale(20%)", opacity: 0.85, transition: "opacity 0.2s, filter 0.2s" }}
+                    onMouseEnter={function (e) { e.currentTarget.style.opacity = "1"; e.currentTarget.style.filter = "grayscale(0%)"; }}
+                    onMouseLeave={function (e) { e.currentTarget.style.opacity = "0.85"; e.currentTarget.style.filter = "grayscale(20%)"; }} />
+                );
+              })}
+            </div>
+          </FadeIn>
+
+          <FadeIn delay={0.3}>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 36, marginBottom: 36 }}>
+              <div style={{ display: "flex", flexDirection: "column", alignItems: "center", textAlign: "center" }}>
+                <img src="/bilder/hendrik.jpg" alt="Hendrik Martens" style={{ width: 110, height: 110, borderRadius: 99, objectFit: "cover", border: "3px solid " + PINK + "30", marginBottom: 16 }} />
+                <div style={{ fontFamily: HEAD, fontSize: 19, fontWeight: 800, color: BLUE, marginBottom: 4 }}>Hendrik</div>
+                <div style={{ fontSize: 12, color: ORANGE, fontWeight: 700, textTransform: "uppercase", letterSpacing: 1.5, marginBottom: 12 }}>Werbung · Coach · Valueverse</div>
+                <p style={{ fontSize: 14, color: MUTED, lineHeight: 1.65, maxWidth: 380 }}>
+                  Kreiert sein Leben lang Erlebnisse, die Menschen bewegen &mdash; erst in der Werbung, jetzt im Coaching. Seit fünf Jahren ganz auf Werte fokussiert. Mit <strong>Valueverse</strong> und <strong>Valueneers</strong> hat er Spiele und Formate entwickelt, die Menschen, Unternehmen und Institutionen zu ihren Werten führen.
+                </p>
+              </div>
+
+              <div style={{ display: "flex", flexDirection: "column", alignItems: "center", textAlign: "center" }}>
+                <img src="/bilder/sebastian.jpg" alt="Sebastian Thamm" style={{ width: 110, height: 110, borderRadius: 99, objectFit: "cover", border: "3px solid " + CYAN + "30", marginBottom: 16 }} />
+                <div style={{ fontFamily: HEAD, fontSize: 19, fontWeight: 800, color: BLUE, marginBottom: 4 }}>Sebastian</div>
+                <div style={{ fontSize: 12, color: ORANGE, fontWeight: 700, textTransform: "uppercase", letterSpacing: 1.5, marginBottom: 12 }}>TeamEscape · Franchise · Erlebnis</div>
+                <p style={{ fontSize: 14, color: MUTED, lineHeight: 1.65, maxWidth: 380 }}>
+                  Hat bei <strong>TeamEscape</strong> ein Franchise-System mit hunderten Standorten groß gemacht. Er weiß, wie intensive Gruppen-Erlebnisse skalieren &mdash; ohne dass sie ihre Tiefe verlieren.
+                </p>
+              </div>
+            </div>
+          </FadeIn>
+
+          <FadeIn delay={0.4}>
+            <div style={{ textAlign: "center" }}>
+              <a href="/wer-wir-sind/" style={{ display: "inline-flex", alignItems: "center", gap: 10, background: "#fff", color: BLUE, border: "2px solid " + BLUE + "30", borderRadius: 99, padding: "14px 28px", fontSize: 15, fontWeight: 700, textDecoration: "none", fontFamily: HEAD, letterSpacing: 1 }}>
+                Mehr über uns <span style={{ fontSize: 18 }}>&rarr;</span>
+              </a>
+            </div>
+          </FadeIn>
+        </div>
+      </section>
+
       {/* ═══════════ KONTAKT ═══════════ */}
       <section id="kontakt" style={{ background: "#fff", padding: "clamp(60px,10vw,100px) 24px" }}>
         <div style={{ maxWidth: 720, margin: "0 auto" }}>
