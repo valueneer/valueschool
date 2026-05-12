@@ -10,6 +10,17 @@
 
 ---
 
+## ⚠️ Bevor Claude loslegt
+
+**Erst `OPEN_QUESTIONS.md` mit Hendrik durchgehen.** Mehrere Aufgaben unten warten auf Hendrik-Input (Kosten, Klassenstufen, Tage, Pilot-Schulen, Sebastian-Bio). Ohne diese Antworten können Aufgaben 2 und 3 nicht ehrlich gebaut werden — sonst landen wir wieder bei Annahmen, die korrigiert werden müssen.
+
+**Reihenfolge:**
+1. Lagebesprechung geben (Status aus LOG.md)
+2. Open Questions auflisten und Hendrik fragen, welche er jetzt schnell klären kann
+3. Erst danach: Aufgabe wählen, die nicht blockiert ist (Aufgabe 1 ist nicht blockiert)
+
+---
+
 ## Aufgabe 1: Predigt-Sektionen fusionieren
 
 **Was:** Die drei Sektionen "Warum das jetzt zählt", "Was Schulen herausfordert", "Was das Projekt bewirkt" zu **EINER** kompakten Sektion fusionieren. Manifest evtl. ganz raus oder als Mini-Quote integrieren.
@@ -39,7 +50,7 @@
 
 **Voraussetzung:** Hendrik liefert Klassenstufen + Tage-Angaben, falls nicht in `/programm/` schon enthalten.
 
-**Status:** ⏳ pending
+**Status:** 🔒 blockiert — wartet auf Hendrik-Input (siehe OPEN_QUESTIONS: Klassenstufen, Tage pro Modul)
 
 ---
 
@@ -47,28 +58,4 @@
 
 **Nur wenn Aufgabe 1+2 fertig sind und Hendrik die Daten geliefert hat.**
 
-**Was:** Block mit klarer Antwort auf "Was kostet uns das, in Geld und Lehrerstunden?". Plus Förder-Hinweis.
-
-**Warum:** Wichtigste Schulleiter-Frage. Wird aktuell nicht beantwortet.
-
-**Status:** 🔒 blockiert — wartet auf Hendriks Input zu Kosten-Modell + Förderung
-
----
-
-## ✅ Erledigt in dieser Woche
-
-- Trust-Sektion mit Founder-Story sauber aufgeteilt (Hauptseite Teaser, /wer-wir-sind/ volle Story)
-- Logo-Strip full-width, Headline "sich ihrer Werte bewusst"
-- `.project/` Setup eingeführt
-
----
-
-## 🛑 Nicht diese Woche
-
-(damit ich nicht abdrifte)
-
-- Mobile-Polish
-- Wertetest-Inhalts-Review
-- Neue Bilder/Moodbilder
-- Sebastian-Bio-Finalisierung (wartet auf Hendriks Input)
-- /finanzierung-schule-check/ in Hauptfunnel einbinden
+**Was:** Block mit klarer Antwort auf "Was kostet uns das, in Geld und Lehre
