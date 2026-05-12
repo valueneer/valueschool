@@ -16,8 +16,8 @@
     html { scroll-behavior: smooth; }
     /* Hero-Media: Video läuft auf allen Geräten, Poster nur als Fallback unter dem Video sichtbar.
        Blur als Mood-Filter, transform:scale damit der Blur die Sektionsränder nicht zeigt. */
-    .hero-poster { display: block; filter: blur(10px); transform: scale(1.06); }
-    .hero-video  { display: block; filter: blur(10px); transform: scale(1.06); }
+    .hero-poster { display: block; filter: blur(5px); transform: scale(1.04); }
+    .hero-video  { display: block; filter: blur(5px); transform: scale(1.04); }
     /* Wenn der Nutzer reduce-motion aktiviert hat: kein Autoplay-Video, nur Standbild */
     @media (prefers-reduced-motion: reduce) {
       .hero-video { display: none !important; }
@@ -257,7 +257,7 @@ function ValueSchool() {
           style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover", zIndex: 0 }}>
           <source src="/video/moodvideos_web.mp4" type="video/mp4" />
         </video>
-        <div style={{ position: "absolute", inset: 0, background: "linear-gradient(180deg, rgba(60,30,120,0.72) 0%, rgba(28,27,94,0.88) 60%, rgba(20,15,70,0.94) 100%)", pointerEvents: "none", zIndex: 1 }} />
+        <div style={{ position: "absolute", inset: 0, background: "linear-gradient(180deg, rgba(60,30,120,0.50) 0%, rgba(28,27,94,0.62) 60%, rgba(20,15,70,0.66) 100%)", pointerEvents: "none", zIndex: 1 }} />
         <div style={{ position: "absolute", inset: 0, pointerEvents: "none" }}>
           <div style={{ position: "absolute", top: "-40%", left: "-15%", width: "55%", height: "180%", background: PINK, opacity: 0.08, transform: "rotate(-25deg) skewY(-5deg)" }} />
           <div style={{ position: "absolute", bottom: "-20%", right: "5%", width: "35%", height: "140%", background: ORANGE, opacity: 0.06, transform: "rotate(22deg)" }} />
