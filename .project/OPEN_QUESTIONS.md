@@ -17,6 +17,10 @@
 - **Programm-Details:** Die 5 Module — was passiert in jedem? Welche Klassenstufen? Wieviele Tage pro Modul?
 - **Calendly-URL:** echte URL ist `https://calendly.com/wert_voll/kennenlernen` (Hauptseite) und `https://calendly.com/lets-play/50min` (auf /wer-wir-sind/). Soll das einheitlich werden?
 
+### Konsistenz Founder-Story (HENDRIK-PRIORITÄT NÄCHSTE SESSION)
+
+Hendrik will den Bogen zwischen Hauptseite-Trust-Sektion, Founder-Teaser und `/wer-wir-sind/`-Detail bewusst aufeinander aufbauen lassen — aktuell ist das zu ähnlich. Er macht selbst Anpassungen, will dann mit Claude den Feinschliff. **Wichtig: vor jeder Änderung Kontext einholen — Hendrik bietet aktiv Kontext an, lieber zu viel fragen als zu wenig.**
+
 ### Strategisch
 
 - **Hauptzielgruppe Schulleiter ODER Eltern?** Aktuelle Seite spricht beide an ("Wir helfen Schulen und Eltern"). Schulleiter-Audit zeigt: für Schulleiter ist zu wenig Substanz da. Sollen wir den Fokus klarer auf Schulleiter legen?

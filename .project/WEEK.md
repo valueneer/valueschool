@@ -27,12 +27,9 @@
 
 **Warum:** Schulleiter:innen wissen, dass Werte wichtig sind. Vier Sektionen "Warum"-Predigt → sie scrollen weg, bevor das Programm kommt.
 
-**Definition of Done:**
-- Eine Sektion mit max. 3 kurzen Bausteinen (Was Schulen brauchen / Was unser Programm bewirkt / Mini-Studienbeleg)
-- Lesedauer für die Sektion: <60 Sek
-- Headline trägt das Versprechen, kein Wiederholungsklang
+**Status:** 🔄 zurückgesetzt am 2026-05-12. Erster Schnitt-Versuch (Sek 2, 3, 5 komplett raus) hat Hendrik nicht überzeugt — Seite wirkte schlechter. Neuer Ansatz nötig: nicht radikal streichen, sondern behutsamer fusionieren, Substanz erhalten, Bildwelt erhalten.
 
-**Status:** ⏳ pending
+**Nächster Versuch:** Vorher mit Hendrik durchgehen, WAS aus den Sektionen funktioniert (Bilder, Karten, Studien) und WAS doppelt — pro Karte/Element entscheiden, nicht ganze Sektionen kippen.
 
 ---
 
