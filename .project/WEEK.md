@@ -58,4 +58,28 @@
 
 **Nur wenn Aufgabe 1+2 fertig sind und Hendrik die Daten geliefert hat.**
 
-**Was:** Block mit klarer Antwort auf "Was kostet uns das, in Geld und Lehre
+**Was:** Block mit klarer Antwort auf "Was kostet uns das, in Geld und Lehrerstunden?". Plus Förder-Hinweis.
+
+**Warum:** Wichtigste Schulleiter-Frage. Wird aktuell nicht beantwortet.
+
+**Status:** 🔒 blockiert — wartet auf Hendriks Input zu Kosten-Modell + Förderung
+
+---
+
+## ✅ Erledigt in dieser Woche
+
+- Trust-Sektion mit Founder-Story sauber aufgeteilt (Hauptseite Teaser, /wer-wir-sind/ volle Story)
+- Logo-Strip full-width, Headline "sich ihrer Werte bewusst"
+- `.project/` Setup eingeführt
+
+---
+
+## 🛑 Nicht diese Woche
+
+(damit ich nicht abdrifte)
+
+- Mobile-Polish
+- Wertetest-Inhalts-Review
+- Neue Bilder/Moodbilder
+- Sebastian-Bio-Finalisierung (wartet auf Hendriks Input)
+- /finanzierung-schule-check/ in Hauptfunnel einbinden

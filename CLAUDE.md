@@ -70,4 +70,29 @@ Markenstruktur, Vision und Tonalität → `.project/VISION.md`.
 - **ImgBox**: Vollbild-Bild mit Gradient-Overlay, Kicker/Title/Quote/Tag-Props
 - **Fact**: Kompakte Statistik-Karte mit farbigem Seitenstreifen
 - **FactGroup**: Dunkler Container für wissenschaftliche Belege
-- **FadeIn**: Animati
+- **FadeIn**: Animations-Wrapper
+- **Starburst**: dekoratives SVG für Section-Backgrounds
+
+## Arbeitsweise mit Hendrik
+
+- **Sprache**: Deutsch, duzen, direkt.
+- **ADHS**: Ein Schritt nach dem anderen, max 2–3 Aufgaben pro Woche.
+- **Führen statt fragen**: Entscheiden und vorschlagen, kein Optionen-Buffet.
+- **Wenn er abschweift**: Stopp sagen, zur WEEK.md zurückholen.
+- **Tippfehler** kommen von Windows-Diktierfunktion — nicht drauf reagieren.
+
+## Stil-Prinzipien für alle Texte
+
+- **Kein KI-Stakkato.** Erzählerisch mit Atemzeichen, Mini-Szenen statt Schlagwort-Trios.
+- **Tabu:** Formulierungen wie "Mensch oder Regel? Harmonie oder Klartext?" — das ist KI-Reflex und stört.
+- **Trust-Elemente** (Gesichter, Logos, Stats) dürfen auf mehreren Seiten erscheinen.
+- **Content** (Texte, Geschichten) gehört auf EINE Seite. Niemals doppelt.
+- Hauptseite = Teaser. Unterseite = Tiefe.
+
+## Routine
+
+**Session-Start:** `.project/`-Dateien lesen, Status zusammenfassen. **Bevor irgendetwas gebaut wird:** OPEN_QUESTIONS.md mit Hendrik durchgehen — was kann er jetzt schnell klären? Erst dann an WEEK.md-Aufgaben gehen, die nicht blockiert sind.
+
+**Session-Ende:** LOG.md updaten (was gemacht, wo weitermachen), ggf. WEEK.md Haken setzen, ggf. OPEN_QUESTIONS pflegen, committen.
+
+**Vor strukturellen Eingriffen:** Funnel-Big-Picture prüfen. Was steht schon? Wird's doppelt? Welche Sektionen sind betroffen?
