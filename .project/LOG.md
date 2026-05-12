@@ -4,6 +4,46 @@
 
 ---
 
+## 2026-05-12 (Session 6) — Performance-Komplettoptimierung
+
+**Größte Wins:**
+- HTML 526 KB → 216 KB (-59%)
+- Hero-Video 6.3 MB → 1.7 MB (-73%)
+- Initial Pageload (Desktop, no cache): ~7.1 MB → ~2.1 MB (-71%)
+
+**Was konkret passiert ist:**
+
+1. **226 KB Base64-Bilder aus HTML extrahiert** (LOGO_COLOR, LOGO_WHITE, IMG_HENDRIK, IMG_SEBASTIAN, IMG_HERZ, schuelerin in Sek 3). Liegen jetzt als externe Files in /bilder/ und /logos/. Browser kann sie parallel laden + cachen.
+
+2. **WebP-Versionen für alle Bilder** erzeugt. Im HTML referenziert. Spart 30-50% pro Bild. (Ältere Browser bekommen evtl. kein Bild — Browser-Support für WebP ist 97%+, sollte safe sein. JPGs liegen als Fallback noch auf dem Server, falls jemand zurückwechseln will.)
+
+3. **Hero-Video neu encoded**: 1280×720 statt 1920×1080, CRF 32 statt 26. Quality ist mit dem 5px-Blur drüber nicht unterscheidbar. moodvideos_web.mp4 bleibt als Backup, neue Version heißt moodvideos_web_v2.mp4.
+
+4. **PlayTheHype-Logo**: 97 KB → 26 KB (WebP).
+
+5. **Loading-Hints** im `<head>`:
+   - `preconnect` zu Google Fonts (war schon da)
+   - `dns-prefetch` zu cdnjs.cloudflare
+   - `preload` für hero.webp (fetchpriority="high") und Logo
+   - `loading="lazy"` auf allen Sek-4/6-Bildern, Logos und ImgBox-Komponente
+
+6. **netlify.toml**: Cache-Headers gesetzt — Bilder/Video/Logos werden 1 Jahr immutable gecached. HTML bleibt always-fresh.
+
+7. **Sanity-Check**: 7 Sections balanced, 25 FadeIn balanced, 4 Minitest-Verlinkungen unverändert, alle referenzierten Asset-Files existieren.
+
+**Backups**: valueschool.html.pre-perf, index.html.pre-perf
+
+**Wo weitermachen:**
+Hendrik pusht und schaut sich's an. Mobile-Performance sollte spürbar besser sein. Falls WebP-Probleme auf Altgeräten: in den 6 sed-Befehlen `.webp` → `.jpg` zurück (JPGs liegen alle noch da).
+
+**Was NICHT angefasst wurde** (für nächste Sessions):
+- Babel/React-Scripts ohne defer (Server lädt sie parallel zum HTML-Parse, defer würde Render verzögern weil React für Content nötig)
+- HTML-Minify (Babel-Block ist whitespace-sensitiv, zu riskant)
+- Unterseiten /programm/, /wer-wir-sind/ etc. — die haben eigene Assets, müssten separat optimiert werden
+- Founder-Story-Konsistenz Hauptseite ↔ /wer-wir-sind/ (Hendrik-Priorität)
+
+---
+
 ## 2026-05-12 (Session 5) — Hero: Blur-Filter + Video auch auf Mobile
 
 **Gemacht:**
