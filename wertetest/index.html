@@ -4009,7 +4009,19 @@ function App() {
         }}
       />}
       {phase === "code-entry" && <CodeEntry
-        onValid={({ klasse: k, schule: s }) => { setKlasse(k); setSchule(s); setRolle("schueler"); setPhase("demographics-light"); }}
+        onValid={({ klasse: k, schule: s }) => {
+          setKlasse(k); setSchule(s); setRolle("schueler");
+          const prevId = getStoredResultIdForKlasse(k.id);
+          if (prevId) {
+            // Wiederkehr: zur Intro mit Hinweis + Wahlmöglichkeit
+            setMySessionResultId(prevId);
+            setReturningStudent(true);
+            setPhase("intro");
+          } else {
+            // Erstmals: direkt weiter ins Spiel
+            setPhase("demographics-light");
+          }
+        }}
         onBack={() => setPhase("intro")}
       />}
       {phase === "demographics-light" && <DemographicsLight
