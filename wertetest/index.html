@@ -3679,7 +3679,7 @@ function App() {
         </div>
       )}
       {phase === "intro" && <Intro
-        onStart={() => { if (schule && klasse) setPhase("role-pick"); else setPhase("code-entry"); }}
+        onStart={() => { if (schule && klasse) { setRolle("schueler"); setPhase("demographics-light"); } else setPhase("code-entry"); }}
         onCodeEntry={() => setPhase("code-entry")}
         onFreeStart={() => setPhase("demographics")}
         valueCount={values.length}
@@ -3688,18 +3688,13 @@ function App() {
         schule={schule} klasse={klasse}
       />}
       {phase === "code-entry" && <CodeEntry
-        onValid={({ klasse: k, schule: s }) => { setKlasse(k); setSchule(s); setPhase("role-pick"); }}
-        onBack={() => setPhase("intro")}
-      />}
-      {phase === "role-pick" && <RolePicker
-        schule={schule} klasse={klasse}
-        onPick={(r) => { setRolle(r); setPhase("demographics-light"); }}
+        onValid={({ klasse: k, schule: s }) => { setKlasse(k); setSchule(s); setRolle("schueler"); setPhase("demographics-light"); }}
         onBack={() => setPhase("intro")}
       />}
       {phase === "demographics-light" && <DemographicsLight
         schule={schule} klasse={klasse}
         onSubmit={handleSchoolDemoSubmit}
-        onBack={() => setPhase("role-pick")}
+        onBack={() => setPhase("intro")}
       />}
       {phase === "demographics" && <DemographicsForm onSubmit={handleDemoSubmit} />}
       {phase === "admin-login" && <AdminLogin onSuccess={function() { setPhase("admin"); }} onBack={function() { setPhase("intro"); }} />}
