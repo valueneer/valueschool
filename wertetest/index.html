@@ -114,6 +114,30 @@ const supa = {
     });
     return r.ok;
   },
+  async selectWhere(table, filter, order) {
+    if (!USE_SUPABASE) return [];
+    const orderPart = order ? `&order=${order}` : "";
+    const r = await fetch(`${SUPABASE_URL}/rest/v1/${table}?select=*&${filter}${orderPart}`, {
+      headers: { "apikey": SUPABASE_KEY, "Authorization": `Bearer ${SUPABASE_KEY}` },
+    });
+    if (!r.ok) return [];
+    return await r.json();
+  },
+  async insertReturning(table, data) {
+    if (!USE_SUPABASE) return null;
+    const r = await fetch(`${SUPABASE_URL}/rest/v1/${table}`, {
+      method: "POST", headers: {
+        "Content-Type": "application/json", "apikey": SUPABASE_KEY,
+        "Authorization": `Bearer ${SUPABASE_KEY}`, "Prefer": "return=representation",
+      }, body: JSON.stringify(data),
+    });
+    if (!r.ok) {
+      const errText = await r.text().catch(() => "unknown");
+      throw new Error(`Supabase ${r.status}: ${errText}`);
+    }
+    const json = await r.json();
+    return Array.isArray(json) ? json[0] : json;
+  },
 };
 
 /* ═══════════════════════════════════════════
@@ -644,7 +668,7 @@ function DemographicsForm({ onSubmit }) {
    ADMIN PANEL
    ═══════════════════════════════════════════ */
 
-function AdminPanel({ values, setValues, onClose, onDashboard, typeDescs, setTypeDescs, valueDescs, setValueDescs }) {
+function AdminPanel({ values, setValues, onClose, onDashboard, onSchulen, typeDescs, setTypeDescs, valueDescs, setValueDescs }) {
   const [newName, setNewName] = useState("");
   const [newCat, setNewCat] = useState("orange");
   const [editIdx, setEditIdx] = useState(null);
@@ -721,7 +745,8 @@ function AdminPanel({ values, setValues, onClose, onDashboard, typeDescs, setTyp
           <h2 style={{ fontSize: 22, fontWeight: 800, color: "#1e1b4b", margin: 0 }}>⚙️ Admin</h2>
           <p style={{ fontSize: 13, color: "#6b7280", margin: "4px 0 0" }}>{values.length} Werte gesamt</p>
         </div>
-        <div style={{ display: "flex", gap: 8 }}>
+        <div style={{ display: "flex", gap: 6, flexWrap: "wrap", justifyContent: "flex-end" }}>
+          <Btn small primary onClick={onSchulen}>🏫 Schulen</Btn>
           <Btn small primary onClick={onDashboard}>📊 Dashboard</Btn>
           <Btn small onClick={onClose}>← Zurück</Btn>
         </div>
@@ -2538,6 +2563,280 @@ function Result({ kompass, onRestart, valHistory, maxRound, demographics, saveEr
 }
 
 /* ═══════════════════════════════════════════
+   SCHULEN-MANAGER (Schulen + Klassen anlegen, Codes + QR generieren)
+   ═══════════════════════════════════════════ */
+
+const CODE_ALPHABET = "ABCDEFGHJKMNPQRSTUVWXYZ23456789"; // ohne 0,1,I,O,L (verwechselbar)
+function randomToken(n) {
+  let s = "";
+  for (let i = 0; i < n; i++) s += CODE_ALPHABET[Math.floor(Math.random() * CODE_ALPHABET.length)];
+  return s;
+}
+function sanitizeKlassenBezeichnung(s) {
+  return s.toUpperCase().replace(/[^A-Z0-9]/g, "");
+}
+function makeClassCode(schulkuerzel, klasse) {
+  const klBez = sanitizeKlassenBezeichnung(klasse);
+  return `${schulkuerzel.toUpperCase()}-${klBez}-${randomToken(4)}`;
+}
+function classCodeToTestUrl(code) {
+  const origin = (typeof window !== "undefined" && window.location && window.location.origin) ? window.location.origin : "https://value-school.de";
+  return `${origin}/wertetest/?code=${encodeURIComponent(code)}`;
+}
+
+const SCHULFORMEN = [
+  { id: "grund", label: "Grundschule" },
+  { id: "haupt", label: "Hauptschule" },
+  { id: "real", label: "Realschule" },
+  { id: "gesamt", label: "Gesamtschule" },
+  { id: "gym", label: "Gymnasium" },
+  { id: "foerder", label: "Förderschule" },
+  { id: "berufs", label: "Berufsschule" },
+  { id: "andere", label: "Andere" },
+];
+
+function SchulenManager({ onBack }) {
+  const [schulen, setSchulen] = useState([]);
+  const [klassenBySchule, setKlassenBySchule] = useState({});
+  const [expandedSchuleId, setExpandedSchuleId] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [msg, setMsg] = useState("");
+  const [showNewSchule, setShowNewSchule] = useState(false);
+  const [newSchule, setNewSchule] = useState({ name: "", kuerzel: "", schulform: "gym", traeger: "" });
+  const [newKlasseBySchule, setNewKlasseBySchule] = useState({});
+  const [qrOpen, setQrOpen] = useState(null);
+  const [standardSetId, setStandardSetId] = useState(null);
+
+  const flash = (m) => { setMsg(m); setTimeout(() => setMsg(""), 2500); };
+
+  const loadAll = async () => {
+    setLoading(true);
+    const sets = await supa.selectTable("werte_sets");
+    const std = sets.find(s => s.name === "Standard 52");
+    if (std) setStandardSetId(std.id);
+    const s = await supa.selectWhere("schulen", "select=*", "created_at.desc");
+    setSchulen(s);
+    setLoading(false);
+  };
+
+  useEffect(() => { loadAll(); }, []);
+
+  const toggleSchule = async (schule) => {
+    if (expandedSchuleId === schule.id) { setExpandedSchuleId(null); return; }
+    setExpandedSchuleId(schule.id);
+    if (!klassenBySchule[schule.id]) {
+      const ks = await supa.selectWhere("klassen", `schule_id=eq.${schule.id}`, "created_at.asc");
+      setKlassenBySchule(prev => ({ ...prev, [schule.id]: ks }));
+    }
+  };
+
+  const createSchule = async () => {
+    const name = newSchule.name.trim();
+    const kuerzel = newSchule.kuerzel.trim().toUpperCase().replace(/[^A-Z0-9]/g, "");
+    if (!name) return flash("⚠️ Name fehlt");
+    if (kuerzel.length < 2 || kuerzel.length > 8) return flash("⚠️ Kürzel: 2–8 Buchstaben/Zahlen");
+    try {
+      const schulCode = `${kuerzel}${new Date().getFullYear()}`;
+      const created = await supa.insertReturning("schulen", {
+        name, schulform: newSchule.schulform, traeger: newSchule.traeger || null,
+        werte_set_id: standardSetId, code: schulCode, notiz: null,
+      });
+      setSchulen(prev => [created, ...prev]);
+      setNewSchule({ name: "", kuerzel: "", schulform: "gym", traeger: "" });
+      setShowNewSchule(false);
+      flash(`✅ Schule "${name}" angelegt (Code: ${schulCode})`);
+    } catch (e) { flash(`⚠️ Fehler: ${e.message}`); }
+  };
+
+  const createKlasse = async (schule) => {
+    const entry = newKlasseBySchule[schule.id] || { bezeichnung: "", klassenstufe: "" };
+    const bez = entry.bezeichnung.trim();
+    if (!bez) return flash("⚠️ Klassenbezeichnung fehlt");
+    const kuerzel = schule.code.replace(/\d+$/, "");
+    const code = makeClassCode(kuerzel, bez);
+    try {
+      const created = await supa.insertReturning("klassen", {
+        schule_id: schule.id, bezeichnung: bez,
+        klassenstufe: entry.klassenstufe.trim() || null, code,
+      });
+      setKlassenBySchule(prev => ({
+        ...prev, [schule.id]: [...(prev[schule.id] || []), created],
+      }));
+      setNewKlasseBySchule(prev => ({ ...prev, [schule.id]: { bezeichnung: "", klassenstufe: "" } }));
+      flash(`✅ Klasse "${bez}" angelegt (Code: ${code})`);
+    } catch (e) { flash(`⚠️ Fehler: ${e.message}`); }
+  };
+
+  const deleteSchule = async (schule) => {
+    if (!confirm(`Schule "${schule.name}" wirklich löschen? Alle Klassen und Ergebnisse dieser Schule gehen verloren.`)) return;
+    try {
+      await fetch(`${SUPABASE_URL}/rest/v1/schulen?id=eq.${schule.id}`, {
+        method: "DELETE", headers: { "apikey": SUPABASE_KEY, "Authorization": `Bearer ${SUPABASE_KEY}` },
+      });
+      setSchulen(prev => prev.filter(s => s.id !== schule.id));
+      flash(`🗑️ Schule "${schule.name}" gelöscht`);
+    } catch (e) { flash(`⚠️ Fehler: ${e.message}`); }
+  };
+
+  const deleteKlasse = async (schuleId, klasse) => {
+    if (!confirm(`Klasse "${klasse.bezeichnung}" wirklich löschen?`)) return;
+    try {
+      await fetch(`${SUPABASE_URL}/rest/v1/klassen?id=eq.${klasse.id}`, {
+        method: "DELETE", headers: { "apikey": SUPABASE_KEY, "Authorization": `Bearer ${SUPABASE_KEY}` },
+      });
+      setKlassenBySchule(prev => ({
+        ...prev, [schuleId]: (prev[schuleId] || []).filter(k => k.id !== klasse.id),
+      }));
+      flash(`🗑️ Klasse gelöscht`);
+    } catch (e) { flash(`⚠️ Fehler: ${e.message}`); }
+  };
+
+  const copyToClipboard = async (text) => {
+    try { await navigator.clipboard.writeText(text); flash(`📋 In Zwischenablage`); }
+    catch { flash("⚠️ Kopieren fehlgeschlagen"); }
+  };
+
+  const inputStyle = {
+    padding: "10px 14px", borderRadius: 10, border: "2px solid #e5e7eb",
+    fontSize: 15, outline: "none", width: "100%", boxSizing: "border-box",
+  };
+  const selectStyle = {
+    padding: "8px 12px", borderRadius: 8, border: "2px solid #e5e7eb",
+    fontSize: 14, background: "#fff", cursor: "pointer", outline: "none",
+  };
+
+  return (
+    <div style={{ padding: "20px 16px", maxWidth: 500, margin: "0 auto" }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
+        <div>
+          <h2 style={{ fontSize: 22, fontWeight: 800, color: "#1e1b4b", margin: 0 }}>🏫 Schulen & Klassen</h2>
+          <p style={{ fontSize: 13, color: "#6b7280", margin: "4px 0 0" }}>{schulen.length} {schulen.length === 1 ? "Schule" : "Schulen"}</p>
+        </div>
+        <Btn small onClick={onBack}>← Zurück</Btn>
+      </div>
+
+      {msg && (
+        <div style={{
+          background: msg.startsWith("✅") || msg.startsWith("📋") ? "#f0fdf4" : msg.startsWith("🗑️") ? "#fef3c7" : "#fee2e2",
+          color: msg.startsWith("✅") || msg.startsWith("📋") ? "#166534" : msg.startsWith("🗑️") ? "#92400e" : "#991b1b",
+          padding: "8px 16px", borderRadius: 10, fontSize: 13, fontWeight: 600, marginBottom: 16, textAlign: "center",
+        }}>{msg}</div>
+      )}
+
+      {!showNewSchule ? (
+        <Btn primary onClick={() => setShowNewSchule(true)} style={{ width: "100%", marginBottom: 20 }}>+ Neue Schule anlegen</Btn>
+      ) : (
+        <div style={{ background: "#f8fafc", borderRadius: 14, padding: 16, marginBottom: 20 }}>
+          <div style={{ fontSize: 13, fontWeight: 700, color: "#1e1b4b", marginBottom: 10 }}>Neue Schule</div>
+          <input value={newSchule.name} onChange={e => setNewSchule({ ...newSchule, name: e.target.value })}
+            placeholder="Name der Schule (z.B. Muckelheimer Oberschule)" style={{ ...inputStyle, marginBottom: 8 }} />
+          <input value={newSchule.kuerzel} onChange={e => setNewSchule({ ...newSchule, kuerzel: e.target.value })}
+            placeholder="Kürzel (z.B. MUCK)" style={{ ...inputStyle, marginBottom: 8 }} maxLength={8} />
+          <div style={{ fontSize: 11, color: "#9ca3af", marginBottom: 8 }}>2–8 Zeichen, GROSS, keine Sonderzeichen. Wird in Klassencodes verwendet wie {newSchule.kuerzel.toUpperCase().replace(/[^A-Z0-9]/g, "") || "MUCK"}-10C-K7P9.</div>
+          <select value={newSchule.schulform} onChange={e => setNewSchule({ ...newSchule, schulform: e.target.value })}
+            style={{ ...selectStyle, width: "100%", marginBottom: 8 }}>
+            {SCHULFORMEN.map(f => <option key={f.id} value={f.id}>{f.label}</option>)}
+          </select>
+          <input value={newSchule.traeger} onChange={e => setNewSchule({ ...newSchule, traeger: e.target.value })}
+            placeholder="Träger (optional: kommunal/privat/konfession…)" style={{ ...inputStyle, marginBottom: 12 }} />
+          <div style={{ display: "flex", gap: 8 }}>
+            <Btn primary onClick={createSchule} style={{ flex: 1 }}>Anlegen</Btn>
+            <Btn onClick={() => { setShowNewSchule(false); setNewSchule({ name: "", kuerzel: "", schulform: "gym", traeger: "" }); }}>Abbrechen</Btn>
+          </div>
+        </div>
+      )}
+
+      {loading ? (
+        <div style={{ textAlign: "center", padding: 30, color: "#9ca3af" }}>Lade …</div>
+      ) : schulen.length === 0 ? (
+        <div style={{ textAlign: "center", padding: 30, color: "#9ca3af", background: "#f8fafc", borderRadius: 14 }}>
+          Noch keine Schule angelegt.
+        </div>
+      ) : schulen.map(schule => {
+        const expanded = expandedSchuleId === schule.id;
+        const klassen = klassenBySchule[schule.id] || [];
+        const newKl = newKlasseBySchule[schule.id] || { bezeichnung: "", klassenstufe: "" };
+        return (
+          <div key={schule.id} style={{ background: "#fff", border: "2px solid #e5e7eb", borderRadius: 14, marginBottom: 12, overflow: "hidden" }}>
+            <div onClick={() => toggleSchule(schule)} style={{
+              padding: "12px 16px", cursor: "pointer", display: "flex", justifyContent: "space-between", alignItems: "center",
+              background: expanded ? "#f0f0ff" : "#fff",
+            }}>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ fontSize: 16, fontWeight: 700, color: "#1e1b4b" }}>{schule.name}</div>
+                <div style={{ fontSize: 12, color: "#6b7280", marginTop: 2 }}>
+                  {SCHULFORMEN.find(f => f.id === schule.schulform)?.label || schule.schulform} · Code: <code style={{ background: "#f3f4f6", padding: "1px 6px", borderRadius: 4 }}>{schule.code}</code>
+                </div>
+              </div>
+              <div style={{ fontSize: 18, color: "#6b7280" }}>{expanded ? "▾" : "▸"}</div>
+            </div>
+
+            {expanded && (
+              <div style={{ padding: "12px 16px 16px", background: "#fafafa", borderTop: "1px solid #e5e7eb" }}>
+                {klassen.length === 0 ? (
+                  <div style={{ fontSize: 13, color: "#9ca3af", padding: "8px 0", fontStyle: "italic" }}>Noch keine Klasse.</div>
+                ) : klassen.map(k => (
+                  <div key={k.id} style={{
+                    display: "flex", alignItems: "center", gap: 8, padding: "8px 0", borderBottom: "1px solid #e5e7eb",
+                  }}>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ fontSize: 14, fontWeight: 600, color: "#1e1b4b" }}>{k.bezeichnung}{k.klassenstufe ? ` (Stufe ${k.klassenstufe})` : ""}</div>
+                      <div style={{ fontSize: 11, color: "#6b7280", fontFamily: "monospace", marginTop: 2 }}>{k.code}</div>
+                    </div>
+                    <button onClick={() => copyToClipboard(k.code)} title="Code kopieren"
+                      style={{ background: "none", border: "none", cursor: "pointer", fontSize: 16, padding: 4 }}>📋</button>
+                    <button onClick={() => setQrOpen(k)} title="QR-Code anzeigen"
+                      style={{ background: "none", border: "none", cursor: "pointer", fontSize: 16, padding: 4 }}>🔲</button>
+                    <button onClick={() => deleteKlasse(schule.id, k)} title="Löschen"
+                      style={{ background: "none", border: "none", cursor: "pointer", fontSize: 16, padding: 4 }}>🗑️</button>
+                  </div>
+                ))}
+
+                <div style={{ marginTop: 12, padding: 10, background: "#fff", borderRadius: 10, border: "1px dashed #cbd5e1" }}>
+                  <div style={{ fontSize: 12, fontWeight: 700, color: "#1e1b4b", marginBottom: 6 }}>+ Klasse anlegen</div>
+                  <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+                    <input value={newKl.bezeichnung} onChange={e => setNewKlasseBySchule(prev => ({ ...prev, [schule.id]: { ...newKl, bezeichnung: e.target.value } }))}
+                      placeholder="10c" style={{ ...inputStyle, flex: 2, minWidth: 80, padding: "8px 10px", fontSize: 13 }} />
+                    <input value={newKl.klassenstufe} onChange={e => setNewKlasseBySchule(prev => ({ ...prev, [schule.id]: { ...newKl, klassenstufe: e.target.value } }))}
+                      placeholder="Stufe (opt.)" style={{ ...inputStyle, flex: 1, minWidth: 80, padding: "8px 10px", fontSize: 13 }} />
+                    <Btn small primary onClick={() => createKlasse(schule)}>+</Btn>
+                  </div>
+                </div>
+
+                <div style={{ marginTop: 14, textAlign: "right" }}>
+                  <Btn small danger onClick={() => deleteSchule(schule)}>Schule löschen</Btn>
+                </div>
+              </div>
+            )}
+          </div>
+        );
+      })}
+
+      {qrOpen && (
+        <div onClick={() => setQrOpen(null)} style={{
+          position: "fixed", inset: 0, background: "rgba(0,0,0,0.6)", display: "flex",
+          alignItems: "center", justifyContent: "center", zIndex: 1000, padding: 16,
+        }}>
+          <div onClick={e => e.stopPropagation()} style={{
+            background: "#fff", borderRadius: 16, padding: 20, maxWidth: 360, width: "100%", textAlign: "center",
+          }}>
+            <div style={{ fontSize: 16, fontWeight: 700, color: "#1e1b4b", marginBottom: 4 }}>{qrOpen.bezeichnung}</div>
+            <div style={{ fontSize: 12, fontFamily: "monospace", color: "#6b7280", marginBottom: 14 }}>{qrOpen.code}</div>
+            <img alt="QR-Code" src={`https://api.qrserver.com/v1/create-qr-code/?size=280x280&margin=10&data=${encodeURIComponent(classCodeToTestUrl(qrOpen.code))}`}
+              style={{ width: "100%", maxWidth: 280, height: "auto", display: "block", margin: "0 auto 14px" }} />
+            <div style={{ fontSize: 11, color: "#9ca3af", marginBottom: 14, wordBreak: "break-all" }}>{classCodeToTestUrl(qrOpen.code)}</div>
+            <div style={{ display: "flex", gap: 8, justifyContent: "center" }}>
+              <Btn small onClick={() => copyToClipboard(classCodeToTestUrl(qrOpen.code))}>🔗 Link kopieren</Btn>
+              <Btn small onClick={() => setQrOpen(null)}>Schließen</Btn>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ═══════════════════════════════════════════
    ADMIN DASHBOARD
    ═══════════════════════════════════════════ */
 
@@ -3146,8 +3445,9 @@ function App() {
       {phase === "intro" && <Intro onStart={() => { setPhase("demographics"); }} valueCount={values.length} onAdmin={() => setPhase("admin-login")} onScan={() => { setPhase("scan"); }} />}
       {phase === "demographics" && <DemographicsForm onSubmit={handleDemoSubmit} />}
       {phase === "admin-login" && <AdminLogin onSuccess={function() { setPhase("admin"); }} onBack={function() { setPhase("intro"); }} />}
-      {phase === "admin" && <AdminPanel values={values} setValues={setValues} onClose={() => setPhase("intro")} onDashboard={() => setPhase("dashboard")} typeDescs={typeDescs} setTypeDescs={setTypeDescs} valueDescs={valueDescs} setValueDescs={setValueDescs} />}
+      {phase === "admin" && <AdminPanel values={values} setValues={setValues} onClose={() => setPhase("intro")} onDashboard={() => setPhase("dashboard")} onSchulen={() => setPhase("schulen")} typeDescs={typeDescs} setTypeDescs={setTypeDescs} valueDescs={valueDescs} setValueDescs={setValueDescs} />}
       {phase === "dashboard" && <AdminDashboard onBack={() => setPhase("admin")} />}
+      {phase === "schulen" && <SchulenManager onBack={() => setPhase("admin")} />}
       {phase === "scan" && <PhotoScan
         onResult={(scanned) => {
           const h = {};

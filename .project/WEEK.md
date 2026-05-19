@@ -63,11 +63,31 @@
 
 ---
 
+## Aufgabe 4 (neu seit 12.05. Abend): Founder-Story-Konsistenz
+
+**Was:** Bogen zwischen Hauptseite-Trust-Sektion (Founder-Teaser) und `/wer-wir-sind/`-Detail-Seite bewusst gestalten — aktuell überlappen sich Inhalte und USP-Karten zu stark. Hendrik macht zuerst Vorarbeiten, dann gemeinsam Feinschliff.
+
+**Wichtig:** **Vor jeder Änderung Kontext einholen.** Hendrik bietet aktiv Kontext an, lieber zu viel nachfragen als wieder ohne Strategie schneiden. Auslöser war das gescheiterte radikale Streichen aus Aufgabe 1 — daraus die Lektion.
+
+**Status:** ⏳ wartet auf Hendriks Vorarbeit
+
+---
+
 ## ✅ Erledigt in dieser Woche
 
 - Trust-Sektion mit Founder-Story sauber aufgeteilt (Hauptseite Teaser, /wer-wir-sind/ volle Story)
 - Logo-Strip full-width, Headline "sich ihrer Werte bewusst"
 - `.project/` Setup eingeführt
+- **Hero-Video + Mood-Bilder** eingebaut (Bilder IMG_0010 in Sek 6 Trust, IMG_9966 in Sek 4 Wirkung)
+- **Hero-Polish:** Gradient mit Lila-Stich (0.50/0.62/0.66), Blur 5px aufs Video, autoplay/loop/mute, läuft auf Desktop und Mobile
+- **Performance-Komplettoptimierung** (Session 6):
+  - HTML 526 → 216 KB (Base64 raus, 226 KB extrahiert in externe Files)
+  - Video 6.3 MB → 1.7 MB (kleinere Auflösung + CRF 32, Blur macht Quality-Loss unsichtbar)
+  - WebP-Versionen für alle Bilder
+  - PlayTheHype-Logo 97 KB → 26 KB
+  - Loading-Hints (preconnect, preload Hero, lazy-loading)
+  - netlify.toml mit Cache-Headers (Bilder 1 Jahr immutable, HTML always-fresh)
+  - Initial Pageload: ~7.1 MB → ~2.1 MB (-71%)
 
 ---
 
@@ -75,8 +95,16 @@
 
 (damit ich nicht abdrifte)
 
-- Mobile-Polish
 - Wertetest-Inhalts-Review
-- Neue Bilder/Moodbilder
 - Sebastian-Bio-Finalisierung (wartet auf Hendriks Input)
 - /finanzierung-schule-check/ in Hauptfunnel einbinden
+- Unterseiten-Performance (haben eigene Assets, separat optimieren)
+
+---
+
+## ⚠️ Lektionen aus dieser Woche (für Laptop-Claude wichtig)
+
+1. **Keine radikalen Section-Schnitte.** Aufgabe 1 wurde zurückgerollt, weil das komplette Streichen ganzer Sektionen die Leseführung zerstört hat. Bildwelt, Studien und visueller Rhythmus tragen die Seite — Predigt-Reduktion muss pro Karte/Element passieren, nicht pro Sektion.
+2. **Vor strukturellen Eingriffen: Kontext einholen.** Hendrik bietet aktiv Kontext an. Lieber kurz fragen als unstrategisch loslegen.
+3. **Bei Audits: Strategie vor Detail.** Big-Picture-Funnel-Check zuerst, danach Detail-Pass.
+4. **Hendrik nutzt Windows-Diktierfunktion.** Tippfehler ignorieren.
