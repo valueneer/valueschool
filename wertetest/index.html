@@ -1079,6 +1079,23 @@ function ValueDescEditor({ valueDescs, setValueDescs }) {
    START-FLOW: Code-Eingabe + Rollen-Auswahl
    ═══════════════════════════════════════════ */
 
+function getStoredResultIdForKlasse(klasseId) {
+  try {
+    const raw = localStorage.getItem("vs_class_results");
+    if (!raw) return null;
+    const map = JSON.parse(raw);
+    return map[klasseId] || null;
+  } catch (e) { return null; }
+}
+function setStoredResultIdForKlasse(klasseId, resultId) {
+  try {
+    const raw = localStorage.getItem("vs_class_results");
+    const map = raw ? JSON.parse(raw) : {};
+    map[klasseId] = resultId;
+    localStorage.setItem("vs_class_results", JSON.stringify(map));
+  } catch (e) {}
+}
+
 function parseCodeFromUrl() {
   try {
     const u = new URL(window.location.href);
@@ -1441,7 +1458,7 @@ function KlassenLandschaft({ schule, klasse, onBack, adminMode }) {
   );
 }
 
-function Intro({ onStart, onCodeEntry, onFreeStart, valueCount, onAdmin, onScan, schule, klasse }) {
+function Intro({ onStart, onCodeEntry, onFreeStart, valueCount, onAdmin, onScan, schule, klasse, isReturning, onShowOldResult }) {
   const [scanPin, setScanPin] = useState("");
   const [scanPinOpen, setScanPinOpen] = useState(false);
   const [scanPinError, setScanPinError] = useState(false);
@@ -1519,16 +1536,28 @@ function Intro({ onStart, onCodeEntry, onFreeStart, valueCount, onAdmin, onScan,
             <div style={{ fontSize: 11, color: "#6b7280", fontWeight: 600, textTransform: "uppercase", letterSpacing: 0.5 }}>Erkannt:</div>
             <div style={{ fontSize: 14, fontWeight: 800, color: "#2E2D8E", marginTop: 2 }}>{schule.name}</div>
             <div style={{ fontSize: 13, color: "#2E2D8E" }}>Klasse {klasse.bezeichnung}</div>
+            {isReturning && (
+              <div style={{ fontSize: 12, color: "#92400e", marginTop: 6, fontStyle: "italic" }}>
+                👋 Du hast hier schon mal gespielt.
+              </div>
+            )}
           </div>
         )}
 
         <div style={{ display: "flex", flexDirection: "column", gap: 12, alignItems: "center" }}>
+          {schule && klasse && isReturning && onShowOldResult && (
+            <button onClick={onShowOldResult} style={{
+              background: "#fff", color: "#2E2D8E",
+              border: "2px solid #2E2D8E", borderRadius: 99, padding: "14px 36px",
+              fontSize: 16, fontWeight: 700, cursor: "pointer",
+            }}>👀 Mein letztes Ergebnis ansehen</button>
+          )}
           <button onClick={onStart} style={{
             background: "linear-gradient(135deg, #2E2D8E, #3b2d8e)",
             color: "#fff", border: "none", borderRadius: 99, padding: "16px 44px",
             fontSize: 18, fontWeight: 800, cursor: "pointer",
             boxShadow: "0 6px 24px rgba(46,45,142,0.3)", letterSpacing: "0.02em",
-          }}>{schule && klasse ? "Jetzt starten →" : "Mit Klassen-Code starten"}</button>
+          }}>{schule && klasse ? (isReturning ? "Werte neu erspielen →" : "Jetzt starten →") : "Mit Klassen-Code starten"}</button>
           {!(schule && klasse) && (
             <button onClick={onFreeStart} style={{
               background: "#fff", color: "#2E2D8E",
@@ -3639,6 +3668,8 @@ function App() {
   const [rolle, setRolle] = useState(null);
   const [codeError, setCodeError] = useState(null);
   const [currentResultId, setCurrentResultId] = useState(null);
+  const [mySessionResultId, setMySessionResultId] = useState(null);
+  const [returningStudent, setReturningStudent] = useState(false);
   const [landschaftReturnPhase, setLandschaftReturnPhase] = useState("result");
   const [typeDescs, setTypeDescs] = useState(TYPE_DESC);
   const [valueDescs, setValueDescs] = useState(VALUE_DESC);
@@ -3693,6 +3724,12 @@ function App() {
             setKlasse(k);
             const sch = await supa.selectWhere("schulen", `id=eq.${k.schule_id}`);
             if (sch && sch[0]) setSchule(sch[0]);
+            // Prüfe ob dieser Browser für diese Klasse schon mal gespielt hat (persistent)
+            const prevId = getStoredResultIdForKlasse(k.id);
+            if (prevId) {
+              setMySessionResultId(prevId);
+              setReturningStudent(true);
+            }
           } else {
             setCodeError("Code unbekannt: " + urlCode);
           }
@@ -3765,7 +3802,7 @@ function App() {
     if (USE_SUPABASE) {
       try {
         setSaveError(null);
-        const inserted = await supa.insertReturning("results", {
+        const payload = {
           geschlecht: demo?.geschlecht || null,
           klassenstufe: demo?.klasse || null,
           schulform: demo?.schulform || null,
@@ -3780,8 +3817,26 @@ function App() {
           all_values: all.map(v => ({ name: v.name, cat: v.cat })),
           dominant: dom,
           vcode: vc,
-        });
-        if (inserted && inserted.id) setCurrentResultId(inserted.id);
+        };
+        let finalId = null;
+        if (mySessionResultId) {
+          // Nochmal-Spielen (selbe Session ODER aus localStorage erkannt): bestehenden Eintrag updaten
+          await supa.update("results", "id", mySessionResultId, payload);
+          setCurrentResultId(mySessionResultId);
+          finalId = mySessionResultId;
+        } else {
+          // Frisches Spiel: neuen Eintrag anlegen, ID für Folge-Updates merken
+          const inserted = await supa.insertReturning("results", payload);
+          if (inserted && inserted.id) {
+            setCurrentResultId(inserted.id);
+            setMySessionResultId(inserted.id);
+            finalId = inserted.id;
+          }
+        }
+        // In localStorage merken: dieser Browser hat für diese Klasse den finalId-Eintrag
+        if (finalId && klasse && klasse.id) {
+          setStoredResultIdForKlasse(klasse.id, finalId);
+        }
       } catch(e) { setSaveError(e.message); console.error("Supabase save error:", e); }
     } else {
       try {
@@ -3799,10 +3854,14 @@ function App() {
 
   const handleRestart = () => {
     setDemographics(null); setKompass(null); setCurrentResultId(null); setPhase("intro");
-    // URL aufräumen, damit ?v= bei "Nochmal spielen" nicht erneut greift
+    // mySessionResultId bleibt erhalten — Folge-Spiele in derselben Session updaten den bestehenden Eintrag
+    // URL bereinigen: nur ?v= entfernen, ?code= behalten falls vorhanden
     try {
       if (window.history && window.history.replaceState) {
-        window.history.replaceState({}, "", window.location.pathname);
+        const u = new URL(window.location.href);
+        const code = u.searchParams.get("code");
+        const newUrl = window.location.pathname + (code ? `?code=${encodeURIComponent(code)}` : "");
+        window.history.replaceState({}, "", newUrl);
       }
     } catch (e) {}
   };
@@ -3931,6 +3990,23 @@ function App() {
         onAdmin={() => setPhase("admin-login")}
         onScan={() => { setPhase("scan"); }}
         schule={schule} klasse={klasse}
+        isReturning={returningStudent}
+        onShowOldResult={async () => {
+          if (!mySessionResultId) return;
+          try {
+            const rows = await supa.selectWhere("results", `id=eq.${encodeURIComponent(mySessionResultId)}`);
+            if (rows && rows.length > 0) {
+              const row = rows[0];
+              setKompass({
+                lebenswert: { name: row.lebenswert, cat: row.lebenswert_cat },
+                superkraefte: Array.isArray(row.superkraefte) ? row.superkraefte : [],
+                grundwerte: Array.isArray(row.grundwerte) ? row.grundwerte : [],
+              });
+              setCurrentResultId(row.id);
+              setPhase("result");
+            }
+          } catch (e) { console.error("Old-Result-Lookup:", e); }
+        }}
       />}
       {phase === "code-entry" && <CodeEntry
         onValid={({ klasse: k, schule: s }) => { setKlasse(k); setSchule(s); setRolle("schueler"); setPhase("demographics-light"); }}
