@@ -1258,6 +1258,189 @@ function DemographicsLight({ schule, klasse, onSubmit, onBack }) {
   );
 }
 
+/* ═══════════════════════════════════════════
+   KLASSEN-LANDSCHAFT (Aggregation aller Klassen-Werte)
+   ═══════════════════════════════════════════ */
+
+function parseVIdFromUrl() {
+  try {
+    const u = new URL(window.location.href);
+    return u.searchParams.get("v") || null;
+  } catch (e) { return null; }
+}
+
+function buildShareUrl(resultId) {
+  const origin = (typeof window !== "undefined" && window.location && window.location.origin) ? window.location.origin : "https://value-school.de";
+  return `${origin}/wertetest/?v=${encodeURIComponent(resultId)}`;
+}
+
+const CAT_LABELS_DE = {
+  orange: { name: "Sicherheit", role: "Wer auf Halt achtet" },
+  pink:   { name: "Beziehung",  role: "Wer Menschen verbindet" },
+  blue:   { name: "Veränderung", role: "Wer nach vorne bringt" },
+  green:  { name: "Selbstfindung", role: "Wer spürt was läuft" },
+};
+
+function KlassenLandschaft({ schule, klasse, onBack }) {
+  const [loading, setLoading] = useState(true);
+  const [results, setResults] = useState([]);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    (async () => {
+      if (!klasse || !klasse.id) { setError("Keine Klasse ausgewählt"); setLoading(false); return; }
+      try {
+        const data = await supa.selectWhere("results", `klasse_id=eq.${klasse.id}`);
+        setResults(data || []);
+      } catch (e) {
+        setError("Fehler beim Laden: " + e.message);
+      }
+      setLoading(false);
+    })();
+  }, []);
+
+  var VS_BLUE = "#2E2D8E";
+  const total = results.length;
+  const MIN_PARTICIPANTS = 3;
+
+  // Aggregation
+  const valueCounts = {};
+  const valueCatMap = {};
+  const dominantCounts = { orange: 0, pink: 0, blue: 0, green: 0 };
+  results.forEach(r => {
+    if (r.dominant && dominantCounts.hasOwnProperty(r.dominant)) {
+      dominantCounts[r.dominant] += 1;
+    }
+    if (Array.isArray(r.all_values)) {
+      r.all_values.forEach(v => {
+        if (v && v.name) {
+          valueCounts[v.name] = (valueCounts[v.name] || 0) + 1;
+          if (v.cat) valueCatMap[v.name] = v.cat;
+        }
+      });
+    }
+  });
+  const topValues = Object.entries(valueCounts).sort((a, b) => b[1] - a[1]).slice(0, 25);
+  const maxCount = topValues.length > 0 ? topValues[0][1] : 1;
+  const totalDominant = Object.values(dominantCounts).reduce((a, b) => a + b, 0);
+
+  return (
+    <div style={{ padding: "20px 16px 40px", maxWidth: 500, margin: "0 auto" }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <h2 style={{ fontSize: 22, fontWeight: 900, color: VS_BLUE, margin: 0, lineHeight: 1.2 }}>
+            Eure Klassen-Werte
+          </h2>
+          {schule && klasse && (
+            <div style={{ fontSize: 13, color: "#6b7280", marginTop: 2 }}>
+              {schule.name} · Klasse {klasse.bezeichnung}
+            </div>
+          )}
+        </div>
+        <Btn small onClick={onBack}>← Zurück</Btn>
+      </div>
+
+      {loading ? (
+        <div style={{ textAlign: "center", padding: 40, color: "#9ca3af" }}>Lade Klassen-Daten …</div>
+      ) : error ? (
+        <div style={{ background: "#fee2e2", color: "#991b1b", padding: 16, borderRadius: 12, fontSize: 14 }}>{error}</div>
+      ) : total < MIN_PARTICIPANTS ? (
+        <div style={{ background: "#fef3c7", color: "#92400e", padding: 20, borderRadius: 14, fontSize: 14, lineHeight: 1.6, textAlign: "center" }}>
+          <div style={{ fontSize: 30, marginBottom: 8 }}>🌱</div>
+          <div style={{ fontWeight: 700, marginBottom: 6 }}>Noch zu früh</div>
+          <div>Bisher haben erst {total} {total === 1 ? "Person" : "Personen"} aus eurer Klasse den Test gemacht. Sobald mindestens {MIN_PARTICIPANTS} dabei sind, wird hier eure Klassenlandschaft sichtbar — anonym natürlich.</div>
+        </div>
+      ) : (
+        <>
+          {/* Teilnehmer-Zahl */}
+          <div style={{
+            background: "linear-gradient(135deg," + VS_BLUE + ",#3b2d8e)", color: "#fff",
+            borderRadius: 16, padding: "16px 20px", marginBottom: 20, textAlign: "center",
+          }}>
+            <div style={{ fontSize: 11, opacity: 0.7, textTransform: "uppercase", letterSpacing: 2 }}>Teilgenommen</div>
+            <div style={{ fontSize: 36, fontWeight: 900, lineHeight: 1.1, marginTop: 4 }}>{total}</div>
+            <div style={{ fontSize: 12, opacity: 0.8, marginTop: 2 }}>
+              {total === 1 ? "Person" : "Personen"} aus eurer Klasse
+            </div>
+          </div>
+
+          {/* Kategorie-Verteilung */}
+          {totalDominant > 0 && (
+            <div style={{ marginBottom: 24 }}>
+              <div style={{ fontSize: 12, fontWeight: 700, color: "#6b7280", textTransform: "uppercase", letterSpacing: 1, marginBottom: 10 }}>
+                Wo eure Klasse steht
+              </div>
+              {["pink", "orange", "blue", "green"].map(cat => {
+                const n = dominantCounts[cat] || 0;
+                const pct = totalDominant ? Math.round((n / totalDominant) * 100) : 0;
+                const lbl = CAT_LABELS_DE[cat];
+                return (
+                  <div key={cat} style={{ marginBottom: 10 }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 4 }}>
+                      <div style={{ fontSize: 13, fontWeight: 700, color: CAT[cat].bg }}>
+                        {lbl.name}
+                      </div>
+                      <div style={{ fontSize: 11, color: "#9ca3af" }}>
+                        {n} {n === 1 ? "Person" : "Personen"} · {pct}%
+                      </div>
+                    </div>
+                    <div style={{ background: "#f3f4f6", borderRadius: 8, height: 12, overflow: "hidden" }}>
+                      <div style={{
+                        width: pct + "%", height: "100%",
+                        background: CAT[cat].bg, transition: "width 0.4s ease",
+                      }} />
+                    </div>
+                    <div style={{ fontSize: 11, color: "#9ca3af", marginTop: 3, fontStyle: "italic" }}>
+                      {lbl.role}
+                    </div>
+                  </div>
+                );
+              })}
+
+              <div style={{
+                marginTop: 14, background: "#f8fafc", borderLeft: "3px solid " + VS_BLUE,
+                padding: "10px 14px", borderRadius: 8, fontSize: 12, color: "#4b5563", lineHeight: 1.6,
+              }}>
+                <strong>Im Team braucht es alle vier.</strong> Jemand der auf die Gemeinschaft achtet, jemand der Sicherheit gibt, jemand der nach vorne treibt, jemand der spürt wie es uns geht. Wo ihr stark seid und wo Lücken sind — das ist euer Diskussionsanlass.
+              </div>
+            </div>
+          )}
+
+          {/* Top-Werte */}
+          {topValues.length > 0 && (
+            <div style={{ marginBottom: 24 }}>
+              <div style={{ fontSize: 12, fontWeight: 700, color: "#6b7280", textTransform: "uppercase", letterSpacing: 1, marginBottom: 10 }}>
+                Was euch gemeinsam wichtig ist
+              </div>
+              {topValues.map(([name, count]) => {
+                const cat = valueCatMap[name] || "orange";
+                const c = CAT[cat];
+                const w = Math.max(15, Math.round((count / maxCount) * 100));
+                return (
+                  <div key={name} style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 5 }}>
+                    <div style={{ width: 28, fontSize: 11, color: "#9ca3af", textAlign: "right", flexShrink: 0 }}>{count}×</div>
+                    <div style={{
+                      padding: "6px 12px", borderRadius: 8,
+                      background: c.bg + "18", color: c.bg,
+                      fontSize: 13, fontWeight: 700,
+                      width: w + "%", minWidth: 80,
+                      transition: "width 0.3s ease",
+                    }}>{name}</div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+
+          <div style={{ fontSize: 11, color: "#9ca3af", textAlign: "center", padding: "12px 20px", lineHeight: 1.5 }}>
+            Diese Landschaft ist nicht euer Klassen-Leitbild — sie ist der Anfang davon. Die echten Klassenwerte entwickelt ihr gemeinsam daraus.
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
+
 function Intro({ onStart, onCodeEntry, onFreeStart, valueCount, onAdmin, onScan, schule, klasse }) {
   const [scanPin, setScanPin] = useState("");
   const [scanPinOpen, setScanPinOpen] = useState(false);
@@ -2560,7 +2743,7 @@ function VCodeDNA({ allValues, valHistory, maxRound }) {
    RESULT SCREEN
    ═══════════════════════════════════════════ */
 
-function Result({ kompass, onRestart, valHistory, maxRound, demographics, saveError, typeDescs }) {
+function Result({ kompass, onRestart, valHistory, maxRound, demographics, saveError, typeDescs, resultId, klasse, onClassView }) {
   const { lebenswert: lw, superkraefte: sk, grundwerte: gw } = kompass;
   const all = [lw, ...sk, ...gw];
   const cc = {}; all.forEach(v => { cc[v.cat] = (cc[v.cat] || 0) + 1; });
@@ -2666,7 +2849,7 @@ function Result({ kompass, onRestart, valHistory, maxRound, demographics, saveEr
       </div>
 
       {/* Share */}
-      <div style={{ display: "flex", gap: 10, justifyContent: "center", flexWrap: "wrap", marginBottom: 24 }}>
+      <div style={{ display: "flex", gap: 10, justifyContent: "center", flexWrap: "wrap", marginBottom: 18 }}>
         <button onClick={handleShare} style={{
           background: "linear-gradient(135deg,#E4405F,#C13584)", color: "#fff", border: "none", borderRadius: 12,
           padding: "12px 20px", fontSize: 14, fontWeight: 700, cursor: "pointer",
@@ -2675,7 +2858,27 @@ function Result({ kompass, onRestart, valHistory, maxRound, demographics, saveEr
           background: "linear-gradient(135deg,#0077B5,#00A0DC)", color: "#fff", border: "none", borderRadius: 12,
           padding: "12px 20px", fontSize: 14, fontWeight: 700, cursor: "pointer",
         }}>{copied ? "✅ Kopiert!" : "📋 Text kopieren"}</button>
+        {resultId && (
+          <button onClick={() => {
+            const url = buildShareUrl(resultId);
+            try { navigator.clipboard.writeText(url).then(() => { setCopied(true); setTimeout(() => setCopied(false), 2000); }); }
+            catch (e) { prompt("Link kopieren:", url); }
+          }} style={{
+            background: "linear-gradient(135deg,#2E2D8E,#3b2d8e)", color: "#fff", border: "none", borderRadius: 12,
+            padding: "12px 20px", fontSize: 14, fontWeight: 700, cursor: "pointer",
+          }}>🔗 Link teilen</button>
+        )}
       </div>
+
+      {klasse && (
+        <div style={{ marginBottom: 24 }}>
+          <button onClick={onClassView} style={{
+            background: "#fff", color: "#2E2D8E",
+            border: "2px solid #2E2D8E", borderRadius: 12,
+            padding: "12px 22px", fontSize: 14, fontWeight: 700, cursor: "pointer",
+          }}>👥 So tickt eure Klasse</button>
+        </div>
+      )}
       {shareImg && (
         <div style={{ marginBottom: 24, maxWidth: 380, margin: "0 auto 24px" }}>
           <img src={shareImg} alt="Wertekompass" style={{ width: "100%", borderRadius: 12, border: "1px solid #e5e7eb" }} />
@@ -3433,6 +3636,7 @@ function App() {
   const [klasse, setKlasse] = useState(null);
   const [rolle, setRolle] = useState(null);
   const [codeError, setCodeError] = useState(null);
+  const [currentResultId, setCurrentResultId] = useState(null);
   const [typeDescs, setTypeDescs] = useState(TYPE_DESC);
   const [valueDescs, setValueDescs] = useState(VALUE_DESC);
 
@@ -3491,6 +3695,35 @@ function App() {
           }
         } catch (e) { console.error("Code-Lookup-Fehler:", e); }
       }
+
+      // URL-ResultId lesen (geteilter V-Code-Link)
+      const vId = parseVIdFromUrl();
+      if (vId && USE_SUPABASE) {
+        try {
+          const rows = await supa.selectWhere("results", `id=eq.${encodeURIComponent(vId)}`);
+          if (rows && rows.length > 0) {
+            const row = rows[0];
+            // Klasse + Schule mitladen, falls vorhanden
+            if (row.klasse_id) {
+              const ks = await supa.selectWhere("klassen", `id=eq.${row.klasse_id}`);
+              if (ks && ks[0]) {
+                setKlasse(ks[0]);
+                const ss = await supa.selectWhere("schulen", `id=eq.${ks[0].schule_id}`);
+                if (ss && ss[0]) setSchule(ss[0]);
+              }
+            }
+            // Kompass rekonstruieren
+            const reconKompass = {
+              lebenswert: { name: row.lebenswert, cat: row.lebenswert_cat },
+              superkraefte: Array.isArray(row.superkraefte) ? row.superkraefte : [],
+              grundwerte: Array.isArray(row.grundwerte) ? row.grundwerte : [],
+            };
+            setKompass(reconKompass);
+            setCurrentResultId(row.id);
+            setPhase("result");
+          }
+        } catch (e) { console.error("V-Code-Lookup-Fehler:", e); }
+      }
       setLoaded(true);
     })();
   }, []);
@@ -3529,7 +3762,7 @@ function App() {
     if (USE_SUPABASE) {
       try {
         setSaveError(null);
-        await supa.insert("results", {
+        const inserted = await supa.insertReturning("results", {
           geschlecht: demo?.geschlecht || null,
           klassenstufe: demo?.klasse || null,
           schulform: demo?.schulform || null,
@@ -3545,6 +3778,7 @@ function App() {
           dominant: dom,
           vcode: vc,
         });
+        if (inserted && inserted.id) setCurrentResultId(inserted.id);
       } catch(e) { setSaveError(e.message); console.error("Supabase save error:", e); }
     } else {
       try {
@@ -3560,7 +3794,15 @@ function App() {
     setPhase("result");
   };
 
-  const handleRestart = () => { setDemographics(null); setKompass(null); setPhase("intro"); };
+  const handleRestart = () => {
+    setDemographics(null); setKompass(null); setCurrentResultId(null); setPhase("intro");
+    // URL aufräumen, damit ?v= bei "Nochmal spielen" nicht erneut greift
+    try {
+      if (window.history && window.history.replaceState) {
+        window.history.replaceState({}, "", window.location.pathname);
+      }
+    } catch (e) {}
+  };
   const handleResetCode = () => { setSchule(null); setKlasse(null); setRolle(null); };
 
   const MAX_ROUNDS = 3;
@@ -3719,7 +3961,8 @@ function App() {
       {phase === "adjust" && <FinalAdjust values8={pile} lastDiscards={lastLosers} onDone={onAdjust} />}
       {phase === "ranking" && <RankValues values8={pile} onDone={onRankDone} />}
       {phase === "kompass" && <KompassBuild values8={pile} onDone={onKompass} />}
-      {phase === "result" && kompass && <Result kompass={kompass} onRestart={handleRestart} valHistory={valHistory} maxRound={maxRound} demographics={demographics} saveError={saveError} typeDescs={typeDescs} />}
+      {phase === "result" && kompass && <Result kompass={kompass} onRestart={handleRestart} valHistory={valHistory} maxRound={maxRound} demographics={demographics} saveError={saveError} typeDescs={typeDescs} resultId={currentResultId} klasse={klasse} onClassView={() => setPhase("klasse-landschaft")} />}
+      {phase === "klasse-landschaft" && <KlassenLandschaft schule={schule} klasse={klasse} onBack={() => setPhase("result")} />}
     </div>
   );
 }
