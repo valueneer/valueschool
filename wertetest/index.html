@@ -1281,7 +1281,7 @@ const CAT_LABELS_DE = {
   green:  { name: "Selbstfindung", role: "Wer spürt was läuft" },
 };
 
-function KlassenLandschaft({ schule, klasse, onBack }) {
+function KlassenLandschaft({ schule, klasse, onBack, adminMode }) {
   const [loading, setLoading] = useState(true);
   const [results, setResults] = useState([]);
   const [error, setError] = useState(null);
@@ -1344,7 +1344,7 @@ function KlassenLandschaft({ schule, klasse, onBack }) {
         <div style={{ textAlign: "center", padding: 40, color: "#9ca3af" }}>Lade Klassen-Daten …</div>
       ) : error ? (
         <div style={{ background: "#fee2e2", color: "#991b1b", padding: 16, borderRadius: 12, fontSize: 14 }}>{error}</div>
-      ) : total < MIN_PARTICIPANTS ? (
+      ) : (total < MIN_PARTICIPANTS && !adminMode) ? (
         <div style={{ background: "#fef3c7", color: "#92400e", padding: 20, borderRadius: 14, fontSize: 14, lineHeight: 1.6, textAlign: "center" }}>
           <div style={{ fontSize: 30, marginBottom: 8 }}>🌱</div>
           <div style={{ fontWeight: 700, marginBottom: 6 }}>Noch zu früh</div>
@@ -2999,7 +2999,7 @@ const SCHULFORMEN = [
   { id: "andere", label: "Andere" },
 ];
 
-function SchulenManager({ onBack }) {
+function SchulenManager({ onBack, onShowKlasse }) {
   const [schulen, setSchulen] = useState([]);
   const [klassenBySchule, setKlassenBySchule] = useState({});
   const [expandedSchuleId, setExpandedSchuleId] = useState(null);
@@ -3187,6 +3187,8 @@ function SchulenManager({ onBack }) {
                       <div style={{ fontSize: 14, fontWeight: 600, color: "#1e1b4b" }}>{k.bezeichnung}{k.klassenstufe ? ` (Stufe ${k.klassenstufe})` : ""}</div>
                       <div style={{ fontSize: 11, color: "#6b7280", fontFamily: "monospace", marginTop: 2 }}>{k.code}</div>
                     </div>
+                    <button onClick={() => onShowKlasse && onShowKlasse(schule, k)} title="Klassen-Auswertung"
+                      style={{ background: "none", border: "none", cursor: "pointer", fontSize: 16, padding: 4 }}>📊</button>
                     <button onClick={() => copyToClipboard(k.code)} title="Code kopieren"
                       style={{ background: "none", border: "none", cursor: "pointer", fontSize: 16, padding: 4 }}>📋</button>
                     <button onClick={() => setQrOpen(k)} title="QR-Code anzeigen"
@@ -3637,6 +3639,7 @@ function App() {
   const [rolle, setRolle] = useState(null);
   const [codeError, setCodeError] = useState(null);
   const [currentResultId, setCurrentResultId] = useState(null);
+  const [landschaftReturnPhase, setLandschaftReturnPhase] = useState("result");
   const [typeDescs, setTypeDescs] = useState(TYPE_DESC);
   const [valueDescs, setValueDescs] = useState(VALUE_DESC);
 
@@ -3942,7 +3945,7 @@ function App() {
       {phase === "admin-login" && <AdminLogin onSuccess={function() { setPhase("admin"); }} onBack={function() { setPhase("intro"); }} />}
       {phase === "admin" && <AdminPanel values={values} setValues={setValues} onClose={() => setPhase("intro")} onDashboard={() => setPhase("dashboard")} onSchulen={() => setPhase("schulen")} typeDescs={typeDescs} setTypeDescs={setTypeDescs} valueDescs={valueDescs} setValueDescs={setValueDescs} />}
       {phase === "dashboard" && <AdminDashboard onBack={() => setPhase("admin")} />}
-      {phase === "schulen" && <SchulenManager onBack={() => setPhase("admin")} />}
+      {phase === "schulen" && <SchulenManager onBack={() => setPhase("admin")} onShowKlasse={(s, k) => { setSchule(s); setKlasse(k); setLandschaftReturnPhase("schulen"); setPhase("klasse-landschaft"); }} />}
       {phase === "scan" && <PhotoScan
         onResult={(scanned) => {
           const h = {};
@@ -3961,8 +3964,8 @@ function App() {
       {phase === "adjust" && <FinalAdjust values8={pile} lastDiscards={lastLosers} onDone={onAdjust} />}
       {phase === "ranking" && <RankValues values8={pile} onDone={onRankDone} />}
       {phase === "kompass" && <KompassBuild values8={pile} onDone={onKompass} />}
-      {phase === "result" && kompass && <Result kompass={kompass} onRestart={handleRestart} valHistory={valHistory} maxRound={maxRound} demographics={demographics} saveError={saveError} typeDescs={typeDescs} resultId={currentResultId} klasse={klasse} onClassView={() => setPhase("klasse-landschaft")} />}
-      {phase === "klasse-landschaft" && <KlassenLandschaft schule={schule} klasse={klasse} onBack={() => setPhase("result")} />}
+      {phase === "result" && kompass && <Result kompass={kompass} onRestart={handleRestart} valHistory={valHistory} maxRound={maxRound} demographics={demographics} saveError={saveError} typeDescs={typeDescs} resultId={currentResultId} klasse={klasse} onClassView={() => { setLandschaftReturnPhase("result"); setPhase("klasse-landschaft"); }} />}
+      {phase === "klasse-landschaft" && <KlassenLandschaft schule={schule} klasse={klasse} onBack={() => setPhase(landschaftReturnPhase)} adminMode={landschaftReturnPhase === "schulen"} />}
     </div>
   );
 }
