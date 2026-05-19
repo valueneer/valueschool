@@ -1075,7 +1075,190 @@ function ValueDescEditor({ valueDescs, setValueDescs }) {
    GAME SCREENS
    ═══════════════════════════════════════════ */
 
-function Intro({ onStart, valueCount, onAdmin, onScan }) {
+/* ═══════════════════════════════════════════
+   START-FLOW: Code-Eingabe + Rollen-Auswahl
+   ═══════════════════════════════════════════ */
+
+function parseCodeFromUrl() {
+  try {
+    const u = new URL(window.location.href);
+    const c = u.searchParams.get("code");
+    if (!c) return null;
+    return c.trim().toUpperCase();
+  } catch (e) { return null; }
+}
+
+const ROLES = [
+  { id: "schueler",     label: "Schüler:in",     emoji: "🎒", group: "schueler" },
+  { id: "lehrkraft",    label: "Lehrkraft",      emoji: "👩‍🏫", group: "schule" },
+  { id: "schulleitung", label: "Schulleitung",   emoji: "🎓", group: "schule" },
+  { id: "supporter",    label: "Supporter:in",   emoji: "💪", group: "schule" },
+  { id: "schultraeger", label: "Schulträger",    emoji: "🏛️", group: "schule" },
+  { id: "mensa",        label: "Mensa",          emoji: "🍽️", group: "schule" },
+  { id: "hausmeister",  label: "Hausmeister:in", emoji: "🔧", group: "schule" },
+  { id: "sekretariat",  label: "Sekretariat",    emoji: "📋", group: "schule" },
+  { id: "eltern",       label: "Eltern",         emoji: "👪", group: "eltern" },
+  { id: "sonstige",     label: "Sonstige",       emoji: "✨", group: "eltern" },
+];
+
+function CodeEntry({ onValid, onBack, initialCode }) {
+  const [code, setCode] = useState(initialCode || "");
+  const [checking, setChecking] = useState(false);
+  const [error, setError] = useState("");
+
+  const submit = async () => {
+    const c = code.trim().toUpperCase();
+    if (!c) { setError("Bitte Code eingeben"); return; }
+    setChecking(true); setError("");
+    try {
+      const klassen = await supa.selectWhere("klassen", `code=eq.${encodeURIComponent(c)}`);
+      if (!klassen || klassen.length === 0) {
+        setError("Dieser Code ist uns nicht bekannt. Bitte prüfen.");
+        setChecking(false); return;
+      }
+      const klasse = klassen[0];
+      const schulen = await supa.selectWhere("schulen", `id=eq.${klasse.schule_id}`);
+      const schule = (schulen && schulen[0]) || null;
+      onValid({ klasse, schule });
+    } catch (e) {
+      setError("Fehler beim Prüfen: " + e.message);
+      setChecking(false);
+    }
+  };
+
+  var VS_BLUE = "#2E2D8E";
+  return (
+    <div style={{ padding: "32px 20px 40px", textAlign: "center" }}>
+      <div style={{ fontSize: 40, marginBottom: 10 }}>🎫</div>
+      <h2 style={{ fontSize: 24, fontWeight: 900, color: VS_BLUE, marginBottom: 6 }}>Klassen-Code</h2>
+      <p style={{ color: "#6b7280", fontSize: 14, marginBottom: 20, maxWidth: 320, margin: "0 auto 20px", lineHeight: 1.5 }}>
+        Deine Lehrkraft hat einen Code an die Tafel geschrieben oder einen QR-Code gezeigt. Tipp den Code hier ein.
+      </p>
+      <input value={code} onChange={e => setCode(e.target.value.toUpperCase())}
+        onKeyDown={e => e.key === "Enter" && submit()}
+        placeholder="z.B. MUCK-10C-K7P9"
+        style={{
+          maxWidth: 320, width: "100%", padding: "14px 16px", fontSize: 18, fontWeight: 700,
+          borderRadius: 12, border: "2px solid " + (error ? "#dc2626" : "#e5e7eb"),
+          outline: "none", textAlign: "center", fontFamily: "monospace", letterSpacing: 1,
+          textTransform: "uppercase", boxSizing: "border-box", marginBottom: 6,
+        }} />
+      {error && <div style={{ color: "#dc2626", fontSize: 13, fontWeight: 600, marginBottom: 10 }}>{error}</div>}
+      <div style={{ display: "flex", gap: 10, justifyContent: "center", marginTop: 18, flexWrap: "wrap" }}>
+        <Btn onClick={onBack}>← Zurück</Btn>
+        <Btn primary onClick={submit} disabled={checking || !code.trim()}>{checking ? "Prüfe…" : "Weiter"}</Btn>
+      </div>
+    </div>
+  );
+}
+
+function RolePicker({ onPick, onBack, schule, klasse }) {
+  var VS_BLUE = "#2E2D8E";
+  return (
+    <div style={{ padding: "28px 16px 40px", textAlign: "center" }}>
+      {schule && klasse && (
+        <div style={{
+          background: "#f0f0ff", borderRadius: 14, padding: "10px 16px",
+          maxWidth: 360, margin: "0 auto 18px", border: "1px solid " + VS_BLUE + "33",
+        }}>
+          <div style={{ fontSize: 11, color: "#6b7280", fontWeight: 600, textTransform: "uppercase", letterSpacing: 0.5 }}>Erkannt:</div>
+          <div style={{ fontSize: 14, fontWeight: 800, color: VS_BLUE, marginTop: 2 }}>{schule.name}</div>
+          <div style={{ fontSize: 13, color: VS_BLUE }}>Klasse {klasse.bezeichnung}</div>
+        </div>
+      )}
+      <div style={{ fontSize: 36, marginBottom: 8 }}>👋</div>
+      <h2 style={{ fontSize: 22, fontWeight: 900, color: VS_BLUE, marginBottom: 6 }}>Wer bist du?</h2>
+      <p style={{ color: "#6b7280", fontSize: 13, marginBottom: 20, maxWidth: 320, margin: "0 auto 20px", lineHeight: 1.5 }}>
+        Wähl deine Rolle aus — dann passt das Ergebnis besser zu dir.
+      </p>
+      <div style={{
+        display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 10,
+        maxWidth: 360, margin: "0 auto",
+      }}>
+        {ROLES.map(r => (
+          <button key={r.id} onClick={() => onPick(r.id)} style={{
+            background: "#fff", border: "2px solid #e5e7eb", borderRadius: 14,
+            padding: "14px 8px", cursor: "pointer", textAlign: "center",
+            transition: "all 0.15s ease",
+          }}
+            onMouseOver={e => { e.currentTarget.style.borderColor = VS_BLUE; e.currentTarget.style.background = "#f0f0ff"; }}
+            onMouseOut={e => { e.currentTarget.style.borderColor = "#e5e7eb"; e.currentTarget.style.background = "#fff"; }}
+          >
+            <div style={{ fontSize: 28, marginBottom: 4 }}>{r.emoji}</div>
+            <div style={{ fontSize: 13, fontWeight: 700, color: VS_BLUE }}>{r.label}</div>
+          </button>
+        ))}
+      </div>
+      <div style={{ marginTop: 22 }}>
+        <Btn onClick={onBack}>← Zurück</Btn>
+      </div>
+    </div>
+  );
+}
+
+function DemographicsLight({ schule, klasse, onSubmit, onBack }) {
+  const [geschlecht, setGeschlecht] = useState("");
+  const [consent, setConsent] = useState(false);
+  var VS_BLUE = "#2E2D8E";
+  return (
+    <div style={{ textAlign: "center", padding: "32px 20px 40px" }}>
+      {schule && klasse && (
+        <div style={{
+          background: "#f0f0ff", borderRadius: 14, padding: "10px 16px",
+          maxWidth: 360, margin: "0 auto 18px", border: "1px solid " + VS_BLUE + "33",
+        }}>
+          <div style={{ fontSize: 13, fontWeight: 700, color: VS_BLUE }}>{schule.name} · Klasse {klasse.bezeichnung}</div>
+        </div>
+      )}
+      <div style={{ fontSize: 40, marginBottom: 10 }}>👋</div>
+      <h2 style={{ fontSize: 22, fontWeight: 900, color: VS_BLUE, marginBottom: 6 }}>Nur noch eins</h2>
+      <p style={{ color: "#6b7280", fontSize: 14, marginBottom: 20, maxWidth: 320, margin: "0 auto 20px", lineHeight: 1.5 }}>
+        Klasse und Schule sind schon erkannt — eine letzte Angabe.
+      </p>
+
+      <label style={{ fontSize: 14, fontWeight: 700, color: VS_BLUE, marginBottom: 8, display: "block", maxWidth: 320, margin: "0 auto 8px" }}>Geschlecht</label>
+      <div style={{ maxWidth: 320, margin: "0 auto", display: "flex", gap: 8, flexWrap: "wrap" }}>
+        {[
+          { id: "m", label: "männlich", emoji: "👦" },
+          { id: "w", label: "weiblich", emoji: "👧" },
+          { id: "d", label: "divers", emoji: "🌈" },
+          { id: "k", label: "keine Angabe", emoji: "🤷" },
+        ].map(opt => {
+          const sel = geschlecht === opt.id;
+          return (
+            <button key={opt.id} onClick={() => setGeschlecht(opt.id)} style={{
+              flex: 1, minWidth: 70, padding: "10px 6px", borderRadius: 12, fontSize: 13,
+              fontWeight: 700, cursor: "pointer", border: "2px solid",
+              borderColor: sel ? VS_BLUE : "#e5e7eb",
+              background: sel ? "#f0f0ff" : "#fff",
+              color: sel ? VS_BLUE : "#6b7280",
+            }}>
+              <div style={{ fontSize: 18, marginBottom: 2 }}>{opt.emoji}</div>
+              {opt.label}
+            </button>
+          );
+        })}
+      </div>
+
+      <div style={{ maxWidth: 320, margin: "20px auto 0", textAlign: "left" }}>
+        <label style={{ display: "flex", gap: 10, cursor: "pointer", alignItems: "flex-start" }}>
+          <input type="checkbox" checked={consent} onChange={e => setConsent(e.target.checked)}
+            style={{ marginTop: 3, width: 20, height: 20, flexShrink: 0, cursor: "pointer", accentColor: VS_BLUE }} />
+          <span style={{ fontSize: 12, color: "#9ca3af", lineHeight: 1.5 }}>
+            Ich bin einverstanden, dass meine anonymen Angaben zusammen mit meinem Ergebnis gespeichert werden. Keine Namen, keine persönlichen Daten — nur für die Schulauswertung.
+          </span>
+        </label>
+      </div>
+
+      <div style={{ display: "flex", gap: 10, justifyContent: "center", marginTop: 24, flexWrap: "wrap" }}>
+        <Btn onClick={onBack}>← Zurück</Btn>
+        <Btn primary disabled={!geschlecht || !consent} onClick={() => onSubmit({ geschlecht })}>Los geht's →</Btn>
+      </div>
+    </div>
+  );
+}
+
+function Intro({ onStart, onCodeEntry, onFreeStart, valueCount, onAdmin, onScan, schule, klasse }) {
   const [scanPin, setScanPin] = useState("");
   const [scanPinOpen, setScanPinOpen] = useState(false);
   const [scanPinError, setScanPinError] = useState(false);
@@ -1145,13 +1328,31 @@ function Intro({ onStart, valueCount, onAdmin, onScan }) {
 
         <p style={{ color: "#b0b0b0", fontSize: 13, marginBottom: 24 }}>⏱ Dauert ca. 5–10 Minuten</p>
 
+        {schule && klasse && (
+          <div style={{
+            background: "#f0f0ff", borderRadius: 14, padding: "10px 16px",
+            maxWidth: 360, margin: "0 auto 18px", border: "1px solid rgba(46,45,142,0.25)",
+          }}>
+            <div style={{ fontSize: 11, color: "#6b7280", fontWeight: 600, textTransform: "uppercase", letterSpacing: 0.5 }}>Erkannt:</div>
+            <div style={{ fontSize: 14, fontWeight: 800, color: "#2E2D8E", marginTop: 2 }}>{schule.name}</div>
+            <div style={{ fontSize: 13, color: "#2E2D8E" }}>Klasse {klasse.bezeichnung}</div>
+          </div>
+        )}
+
         <div style={{ display: "flex", flexDirection: "column", gap: 12, alignItems: "center" }}>
           <button onClick={onStart} style={{
             background: "linear-gradient(135deg, #2E2D8E, #3b2d8e)",
             color: "#fff", border: "none", borderRadius: 99, padding: "16px 44px",
             fontSize: 18, fontWeight: 800, cursor: "pointer",
             boxShadow: "0 6px 24px rgba(46,45,142,0.3)", letterSpacing: "0.02em",
-          }}>Jetzt starten</button>
+          }}>{schule && klasse ? "Jetzt starten →" : "Mit Klassen-Code starten"}</button>
+          {!(schule && klasse) && (
+            <button onClick={onFreeStart} style={{
+              background: "#fff", color: "#2E2D8E",
+              border: "2px solid #2E2D8E", borderRadius: 99, padding: "12px 30px",
+              fontSize: 14, fontWeight: 700, cursor: "pointer",
+            }}>Ohne Schule — einfach so</button>
+          )}
           <button onClick={function() { setScanPinOpen(!scanPinOpen); setScanPinError(false); setScanPin(""); }} style={{
             background: "#d1d5db", color: "#9ca3af",
             border: "none", borderRadius: 99, padding: "12px 30px",
@@ -3228,6 +3429,10 @@ function App() {
   const [valHistory, setValHistory] = useState({});
   const [demographics, setDemographics] = useState(null);
   const [saveError, setSaveError] = useState(null);
+  const [schule, setSchule] = useState(null);
+  const [klasse, setKlasse] = useState(null);
+  const [rolle, setRolle] = useState(null);
+  const [codeError, setCodeError] = useState(null);
   const [typeDescs, setTypeDescs] = useState(TYPE_DESC);
   const [valueDescs, setValueDescs] = useState(VALUE_DESC);
 
@@ -3271,6 +3476,21 @@ function App() {
           }
         } catch (e) { console.error("Werte-Beschreibungen load error:", e); }
       }
+      // URL-Code lesen
+      const urlCode = parseCodeFromUrl();
+      if (urlCode && USE_SUPABASE) {
+        try {
+          const klassen = await supa.selectWhere("klassen", `code=eq.${encodeURIComponent(urlCode)}`);
+          if (klassen && klassen.length > 0) {
+            const k = klassen[0];
+            setKlasse(k);
+            const sch = await supa.selectWhere("schulen", `id=eq.${k.schule_id}`);
+            if (sch && sch[0]) setSchule(sch[0]);
+          } else {
+            setCodeError("Code unbekannt: " + urlCode);
+          }
+        } catch (e) { console.error("Code-Lookup-Fehler:", e); }
+      }
       setLoaded(true);
     })();
   }, []);
@@ -3289,6 +3509,17 @@ function App() {
     setPhase("compare");
   };
 
+  const handleSchoolDemoSubmit = (demo) => {
+    // Schul-Pfad: nur geschlecht von demo, Klasse/Schule aus State
+    setDemographics({
+      geschlecht: demo.geschlecht,
+      klasse: klasse ? (klasse.klassenstufe || klasse.bezeichnung) : null,
+      schulform: schule ? schule.schulform : null,
+    });
+    initGame();
+    setPhase("compare");
+  };
+
   const saveAndShowResult = async (k, demo) => {
     const all = [k.lebenswert, ...k.superkraefte, ...k.grundwerte];
     const cc = {}; all.forEach(v => { cc[v.cat] = (cc[v.cat] || 0) + 1; });
@@ -3302,6 +3533,10 @@ function App() {
           geschlecht: demo?.geschlecht || null,
           klassenstufe: demo?.klasse || null,
           schulform: demo?.schulform || null,
+          schule_id: schule ? schule.id : null,
+          klasse_id: klasse ? klasse.id : null,
+          rolle: rolle || null,
+          sprache: "de",
           lebenswert: k.lebenswert.name,
           lebenswert_cat: k.lebenswert.cat,
           superkraefte: k.superkraefte.map(v => ({ name: v.name, cat: v.cat })),
@@ -3326,6 +3561,7 @@ function App() {
   };
 
   const handleRestart = () => { setDemographics(null); setKompass(null); setPhase("intro"); };
+  const handleResetCode = () => { setSchule(null); setKlasse(null); setRolle(null); };
 
   const MAX_ROUNDS = 3;
 
@@ -3442,7 +3678,29 @@ function App() {
           </div>
         </div>
       )}
-      {phase === "intro" && <Intro onStart={() => { setPhase("demographics"); }} valueCount={values.length} onAdmin={() => setPhase("admin-login")} onScan={() => { setPhase("scan"); }} />}
+      {phase === "intro" && <Intro
+        onStart={() => { if (schule && klasse) setPhase("role-pick"); else setPhase("code-entry"); }}
+        onCodeEntry={() => setPhase("code-entry")}
+        onFreeStart={() => setPhase("demographics")}
+        valueCount={values.length}
+        onAdmin={() => setPhase("admin-login")}
+        onScan={() => { setPhase("scan"); }}
+        schule={schule} klasse={klasse}
+      />}
+      {phase === "code-entry" && <CodeEntry
+        onValid={({ klasse: k, schule: s }) => { setKlasse(k); setSchule(s); setPhase("role-pick"); }}
+        onBack={() => setPhase("intro")}
+      />}
+      {phase === "role-pick" && <RolePicker
+        schule={schule} klasse={klasse}
+        onPick={(r) => { setRolle(r); setPhase("demographics-light"); }}
+        onBack={() => setPhase("intro")}
+      />}
+      {phase === "demographics-light" && <DemographicsLight
+        schule={schule} klasse={klasse}
+        onSubmit={handleSchoolDemoSubmit}
+        onBack={() => setPhase("role-pick")}
+      />}
       {phase === "demographics" && <DemographicsForm onSubmit={handleDemoSubmit} />}
       {phase === "admin-login" && <AdminLogin onSuccess={function() { setPhase("admin"); }} onBack={function() { setPhase("intro"); }} />}
       {phase === "admin" && <AdminPanel values={values} setValues={setValues} onClose={() => setPhase("intro")} onDashboard={() => setPhase("dashboard")} onSchulen={() => setPhase("schulen")} typeDescs={typeDescs} setTypeDescs={setTypeDescs} valueDescs={valueDescs} setValueDescs={setValueDescs} />}
