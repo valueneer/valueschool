@@ -1153,7 +1153,7 @@ function CodeEntry({ onValid, onBack, initialCode }) {
       </p>
       <input value={code} onChange={e => setCode(e.target.value.toUpperCase())}
         onKeyDown={e => e.key === "Enter" && submit()}
-        placeholder="z.B. MUCK-10C-K7P9"
+        placeholder="z.B. GSOWL05B26"
         style={{
           maxWidth: 320, width: "100%", padding: "14px 16px", fontSize: 18, fontWeight: 700,
           borderRadius: 12, border: "2px solid " + (error ? "#dc2626" : "#e5e7eb"),
@@ -3008,9 +3008,15 @@ function randomToken(n) {
 function sanitizeKlassenBezeichnung(s) {
   return s.toUpperCase().replace(/[^A-Z0-9]/g, "");
 }
-function makeClassCode(schulkuerzel, klasse) {
+function currentYear2() {
+  return String(new Date().getFullYear()).slice(-2);
+}
+function makeClassCode(schulkuerzel, klasse, year2) {
   const klBez = sanitizeKlassenBezeichnung(klasse);
-  return `${schulkuerzel.toUpperCase()}-${klBez}-${randomToken(4)}`;
+  const yy = year2 || currentYear2();
+  // Schul-Code säubern: nur A-Z0-9, evtl. altes 4-stelliges Jahr-Suffix abschneiden, auf 5 Zeichen begrenzen
+  const schul = schulkuerzel.toUpperCase().replace(/[^A-Z0-9]/g, "").replace(/\d{4}$/, "").slice(0, 5);
+  return `${schul}${klBez}${yy}`;
 }
 function classCodeToTestUrl(code) {
   const origin = (typeof window !== "undefined" && window.location && window.location.origin) ? window.location.origin : "https://value-school.de";
@@ -3067,9 +3073,9 @@ function SchulenManager({ onBack, onShowKlasse }) {
     const name = newSchule.name.trim();
     const kuerzel = newSchule.kuerzel.trim().toUpperCase().replace(/[^A-Z0-9]/g, "");
     if (!name) return flash("⚠️ Name fehlt");
-    if (kuerzel.length < 2 || kuerzel.length > 8) return flash("⚠️ Kürzel: 2–8 Buchstaben/Zahlen");
+    if (kuerzel.length !== 5) return flash("⚠️ Schul-Code muss genau 5 Zeichen sein (Buchstaben/Zahlen, z.B. GSOWL)");
     try {
-      const schulCode = `${kuerzel}${new Date().getFullYear()}`;
+      const schulCode = kuerzel;
       const created = await supa.insertReturning("schulen", {
         name, schulform: newSchule.schulform, traeger: newSchule.traeger || null,
         werte_set_id: standardSetId, code: schulCode, notiz: null,
@@ -3082,11 +3088,14 @@ function SchulenManager({ onBack, onShowKlasse }) {
   };
 
   const createKlasse = async (schule) => {
-    const entry = newKlasseBySchule[schule.id] || { bezeichnung: "", klassenstufe: "" };
+    const entry = newKlasseBySchule[schule.id] || { bezeichnung: "", klassenstufe: "", jahr: currentYear2() };
     const bez = entry.bezeichnung.trim();
+    const bezClean = sanitizeKlassenBezeichnung(bez);
+    const yyInput = (entry.jahr || currentYear2()).toString().trim();
     if (!bez) return flash("⚠️ Klassenbezeichnung fehlt");
-    const kuerzel = schule.code.replace(/\d+$/, "");
-    const code = makeClassCode(kuerzel, bez);
+    if (bezClean.length !== 3) return flash("⚠️ Klassen-Code muss 3 Zeichen sein (z.B. 05B, 13A, 13M)");
+    if (!/^\d{2}$/.test(yyInput)) return flash("⚠️ Jahr muss 2-stellig sein (z.B. 26)");
+    const code = makeClassCode(schule.code, bezClean, yyInput);
     try {
       const created = await supa.insertReturning("klassen", {
         schule_id: schule.id, bezeichnung: bez,
@@ -3164,8 +3173,8 @@ function SchulenManager({ onBack, onShowKlasse }) {
           <input value={newSchule.name} onChange={e => setNewSchule({ ...newSchule, name: e.target.value })}
             placeholder="Name der Schule (z.B. Muckelheimer Oberschule)" style={{ ...inputStyle, marginBottom: 8 }} />
           <input value={newSchule.kuerzel} onChange={e => setNewSchule({ ...newSchule, kuerzel: e.target.value })}
-            placeholder="Kürzel (z.B. MUCK)" style={{ ...inputStyle, marginBottom: 8 }} maxLength={8} />
-          <div style={{ fontSize: 11, color: "#9ca3af", marginBottom: 8 }}>2–8 Zeichen, GROSS, keine Sonderzeichen. Wird in Klassencodes verwendet wie {newSchule.kuerzel.toUpperCase().replace(/[^A-Z0-9]/g, "") || "MUCK"}-10C-K7P9.</div>
+            placeholder="Schul-Code (genau 5 Zeichen, z.B. GSOWL)" style={{ ...inputStyle, marginBottom: 8 }} maxLength={5} />
+          <div style={{ fontSize: 11, color: "#9ca3af", marginBottom: 8 }}>Genau 5 Zeichen, GROSS, keine Sonderzeichen. Klassencodes werden dann z.B. {(newSchule.kuerzel.toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 5) || "GSOWL")}05B{currentYear2()}.</div>
           <select value={newSchule.schulform} onChange={e => setNewSchule({ ...newSchule, schulform: e.target.value })}
             style={{ ...selectStyle, width: "100%", marginBottom: 8 }}>
             {SCHULFORMEN.map(f => <option key={f.id} value={f.id}>{f.label}</option>)}
@@ -3229,12 +3238,19 @@ function SchulenManager({ onBack, onShowKlasse }) {
 
                 <div style={{ marginTop: 12, padding: 10, background: "#fff", borderRadius: 10, border: "1px dashed #cbd5e1" }}>
                   <div style={{ fontSize: 12, fontWeight: 700, color: "#1e1b4b", marginBottom: 6 }}>+ Klasse anlegen</div>
-                  <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
-                    <input value={newKl.bezeichnung} onChange={e => setNewKlasseBySchule(prev => ({ ...prev, [schule.id]: { ...newKl, bezeichnung: e.target.value } }))}
-                      placeholder="10c" style={{ ...inputStyle, flex: 2, minWidth: 80, padding: "8px 10px", fontSize: 13 }} />
+                  <div style={{ display: "flex", gap: 6, flexWrap: "wrap", alignItems: "center" }}>
+                    <input value={newKl.bezeichnung} onChange={e => setNewKlasseBySchule(prev => ({ ...prev, [schule.id]: { ...newKl, bezeichnung: e.target.value.toUpperCase() } }))}
+                      placeholder="05B" maxLength={3}
+                      style={{ ...inputStyle, flex: 1, minWidth: 60, padding: "8px 10px", fontSize: 13, textTransform: "uppercase" }} />
+                    <input value={newKl.jahr || currentYear2()} onChange={e => setNewKlasseBySchule(prev => ({ ...prev, [schule.id]: { ...newKl, jahr: e.target.value.replace(/[^0-9]/g, "").slice(0, 2) } }))}
+                      placeholder="JJ" maxLength={2}
+                      style={{ ...inputStyle, width: 55, padding: "8px 10px", fontSize: 13 }} />
                     <input value={newKl.klassenstufe} onChange={e => setNewKlasseBySchule(prev => ({ ...prev, [schule.id]: { ...newKl, klassenstufe: e.target.value } }))}
                       placeholder="Stufe (opt.)" style={{ ...inputStyle, flex: 1, minWidth: 80, padding: "8px 10px", fontSize: 13 }} />
                     <Btn small primary onClick={() => createKlasse(schule)}>+</Btn>
+                  </div>
+                  <div style={{ fontSize: 10, color: "#9ca3af", marginTop: 6 }}>
+                    Code wird zu: <code style={{ background: "#f3f4f6", padding: "1px 5px", borderRadius: 4 }}>{schule.code.replace(/\d{4}$/, "").slice(0,5)}{(newKl.bezeichnung || "").toUpperCase().replace(/[^A-Z0-9]/g, "").padEnd(3, "_")}{(newKl.jahr || currentYear2())}</code>
                   </div>
                 </div>
 
