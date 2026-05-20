@@ -1904,7 +1904,12 @@ function Compare({ pile, roundNum, onDone, valueDescs }) {
     if (!pair) return;
     pickLock.current = true;
     setInfoValue(null);
-    setAnim(mode === "up" ? (winnerIdx === 0 ? "L-up" : "R-up") : (winnerIdx === 0 ? "L" : "R"));
+    // Anim-Key: prefix mode (tap/up/down), suffix für die Karte die animiert wird
+    let animKey;
+    if (mode === "up") animKey = "up-" + (winnerIdx === 0 ? "L" : "R");
+    else if (mode === "down") { const loserIdx = 1 - winnerIdx; animKey = "down-" + (loserIdx === 0 ? "L" : "R"); }
+    else animKey = "tap-" + (winnerIdx === 0 ? "L" : "R");
+    setAnim(animKey);
     const winner = pair[winnerIdx];
     const loser = pair[1 - winnerIdx];
     const currentIdx = idx;
@@ -1921,7 +1926,7 @@ function Compare({ pile, roundNum, onDone, valueDescs }) {
         setIdx(i => i + 1);
       }
       pickLock.current = false;
-    }, 300);
+    }, 220);
   };
 
   // ── DRAG-HANDLING ───────────────────────────────
@@ -1955,7 +1960,7 @@ function Compare({ pile, roundNum, onDone, valueDescs }) {
       pick(cardIdx, "up");
     } else if (dy > DRAG_THRESHOLD) {
       // nach unten gezogen = diese Karte wegwerfen → andere ist wichtiger
-      pick(1 - cardIdx, "tap");
+      pick(1 - cardIdx, "down");
     } // sonst: zurück-snap (deltaY automatisch durch setDrag(null) auf 0)
   };
   const onPointerCancel = () => setDrag(null);
@@ -2004,16 +2009,27 @@ function Compare({ pile, roundNum, onDone, valueDescs }) {
     const baseTilt = 0;  // parallel nebeneinander
     let extraTilt = 0;
     if (isDrag) extraTilt = Math.max(-15, Math.min(15, dy / 8));
-    // Animations-Phasen
+    // Animations-Phasen — drei Pfade: tap, up-swipe, down-swipe
     let extraTransform = "";
     let extraOpacity = 1;
     if (anim) {
-      const isWinner = (anim === "L" || anim === "L-up") ? cardIdx === 0 : cardIdx === 1;
-      if (isWinner) {
-        extraTransform = anim.endsWith("-up") ? "translateY(-80px) scale(1.08)" : "scale(1.08)";
+      const side = anim.endsWith("-L") ? 0 : 1;  // welche Karte wird animiert
+      const isAnimated = cardIdx === side;
+      if (anim.startsWith("up-")) {
+        // Up-Swipe: gewählte Karte fliegt nach oben + wird größer + fadet
+        if (isAnimated) { extraTransform = "translateY(-260px) scale(1.4)"; extraOpacity = 0; }
+        else            { extraTransform = "scale(0.92)"; extraOpacity = 0.5; }
+      } else if (anim.startsWith("down-")) {
+        // Down-Swipe: gewischte (=loser) Karte fliegt nach unten + wird kleiner + fadet
+        if (isAnimated) { extraTransform = "translateY(220px) scale(0.5)"; extraOpacity = 0; }
+        else            { extraTransform = "scale(1.06)"; }  // winner bleibt, leichter Push
       } else {
-        extraTransform = "translateY(40px) scale(0.85)";
-        extraOpacity = 0.2;
+        // Tap-Mode: Winner bleibt + leicht groß, Loser fliegt nach unten + shrinkt
+        // anim "tap-L" → Winner ist Card 0 (links), Loser ist Card 1
+        const winnerCard = anim.endsWith("-L") ? 0 : 1;
+        const isWinner = cardIdx === winnerCard;
+        if (isWinner) { extraTransform = "scale(1.08)"; }
+        else          { extraTransform = "translateY(180px) scale(0.55)"; extraOpacity = 0; }
       }
     }
     // Spotlight: bei Drag wird die Umgebung abgedunkelt, je nach Richtung grün/rot
@@ -2030,7 +2046,7 @@ function Compare({ pile, roundNum, onDone, valueDescs }) {
     return {
       width: "44%",
       maxWidth: 180,
-      transition: isDrag ? "box-shadow 0.1s linear" : "transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.3s ease, box-shadow 0.25s ease",
+      transition: isDrag ? "box-shadow 0.1s linear" : (anim ? "transform 0.22s cubic-bezier(0.32, 0, 0.67, 0), opacity 0.22s ease-out, box-shadow 0.2s ease" : "transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.3s ease, box-shadow 0.25s ease"),
       transform: `translateY(${dy}px) rotate(${baseTilt + extraTilt}deg) ${extraTransform}`,
       opacity: extraOpacity,
       position: "relative",
