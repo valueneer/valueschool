@@ -1989,7 +1989,7 @@ function Compare({ pile, roundNum, onDone, valueDescs }) {
   const cardStyle = (cardIdx) => {
     const isDrag = drag && drag.cardIdx === cardIdx;
     const dy = isDrag ? drag.deltaY : 0;
-    const baseTilt = cardIdx === 0 ? -3 : 3;   // Fächer-Optik
+    const baseTilt = cardIdx === 0 ? -5 : 5;   // Fächer-Optik, etwas mehr für überlappenden Look
     let extraTilt = 0;
     if (isDrag) extraTilt = Math.max(-15, Math.min(15, dy / 8));
     // Animations-Phasen
@@ -2005,8 +2005,9 @@ function Compare({ pile, roundNum, onDone, valueDescs }) {
       }
     }
     return {
-      width: "46%",
-      maxWidth: 200,
+      width: "48%",
+      maxWidth: 190,
+      marginLeft: cardIdx === 1 ? -22 : 0,  // leicht überlappend
       transition: isDrag ? "none" : "transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.3s ease",
       transform: `translateY(${dy}px) rotate(${baseTilt + extraTilt}deg) ${extraTransform}`,
       opacity: extraOpacity,
@@ -2025,13 +2026,13 @@ function Compare({ pile, roundNum, onDone, valueDescs }) {
       <p style={{ color: "#6b7280", fontSize: 15, marginBottom: 14, marginTop: 10 }}>
         Welcher Wert ist dir <strong>wichtiger</strong>?
       </p>
-      <p style={{ color: "#9ca3af", fontSize: 11, marginBottom: 18, lineHeight: 1.4 }}>
-        👆 Wichtigere Karte nach <strong>oben</strong> ziehen<br/>oder tippen.
+      <p style={{ color: "#9ca3af", fontSize: 11, marginBottom: 14, lineHeight: 1.4 }}>
+        Wichtigere Karte nach <strong style={{color:"#16a34a"}}>oben</strong> · unwichtigere nach <strong style={{color:"#dc2626"}}>unten</strong> · oder einfach tippen
       </p>
 
       <div style={{
-        display: "flex", gap: 12, justifyContent: "center", alignItems: "flex-start",
-        minHeight: 260, perspective: "800px", padding: "10px 0", overflow: "visible",
+        display: "flex", gap: 0, justifyContent: "center", alignItems: "flex-start",
+        minHeight: 300, perspective: "800px", padding: "20px 0 30px", overflow: "visible",
       }}>
         {pair.map((v, i) => (
           <div key={v.name}
@@ -2050,13 +2051,8 @@ function Compare({ pile, roundNum, onDone, valueDescs }) {
               style={{
                 width: "100%", display: "block",
                 aspectRatio: "732 / 1098",
-                borderRadius: 14,
-                boxShadow: "0 8px 24px rgba(0,0,0,0.18)",
                 pointerEvents: "none",
-                background: CAT[v.cat].bg + "15",
-                // Karte lugt hinter unsichtbarem "Tisch" hervor — unterer Teil fadet aus
-                WebkitMaskImage: "linear-gradient(to bottom, #000 0%, #000 62%, transparent 92%)",
-                maskImage: "linear-gradient(to bottom, #000 0%, #000 62%, transparent 92%)",
+                filter: "drop-shadow(0 10px 22px rgba(0,0,0,0.22))",
               }}
               onError={(e) => {
                 e.currentTarget.style.display = "none";
@@ -2068,11 +2064,51 @@ function Compare({ pile, roundNum, onDone, valueDescs }) {
               background: CAT[v.cat].bg, color: "#fff",
               alignItems: "center", justifyContent: "center", padding: 14,
               borderRadius: 14, fontSize: 18, fontWeight: 800, textAlign: "center",
-              boxShadow: "0 8px 24px rgba(0,0,0,0.18)",
+              filter: "drop-shadow(0 10px 22px rgba(0,0,0,0.22))",
               hyphens: "auto",
-              WebkitMaskImage: "linear-gradient(to bottom, #000 0%, #000 62%, transparent 92%)",
-              maskImage: "linear-gradient(to bottom, #000 0%, #000 62%, transparent 92%)",
             }} lang="de">{v.name}</div>
+
+            {/* Drag-Feedback: Grüner Pfeil oben (gewinnt) / Roter Pfeil unten (weg) */}
+            {drag && drag.cardIdx === i && drag.deltaY < -15 && (
+              <div style={{
+                position: "absolute", top: -56, left: "50%",
+                transform: `translateX(-50%) scale(${Math.min(1.2, Math.abs(drag.deltaY) / 60)})`,
+                opacity: Math.min(1, Math.abs(drag.deltaY) / 30),
+                pointerEvents: "none", zIndex: 10,
+                display: "flex", flexDirection: "column", alignItems: "center", gap: 2,
+              }}>
+                <div style={{
+                  background: "#16a34a", color: "#fff", width: 48, height: 48,
+                  borderRadius: 99, display: "flex", alignItems: "center", justifyContent: "center",
+                  fontSize: 26, fontWeight: 900,
+                  boxShadow: "0 6px 18px rgba(22,163,74,0.4)",
+                }}>↑</div>
+                <div style={{
+                  background: "#16a34a", color: "#fff", padding: "2px 10px",
+                  borderRadius: 99, fontSize: 11, fontWeight: 800, letterSpacing: 0.5,
+                }}>WICHTIGER</div>
+              </div>
+            )}
+            {drag && drag.cardIdx === i && drag.deltaY > 15 && (
+              <div style={{
+                position: "absolute", bottom: -56, left: "50%",
+                transform: `translateX(-50%) scale(${Math.min(1.2, drag.deltaY / 60)})`,
+                opacity: Math.min(1, drag.deltaY / 30),
+                pointerEvents: "none", zIndex: 10,
+                display: "flex", flexDirection: "column", alignItems: "center", gap: 2,
+              }}>
+                <div style={{
+                  background: "#dc2626", color: "#fff", padding: "2px 10px",
+                  borderRadius: 99, fontSize: 11, fontWeight: 800, letterSpacing: 0.5,
+                }}>WEG</div>
+                <div style={{
+                  background: "#dc2626", color: "#fff", width: 48, height: 48,
+                  borderRadius: 99, display: "flex", alignItems: "center", justifyContent: "center",
+                  fontSize: 26, fontWeight: 900,
+                  boxShadow: "0 6px 18px rgba(220,38,38,0.4)",
+                }}>↓</div>
+              </div>
+            )}
 
             {(valueDescs || VALUE_DEF)[v.name] && (
               <button
