@@ -12,6 +12,14 @@
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body { font-family: 'Outfit', 'Segoe UI', system-ui, sans-serif; background: #fff; -webkit-font-smoothing: antialiased; }
     #root { max-width: 500px; margin: 0 auto; min-height: 100vh; }
+    @keyframes vsHintBounceUp {
+      0%, 100% { transform: translate(-50%, 0); }
+      50% { transform: translate(-50%, -10px); }
+    }
+    @keyframes vsHintBounceDown {
+      0%, 100% { transform: translate(-50%, 0); }
+      50% { transform: translate(-50%, 10px); }
+    }
   </style>
 </head>
 <body>
@@ -1862,6 +1870,8 @@ function Compare({ pile, roundNum, onDone, valueDescs }) {
   const [infoValue, setInfoValue] = useState(null);
   // drag-state: { cardIdx: 0|1, startY, deltaY, pointerId }
   const [drag, setDrag] = useState(null);
+  // Tutorial-Pfeile nur in Runde 1, verschwinden beim ersten Anfassen
+  const [showHints, setShowHints] = useState(roundNum === 1);
   const pickLock = useRef(false);
   const winnersRef = useRef([]);
   const losersRef = useRef([]);
@@ -1920,6 +1930,7 @@ function Compare({ pile, roundNum, onDone, valueDescs }) {
 
   const onPointerDown = (cardIdx, e) => {
     if (pickLock.current) return;
+    if (showHints) setShowHints(false);
     e.currentTarget.setPointerCapture(e.pointerId);
     setDrag({ cardIdx, startY: e.clientY, deltaY: 0, pointerId: e.pointerId });
     tapStartRef.current = { x: e.clientX, y: e.clientY };
@@ -2081,7 +2092,47 @@ function Compare({ pile, roundNum, onDone, valueDescs }) {
               hyphens: "auto",
             }} lang="de">{v.name}</div>
 
-
+            {/* Tutorial-Pfeil: nur in Runde 1, vor erstem Anfassen */}
+            {showHints && !showIntro && i === 1 && (
+              <div style={{
+                position: "absolute", top: -56, left: "50%",
+                pointerEvents: "none", zIndex: 8,
+                animation: "vsHintBounceUp 1.4s ease-in-out infinite",
+                display: "flex", flexDirection: "column", alignItems: "center", gap: 2,
+              }}>
+                <div style={{
+                  background: "#16a34a", color: "#fff", width: 44, height: 44,
+                  borderRadius: 99, display: "flex", alignItems: "center", justifyContent: "center",
+                  fontSize: 24, fontWeight: 900,
+                  boxShadow: "0 6px 18px rgba(22,163,74,0.45)",
+                }}>↑</div>
+                <div style={{
+                  background: "#16a34a", color: "#fff", padding: "2px 9px",
+                  borderRadius: 99, fontSize: 10, fontWeight: 800, letterSpacing: 0.5,
+                  whiteSpace: "nowrap",
+                }}>WICHTIGER</div>
+              </div>
+            )}
+            {showHints && !showIntro && i === 0 && (
+              <div style={{
+                position: "absolute", bottom: -56, left: "50%",
+                pointerEvents: "none", zIndex: 8,
+                animation: "vsHintBounceDown 1.4s ease-in-out infinite",
+                display: "flex", flexDirection: "column", alignItems: "center", gap: 2,
+              }}>
+                <div style={{
+                  background: "#dc2626", color: "#fff", padding: "2px 9px",
+                  borderRadius: 99, fontSize: 10, fontWeight: 800, letterSpacing: 0.5,
+                  whiteSpace: "nowrap",
+                }}>WEG</div>
+                <div style={{
+                  background: "#dc2626", color: "#fff", width: 44, height: 44,
+                  borderRadius: 99, display: "flex", alignItems: "center", justifyContent: "center",
+                  fontSize: 24, fontWeight: 900,
+                  boxShadow: "0 6px 18px rgba(220,38,38,0.45)",
+                }}>↓</div>
+              </div>
+            )}
 
             {(valueDescs || VALUE_DEF)[v.name] && (
               <button
