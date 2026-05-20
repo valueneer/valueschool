@@ -1843,6 +1843,15 @@ Wenn du einen Wert nicht sicher lesen kannst, lass ihn weg. Antworte NUR mit dem
   );
 }
 
+function cardImageUrl(name) {
+  return `./karten/${encodeURIComponent(name)}.png`;
+}
+
+function preloadCardImages(values) {
+  if (typeof window === "undefined") return;
+  values.forEach(v => { const img = new Image(); img.src = cardImageUrl(v.name); });
+}
+
 function Compare({ pile, roundNum, onDone, valueDescs }) {
   const [pairs, setPairs] = useState([]);
   const [idx, setIdx] = useState(0);
@@ -1851,9 +1860,13 @@ function Compare({ pile, roundNum, onDone, valueDescs }) {
   const [anim, setAnim] = useState(null);
   const [showIntro, setShowIntro] = useState(roundNum === 1);
   const [infoValue, setInfoValue] = useState(null);
+  // drag-state: { cardIdx: 0|1, startY, deltaY, pointerId }
+  const [drag, setDrag] = useState(null);
   const pickLock = useRef(false);
   const winnersRef = useRef([]);
   const losersRef = useRef([]);
+  const cardRefs = useRef([null, null]);
+  const tapStartRef = useRef(null);
 
   useEffect(() => {
     pickLock.current = false;
@@ -1867,20 +1880,27 @@ function Compare({ pile, roundNum, onDone, valueDescs }) {
     losersRef.current = [];
     setDisplayW(winnersRef.current.length);
     setDisplayL(0);
+    preloadCardImages(pile);
   }, [pile]);
 
-  const pick = (wi) => {
+  // Beim Pair-Wechsel die nächsten Karten vorladen
+  useEffect(() => {
+    if (pairs[idx + 1]) preloadCardImages(pairs[idx + 1]);
+  }, [idx, pairs]);
+
+  const pick = (winnerIdx, mode) => {
     if (pickLock.current) return;
     const pair = pairs[idx];
     if (!pair) return;
     pickLock.current = true;
     setInfoValue(null);
-    setAnim(wi === 0 ? "L" : "R");
-    const winner = pair[wi];
-    const loser = pair[1 - wi];
+    setAnim(mode === "up" ? (winnerIdx === 0 ? "L-up" : "R-up") : (winnerIdx === 0 ? "L" : "R"));
+    const winner = pair[winnerIdx];
+    const loser = pair[1 - winnerIdx];
     const currentIdx = idx;
     setTimeout(() => {
       setAnim(null);
+      setDrag(null);
       winnersRef.current.push(winner);
       losersRef.current.push(loser);
       setDisplayW(winnersRef.current.length);
@@ -1891,9 +1911,45 @@ function Compare({ pile, roundNum, onDone, valueDescs }) {
         setIdx(i => i + 1);
       }
       pickLock.current = false;
-    }, 200);
+    }, 300);
   };
 
+  // ── DRAG-HANDLING ───────────────────────────────
+  const DRAG_THRESHOLD = 70;  // px, ab dann gilt's als entschieden
+  const TAP_THRESHOLD = 8;    // px, kleiner als das = Tap
+
+  const onPointerDown = (cardIdx, e) => {
+    if (pickLock.current) return;
+    e.currentTarget.setPointerCapture(e.pointerId);
+    setDrag({ cardIdx, startY: e.clientY, deltaY: 0, pointerId: e.pointerId });
+    tapStartRef.current = { x: e.clientX, y: e.clientY };
+  };
+  const onPointerMove = (cardIdx, e) => {
+    if (!drag || drag.cardIdx !== cardIdx) return;
+    setDrag(prev => prev ? { ...prev, deltaY: e.clientY - prev.startY } : null);
+  };
+  const onPointerUp = (cardIdx, e) => {
+    if (!drag || drag.cardIdx !== cardIdx) { setDrag(null); return; }
+    const dy = drag.deltaY;
+    const ts = tapStartRef.current;
+    const dist = ts ? Math.hypot(e.clientX - ts.x, e.clientY - ts.y) : 0;
+    setDrag(null);
+    if (dist < TAP_THRESHOLD) {
+      // war ein Tap → diese Karte = wichtiger
+      pick(cardIdx, "tap");
+      return;
+    }
+    if (dy < -DRAG_THRESHOLD) {
+      // nach oben gezogen = diese Karte ist wichtiger
+      pick(cardIdx, "up");
+    } else if (dy > DRAG_THRESHOLD) {
+      // nach unten gezogen = diese Karte wegwerfen → andere ist wichtiger
+      pick(1 - cardIdx, "tap");
+    } // sonst: zurück-snap (deltaY automatisch durch setDrag(null) auf 0)
+  };
+  const onPointerCancel = () => setDrag(null);
+
+  // ── RENDER ──────────────────────────────────────
   if (showIntro) return (
     <div style={{ textAlign: "center", padding: "40px 24px" }}>
       <div style={{ fontSize: 48, marginBottom: 12 }}>🎮</div>
@@ -1904,10 +1960,10 @@ function Compare({ pile, roundNum, onDone, valueDescs }) {
         border: "1px solid rgba(46,45,142,0.08)",
       }}>
         {[
-          ["🎯", "Dir werden immer zwei Werte gezeigt. Tippe auf den, der dir wichtiger ist."],
+          ["🃏", "Du siehst immer zwei Werte-Karten nebeneinander."],
+          ["👆", "Ziehe die wichtigere Karte nach oben — oder die unwichtigere nach unten. Tippen geht auch: auf die behalten."],
           ["💛", "Entscheide aus dem Bauch heraus — welcher Wert bist du WIRKLICH? Nicht welchen du gerne hättest."],
-          ["😅", "Manche Entscheidungen fühlen sich fast unmöglich an. Das gehört dazu! Gerade dann lernst du am meisten über dich."],
-          ["🎲", "Das hier ist ein Spiel, kein Test. Es gibt keine falschen Antworten — nur deine."],
+          ["😅", "Manche Entscheidungen sind fast unmöglich. Das gehört dazu! Gerade da lernst du am meisten über dich."],
         ].map(function(item, i) {
           return (
             <div key={i} style={{ display: "flex", gap: 10, marginBottom: i < 3 ? 14 : 0, fontSize: 13, color: "#4b5563", lineHeight: 1.55 }}>
@@ -1917,9 +1973,6 @@ function Compare({ pile, roundNum, onDone, valueDescs }) {
           );
         })}
       </div>
-      <p style={{ fontSize: 12, color: "#9ca3af", maxWidth: 280, margin: "0 auto 24px", lineHeight: 1.5 }}>
-        Tipp: Wenn du bei einem Wert denkst "den MUSS ich nehmen" — hinterfrage das. Ist es wirklich deiner, oder glaubst du das nur?
-      </p>
       <button onClick={function() { setShowIntro(false); }} style={{
         background: "linear-gradient(135deg, #2E2D8E, #3b2d8e)",
         color: "#fff", border: "none", borderRadius: 99, padding: "16px 44px",
@@ -1932,26 +1985,107 @@ function Compare({ pile, roundNum, onDone, valueDescs }) {
   if (!pairs.length || !pairs[idx]) return null;
   const pair = pairs[idx];
 
+  // Transform-Style pro Karte berechnen
+  const cardStyle = (cardIdx) => {
+    const isDrag = drag && drag.cardIdx === cardIdx;
+    const dy = isDrag ? drag.deltaY : 0;
+    const baseTilt = cardIdx === 0 ? -3 : 3;   // Fächer-Optik
+    let extraTilt = 0;
+    if (isDrag) extraTilt = Math.max(-15, Math.min(15, dy / 8));
+    // Animations-Phasen
+    let extraTransform = "";
+    let extraOpacity = 1;
+    if (anim) {
+      const isWinner = (anim === "L" || anim === "L-up") ? cardIdx === 0 : cardIdx === 1;
+      if (isWinner) {
+        extraTransform = anim.endsWith("-up") ? "translateY(-80px) scale(1.08)" : "scale(1.08)";
+      } else {
+        extraTransform = "translateY(40px) scale(0.85)";
+        extraOpacity = 0.2;
+      }
+    }
+    return {
+      width: "46%",
+      maxWidth: 200,
+      transition: isDrag ? "none" : "transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.3s ease",
+      transform: `translateY(${dy}px) rotate(${baseTilt + extraTilt}deg) ${extraTransform}`,
+      opacity: extraOpacity,
+      position: "relative",
+      cursor: drag ? "grabbing" : "grab",
+      touchAction: "none",
+      userSelect: "none",
+      WebkitUserSelect: "none",
+      zIndex: isDrag ? 10 : 1,
+    };
+  };
+
   return (
-    <div style={{ textAlign: "center", padding: "20px 16px" }}>
+    <div style={{ textAlign: "center", padding: "16px 16px 40px" }}>
       <Bar pct={(idx / pairs.length) * 100} label={"Runde " + roundNum} sub={(idx + 1) + " / " + pairs.length} />
-      <p style={{ color: "#6b7280", fontSize: 15, marginBottom: 28 }}>Welcher Wert ist dir <strong>wichtiger</strong>?</p>
-      <div style={{ display: "flex", gap: 16, justifyContent: "center", alignItems: "stretch", minHeight: 120 }}>
+      <p style={{ color: "#6b7280", fontSize: 15, marginBottom: 14, marginTop: 10 }}>
+        Welcher Wert ist dir <strong>wichtiger</strong>?
+      </p>
+      <p style={{ color: "#9ca3af", fontSize: 11, marginBottom: 18, lineHeight: 1.4 }}>
+        👆 Wichtigere Karte nach <strong>oben</strong> ziehen<br/>oder tippen.
+      </p>
+
+      <div style={{
+        display: "flex", gap: 12, justifyContent: "center", alignItems: "flex-start",
+        minHeight: 260, perspective: "800px", padding: "10px 0", overflow: "visible",
+      }}>
         {pair.map((v, i) => (
-          <div key={v.name} style={{
-            width: "42%", transition: "all 0.22s ease",
-            transform: anim === "L" && i === 0 ? "scale(1.08)" : anim === "R" && i === 1 ? "scale(1.08)" : anim ? "scale(0.88)" : "none",
-            opacity: (anim === "L" && i === 1) || (anim === "R" && i === 0) ? 0.25 : 1,
-            display: "flex", position: "relative",
-          }}>
-            <VCard value={v} onClick={() => pick(i)} hideLabel />
-            {(valueDescs || VALUE_DEF)[v.name] && <button onClick={function(e) { e.stopPropagation(); setInfoValue(infoValue === v.name ? null : v.name); }} style={{
-              position: "absolute", top: -6, right: -6, width: 24, height: 24, borderRadius: 99,
-              background: "#fff", border: "2px solid #e5e7eb", color: "#6b7280",
-              fontSize: 13, fontWeight: 800, cursor: "pointer", display: "flex",
-              alignItems: "center", justifyContent: "center", zIndex: 2, padding: 0,
-              boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
-            }}>?</button>}
+          <div key={v.name}
+            ref={el => cardRefs.current[i] = el}
+            style={cardStyle(i)}
+            onPointerDown={(e) => onPointerDown(i, e)}
+            onPointerMove={(e) => onPointerMove(i, e)}
+            onPointerUp={(e) => onPointerUp(i, e)}
+            onPointerCancel={onPointerCancel}
+          >
+            <img
+              src={cardImageUrl(v.name)}
+              alt={v.name}
+              draggable={false}
+              loading="eager"
+              style={{
+                width: "100%", display: "block",
+                aspectRatio: "732 / 1098",
+                borderRadius: 14,
+                boxShadow: "0 8px 24px rgba(0,0,0,0.18)",
+                pointerEvents: "none",
+                background: CAT[v.cat].bg + "15",
+                // Karte lugt hinter unsichtbarem "Tisch" hervor — unterer Teil fadet aus
+                WebkitMaskImage: "linear-gradient(to bottom, #000 0%, #000 62%, transparent 92%)",
+                maskImage: "linear-gradient(to bottom, #000 0%, #000 62%, transparent 92%)",
+              }}
+              onError={(e) => {
+                e.currentTarget.style.display = "none";
+                if (e.currentTarget.nextSibling) e.currentTarget.nextSibling.style.display = "flex";
+              }}
+            />
+            <div style={{
+              display: "none", aspectRatio: "732 / 1098", width: "100%",
+              background: CAT[v.cat].bg, color: "#fff",
+              alignItems: "center", justifyContent: "center", padding: 14,
+              borderRadius: 14, fontSize: 18, fontWeight: 800, textAlign: "center",
+              boxShadow: "0 8px 24px rgba(0,0,0,0.18)",
+              hyphens: "auto",
+              WebkitMaskImage: "linear-gradient(to bottom, #000 0%, #000 62%, transparent 92%)",
+              maskImage: "linear-gradient(to bottom, #000 0%, #000 62%, transparent 92%)",
+            }} lang="de">{v.name}</div>
+
+            {(valueDescs || VALUE_DEF)[v.name] && (
+              <button
+                onClick={(e) => { e.stopPropagation(); e.preventDefault(); setInfoValue(infoValue === v.name ? null : v.name); }}
+                onPointerDown={(e) => e.stopPropagation()}
+                style={{
+                  position: "absolute", top: -6, right: -6, width: 26, height: 26, borderRadius: 99,
+                  background: "#fff", border: "2px solid #e5e7eb", color: "#6b7280",
+                  fontSize: 13, fontWeight: 800, cursor: "pointer", display: "flex",
+                  alignItems: "center", justifyContent: "center", zIndex: 5, padding: 0,
+                  boxShadow: "0 2px 8px rgba(0,0,0,0.15)", touchAction: "auto",
+                }}>?</button>
+            )}
           </div>
         ))}
       </div>
@@ -3791,6 +3925,14 @@ function App() {
     const h = {}; values.forEach(v => { h[v.name] = 0; });
     setValHistory(h);
   };
+
+  // Karten im Hintergrund vorladen, sobald der User aus Intro in Demografie/Code-Eingabe wechselt
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    if (phase === "demographics" || phase === "demographics-light" || phase === "code-entry") {
+      values.forEach(v => { const img = new Image(); img.src = `./karten/${encodeURIComponent(v.name)}.png`; });
+    }
+  }, [phase, values]);
 
   const handleDemoSubmit = (demo) => {
     setDemographics(demo);
