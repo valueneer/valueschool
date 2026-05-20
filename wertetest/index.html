@@ -2050,13 +2050,25 @@ function Compare({ pile, roundNum, onDone, valueDescs }) {
       <p style={{ color: "#6b7280", fontSize: 15, marginBottom: 14, marginTop: 10 }}>
         Welcher Wert ist dir <strong>wichtiger</strong>?
       </p>
-      <p style={{ color: "#9ca3af", fontSize: 11, marginBottom: 14, lineHeight: 1.4 }}>
-        Wichtigere Karte nach <strong style={{color:"#16a34a"}}>oben</strong> · unwichtigere nach <strong style={{color:"#dc2626"}}>unten</strong> · oder einfach tippen
+      <p style={{ color: "#9ca3af", fontSize: 11, marginBottom: 6, lineHeight: 1.4 }}>
+        oder einfach <strong>tippen</strong>
       </p>
+
+      {showHints && !showIntro && (
+        <div style={{
+          width: "90%", maxWidth: 360, height: 38, margin: "0 auto 8px",
+          background: "#16a34a", color: "#fff",
+          clipPath: "polygon(50% 0%, 58% 30%, 100% 30%, 100% 100%, 0% 100%, 0% 30%, 42% 30%)",
+          display: "flex", alignItems: "flex-end", justifyContent: "center",
+          paddingBottom: 8, fontSize: 12, fontWeight: 800, letterSpacing: 1,
+          filter: "drop-shadow(0 4px 10px rgba(22,163,74,0.35))",
+          animation: "vsHintBounceUp 1.4s ease-in-out infinite",
+        }}>WICHTIGER NACH OBEN</div>
+      )}
 
       <div style={{
         display: "flex", gap: 14, justifyContent: "center", alignItems: "flex-start",
-        minHeight: 300, perspective: "800px", padding: "20px 0 30px", overflow: "visible",
+        minHeight: 300, perspective: "800px", padding: "10px 0", overflow: "visible",
       }}>
         {pair.map((v, i) => (
           <div key={v.name}
@@ -2092,48 +2104,6 @@ function Compare({ pile, roundNum, onDone, valueDescs }) {
               hyphens: "auto",
             }} lang="de">{v.name}</div>
 
-            {/* Tutorial-Pfeil: nur in Runde 1, vor erstem Anfassen */}
-            {showHints && !showIntro && i === 1 && (
-              <div style={{
-                position: "absolute", top: -56, left: "50%",
-                pointerEvents: "none", zIndex: 8,
-                animation: "vsHintBounceUp 1.4s ease-in-out infinite",
-                display: "flex", flexDirection: "column", alignItems: "center", gap: 2,
-              }}>
-                <div style={{
-                  background: "#16a34a", color: "#fff", width: 44, height: 44,
-                  borderRadius: 99, display: "flex", alignItems: "center", justifyContent: "center",
-                  fontSize: 24, fontWeight: 900,
-                  boxShadow: "0 6px 18px rgba(22,163,74,0.45)",
-                }}>↑</div>
-                <div style={{
-                  background: "#16a34a", color: "#fff", padding: "2px 9px",
-                  borderRadius: 99, fontSize: 10, fontWeight: 800, letterSpacing: 0.5,
-                  whiteSpace: "nowrap",
-                }}>WICHTIGER</div>
-              </div>
-            )}
-            {showHints && !showIntro && i === 0 && (
-              <div style={{
-                position: "absolute", bottom: -56, left: "50%",
-                pointerEvents: "none", zIndex: 8,
-                animation: "vsHintBounceDown 1.4s ease-in-out infinite",
-                display: "flex", flexDirection: "column", alignItems: "center", gap: 2,
-              }}>
-                <div style={{
-                  background: "#dc2626", color: "#fff", padding: "2px 9px",
-                  borderRadius: 99, fontSize: 10, fontWeight: 800, letterSpacing: 0.5,
-                  whiteSpace: "nowrap",
-                }}>WEG</div>
-                <div style={{
-                  background: "#dc2626", color: "#fff", width: 44, height: 44,
-                  borderRadius: 99, display: "flex", alignItems: "center", justifyContent: "center",
-                  fontSize: 24, fontWeight: 900,
-                  boxShadow: "0 6px 18px rgba(220,38,38,0.45)",
-                }}>↓</div>
-              </div>
-            )}
-
             {(valueDescs || VALUE_DEF)[v.name] && (
               <button
                 onClick={(e) => { e.stopPropagation(); e.preventDefault(); setInfoValue(infoValue === v.name ? null : v.name); }}
@@ -2149,6 +2119,18 @@ function Compare({ pile, roundNum, onDone, valueDescs }) {
           </div>
         ))}
       </div>
+
+      {showHints && !showIntro && (
+        <div style={{
+          width: "90%", maxWidth: 360, height: 38, margin: "8px auto 0",
+          background: "#dc2626", color: "#fff",
+          clipPath: "polygon(0% 0%, 100% 0%, 100% 70%, 58% 70%, 50% 100%, 42% 70%, 0% 70%)",
+          display: "flex", alignItems: "flex-start", justifyContent: "center",
+          paddingTop: 8, fontSize: 12, fontWeight: 800, letterSpacing: 1,
+          filter: "drop-shadow(0 4px 10px rgba(220,38,38,0.35))",
+          animation: "vsHintBounceDown 1.4s ease-in-out infinite",
+        }}>UNWICHTIGER NACH UNTEN</div>
+      )}
 
       {infoValue && (valueDescs || VALUE_DEF)[infoValue] && (
         <div style={{
