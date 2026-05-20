@@ -1,5 +1,20 @@
 # Value School — Landing Page
 
+## 🛑 Erst checken, bevor irgendwas: Repo-Identität & Sync
+
+**Dies ist das Repo `valueneer/valueschool`** — Landing Page + Wertetest für Value School (value-school.de).
+
+**Schwester-Projekte, die NICHT hier editiert werden dürfen:**
+- `valueneer/valueverse-app` — die Valueverse-App, die mehrere Spiele bündelt (Hendrik baut die auf dem Laptop). Wenn jemand fragt "App", "Spiele-Hub", "Valueverse-App", ist es das. Hier nicht editieren, niemals dort committen.
+- Andere `valueneer/*`-Repos: gehören auch nicht hierher.
+
+**Sync-Check am Session-Anfang (Pflicht):**
+1. `curl -s -L https://value-school.de/wertetest/ | md5sum` — Online-Hash
+2. `md5sum wertetest/index.html` — Lokal-Hash
+3. Stimmen sie nicht überein, sage Hendrik: "Vorm Anfangen: in GitHub Desktop Fetch + Pull machen." Erst danach an den Code.
+
+Das gleiche gilt für andere zentrale Dateien, die zwischen Devices laufen können.
+
 ## ⚠️ Erste Lese-Pflicht für neue Sessions
 
 **Bevor du irgendetwas tust, lies in dieser Reihenfolge:**
