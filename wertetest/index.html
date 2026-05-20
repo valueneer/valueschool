@@ -1952,22 +1952,23 @@ function Compare({ pile, roundNum, onDone, valueDescs }) {
   // ── RENDER ──────────────────────────────────────
   if (showIntro) return (
     <div style={{ textAlign: "center", padding: "40px 24px" }}>
-      <div style={{ fontSize: 48, marginBottom: 12 }}>🎮</div>
-      <h2 style={{ fontSize: 24, fontWeight: 900, color: "#2E2D8E", marginBottom: 12 }}>Bereit? Los geht's!</h2>
+      <div style={{ fontSize: 52, marginBottom: 14 }}>🎴</div>
+      <h2 style={{ fontSize: 26, fontWeight: 900, color: "#2E2D8E", marginBottom: 6 }}>Werte-Tinder.</h2>
+      <p style={{ fontSize: 16, color: "#6b7280", marginBottom: 18, fontWeight: 500 }}>Swipe mal deine Werte.</p>
       <div style={{
         background: "linear-gradient(135deg, #f8fafc, #f0f0ff)", borderRadius: 18,
-        padding: "20px 22px", maxWidth: 340, margin: "0 auto 20px", textAlign: "left",
+        padding: "22px 24px", maxWidth: 360, margin: "0 auto 22px", textAlign: "left",
         border: "1px solid rgba(46,45,142,0.08)",
       }}>
         {[
-          ["🃏", "Du siehst immer zwei Werte-Karten nebeneinander."],
-          ["👆", "Ziehe die wichtigere Karte nach oben — oder die unwichtigere nach unten. Tippen geht auch: auf die behalten."],
-          ["💛", "Entscheide aus dem Bauch heraus — welcher Wert bist du WIRKLICH? Nicht welchen du gerne hättest."],
-          ["😅", "Manche Entscheidungen sind fast unmöglich. Das gehört dazu! Gerade da lernst du am meisten über dich."],
+          ["🃏", "Zwei Karten. Eine Entscheidung."],
+          ["👆", "Wichtigere nach oben, unwichtigere nach unten. Oder einfach tippen."],
+          ["💛", "Bauchgefühl zählt. Nicht der Kopf."],
+          ["😅", "Manche Vergleiche sind brutal. Gerade da lernst du am meisten."],
         ].map(function(item, i) {
           return (
-            <div key={i} style={{ display: "flex", gap: 10, marginBottom: i < 3 ? 14 : 0, fontSize: 13, color: "#4b5563", lineHeight: 1.55 }}>
-              <span style={{ fontSize: 17, flexShrink: 0, marginTop: 1 }}>{item[0]}</span>
+            <div key={i} style={{ display: "flex", gap: 12, marginBottom: i < 3 ? 16 : 0, fontSize: 15, color: "#374151", lineHeight: 1.5 }}>
+              <span style={{ fontSize: 22, flexShrink: 0, marginTop: 1 }}>{item[0]}</span>
               <span>{item[1]}</span>
             </div>
           );
@@ -1989,7 +1990,7 @@ function Compare({ pile, roundNum, onDone, valueDescs }) {
   const cardStyle = (cardIdx) => {
     const isDrag = drag && drag.cardIdx === cardIdx;
     const dy = isDrag ? drag.deltaY : 0;
-    const baseTilt = cardIdx === 0 ? -5 : 5;   // Fächer-Optik, etwas mehr für überlappenden Look
+    const baseTilt = 0;  // parallel nebeneinander
     let extraTilt = 0;
     if (isDrag) extraTilt = Math.max(-15, Math.min(15, dy / 8));
     // Animations-Phasen
@@ -2004,11 +2005,21 @@ function Compare({ pile, roundNum, onDone, valueDescs }) {
         extraOpacity = 0.2;
       }
     }
+    // Spotlight: bei Drag wird die Umgebung abgedunkelt, je nach Richtung grün/rot
+    let spotlight = "none";
+    if (isDrag) {
+      if (dy < -10) {
+        const op = Math.min(0.55, Math.abs(dy) / 110);
+        spotlight = `0 0 0 9999px rgba(22, 163, 74, ${op.toFixed(3)})`;
+      } else if (dy > 10) {
+        const op = Math.min(0.55, dy / 110);
+        spotlight = `0 0 0 9999px rgba(220, 38, 38, ${op.toFixed(3)})`;
+      }
+    }
     return {
-      width: "48%",
-      maxWidth: 190,
-      marginLeft: cardIdx === 1 ? -22 : 0,  // leicht überlappend
-      transition: isDrag ? "none" : "transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.3s ease",
+      width: "44%",
+      maxWidth: 180,
+      transition: isDrag ? "box-shadow 0.1s linear" : "transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.3s ease, box-shadow 0.25s ease",
       transform: `translateY(${dy}px) rotate(${baseTilt + extraTilt}deg) ${extraTransform}`,
       opacity: extraOpacity,
       position: "relative",
@@ -2017,6 +2028,8 @@ function Compare({ pile, roundNum, onDone, valueDescs }) {
       userSelect: "none",
       WebkitUserSelect: "none",
       zIndex: isDrag ? 10 : 1,
+      boxShadow: spotlight,
+      borderRadius: 14,
     };
   };
 
@@ -2031,7 +2044,7 @@ function Compare({ pile, roundNum, onDone, valueDescs }) {
       </p>
 
       <div style={{
-        display: "flex", gap: 0, justifyContent: "center", alignItems: "flex-start",
+        display: "flex", gap: 14, justifyContent: "center", alignItems: "flex-start",
         minHeight: 300, perspective: "800px", padding: "20px 0 30px", overflow: "visible",
       }}>
         {pair.map((v, i) => (
@@ -2068,47 +2081,7 @@ function Compare({ pile, roundNum, onDone, valueDescs }) {
               hyphens: "auto",
             }} lang="de">{v.name}</div>
 
-            {/* Drag-Feedback: Grüner Pfeil oben (gewinnt) / Roter Pfeil unten (weg) */}
-            {drag && drag.cardIdx === i && drag.deltaY < -15 && (
-              <div style={{
-                position: "absolute", top: -56, left: "50%",
-                transform: `translateX(-50%) scale(${Math.min(1.2, Math.abs(drag.deltaY) / 60)})`,
-                opacity: Math.min(1, Math.abs(drag.deltaY) / 30),
-                pointerEvents: "none", zIndex: 10,
-                display: "flex", flexDirection: "column", alignItems: "center", gap: 2,
-              }}>
-                <div style={{
-                  background: "#16a34a", color: "#fff", width: 48, height: 48,
-                  borderRadius: 99, display: "flex", alignItems: "center", justifyContent: "center",
-                  fontSize: 26, fontWeight: 900,
-                  boxShadow: "0 6px 18px rgba(22,163,74,0.4)",
-                }}>↑</div>
-                <div style={{
-                  background: "#16a34a", color: "#fff", padding: "2px 10px",
-                  borderRadius: 99, fontSize: 11, fontWeight: 800, letterSpacing: 0.5,
-                }}>WICHTIGER</div>
-              </div>
-            )}
-            {drag && drag.cardIdx === i && drag.deltaY > 15 && (
-              <div style={{
-                position: "absolute", bottom: -56, left: "50%",
-                transform: `translateX(-50%) scale(${Math.min(1.2, drag.deltaY / 60)})`,
-                opacity: Math.min(1, drag.deltaY / 30),
-                pointerEvents: "none", zIndex: 10,
-                display: "flex", flexDirection: "column", alignItems: "center", gap: 2,
-              }}>
-                <div style={{
-                  background: "#dc2626", color: "#fff", padding: "2px 10px",
-                  borderRadius: 99, fontSize: 11, fontWeight: 800, letterSpacing: 0.5,
-                }}>WEG</div>
-                <div style={{
-                  background: "#dc2626", color: "#fff", width: 48, height: 48,
-                  borderRadius: 99, display: "flex", alignItems: "center", justifyContent: "center",
-                  fontSize: 26, fontWeight: 900,
-                  boxShadow: "0 6px 18px rgba(220,38,38,0.4)",
-                }}>↓</div>
-              </div>
-            )}
+
 
             {(valueDescs || VALUE_DEF)[v.name] && (
               <button
