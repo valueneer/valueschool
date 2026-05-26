@@ -2117,9 +2117,11 @@ function Compare({ pile, roundNum, onDone, valueDescs }) {
               display: "none", aspectRatio: "732 / 1098", width: "100%",
               background: CAT[v.cat].bg, color: "#fff",
               alignItems: "center", justifyContent: "center", padding: 14,
-              borderRadius: 14, fontSize: 18, fontWeight: 800, textAlign: "center",
+              borderRadius: 14,
+              fontSize: v.name.length > 14 ? 14 : v.name.length > 10 ? 16 : 18,
+              fontWeight: 800, textAlign: "center",
               filter: "drop-shadow(0 10px 22px rgba(0,0,0,0.22))",
-              hyphens: "auto",
+              hyphens: "auto", WebkitHyphens: "auto", wordBreak: "break-word", lineHeight: 1.15,
             }} lang="de">{v.name}</div>
 
             {(valueDescs || VALUE_DEF)[v.name] && (
@@ -3129,7 +3131,7 @@ function Result({ kompass, onRestart, valHistory, maxRound, demographics, saveEr
               style={{
                 padding: "10px 16px", fontSize: 15, fontWeight: 600, borderRadius: 10,
                 border: deepError ? "2px solid #ef4444" : "2px solid #e5e7eb",
-                outline: "none", width: 140, textAlign: "center", textTransform: "uppercase",
+                outline: "none", width: 180, textAlign: "center", textTransform: "uppercase",
               }}
             />
             <Btn small primary onClick={tryDeepPin}>Freischalten</Btn>
@@ -3203,6 +3205,15 @@ function randomToken(n) {
 }
 function sanitizeKlassenBezeichnung(s) {
   return s.toUpperCase().replace(/[^A-Z0-9]/g, "");
+}
+function padKlassenBezeichnung(s) {
+  // Klassen-Slot ist 3 Zeichen. Kurze Eingaben (z.B. "5A") werden links mit "0" auf 3 gepolstert ("05A").
+  // Wenn die Eingabe bereits mit einer Ziffer beginnt und 2 Zeichen lang ist, padden wir vorne mit 0.
+  // Ansonsten lassen wir's, was zu Validierungsfehler führt.
+  const clean = sanitizeKlassenBezeichnung(s);
+  if (clean.length === 3) return clean;
+  if (clean.length === 2 && /^\d[A-Z0-9]$/.test(clean)) return "0" + clean;
+  return clean;
 }
 function currentYear2() {
   return String(new Date().getFullYear()).slice(-2);
@@ -3286,12 +3297,12 @@ function SchulenManager({ onBack, onShowKlasse }) {
   const createKlasse = async (schule) => {
     const entry = newKlasseBySchule[schule.id] || { bezeichnung: "", klassenstufe: "", jahr: currentYear2() };
     const bez = entry.bezeichnung.trim();
-    const bezClean = sanitizeKlassenBezeichnung(bez);
+    const bezPadded = padKlassenBezeichnung(bez);
     const yyInput = (entry.jahr || currentYear2()).toString().trim();
     if (!bez) return flash("⚠️ Klassenbezeichnung fehlt");
-    if (bezClean.length !== 3) return flash("⚠️ Klassen-Code muss 3 Zeichen sein (z.B. 05B, 13A, 13M)");
+    if (bezPadded.length !== 3) return flash("⚠️ Klassen-Bezeichnung muss 2 oder 3 Zeichen sein (z.B. 5A, 05B, 13A, 10C)");
     if (!/^\d{2}$/.test(yyInput)) return flash("⚠️ Jahr muss 2-stellig sein (z.B. 26)");
-    const code = makeClassCode(schule.code, bezClean, yyInput);
+    const code = makeClassCode(schule.code, bezPadded, yyInput);
     try {
       const created = await supa.insertReturning("klassen", {
         schule_id: schule.id, bezeichnung: bez,
@@ -3446,7 +3457,9 @@ function SchulenManager({ onBack, onShowKlasse }) {
                     <Btn small primary onClick={() => createKlasse(schule)}>+</Btn>
                   </div>
                   <div style={{ fontSize: 10, color: "#9ca3af", marginTop: 6 }}>
-                    Code wird zu: <code style={{ background: "#f3f4f6", padding: "1px 5px", borderRadius: 4 }}>{schule.code.replace(/\d{4}$/, "").slice(0,5)}{(newKl.bezeichnung || "").toUpperCase().replace(/[^A-Z0-9]/g, "").padEnd(3, "_")}{(newKl.jahr || currentYear2())}</code>
+                    {(newKl.bezeichnung || "").trim()
+                      ? <>Code wird zu: <code style={{ background: "#f3f4f6", padding: "1px 5px", borderRadius: 4 }}>{schule.code.replace(/\d{4}$/, "").slice(0,5)}{padKlassenBezeichnung(newKl.bezeichnung || "")}{(newKl.jahr || currentYear2())}</code></>
+                      : <>Code wird gebaut aus: Schul-Kürzel + Klasse (z.B. 05B) + Jahr (z.B. 26)</>}
                   </div>
                 </div>
 
@@ -4152,7 +4165,7 @@ function App() {
   );
 
   const maxRound = roundNum;
-  const noHeader = ["intro","result","admin","admin-login","scan","demographics","dashboard"];
+  const noHeader = ["intro","result","admin","admin-login","scan","demographics","demographics-light","dashboard","schulen","klasse-landschaft","code-entry"];
 
   var stepIdx = 0;
   if (phase === "compare" || phase === "joker") stepIdx = roundNum;
