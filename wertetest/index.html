@@ -3891,6 +3891,15 @@ function App() {
   const [schule, setSchule] = useState(null);
   const [klasse, setKlasse] = useState(null);
   const [rolle, setRolle] = useState(null);
+  const [pseudonym, setPseudonym] = useState(() => {
+    // Pseudonym aus URL ziehen, falls Schüler von der Studie hierher geleitet wurde
+    try {
+      const u = new URL(window.location.href);
+      const p = u.searchParams.get("pseudonym");
+      if (p && /^[a-z0-9]{6}$/.test(p)) return p;
+    } catch (e) {}
+    return null;
+  });
   const [codeError, setCodeError] = useState(null);
   const [currentResultId, setCurrentResultId] = useState(null);
   const [mySessionResultId, setMySessionResultId] = useState(null);
@@ -4042,6 +4051,7 @@ function App() {
           schule_id: schule ? schule.id : null,
           klasse_id: klasse ? klasse.id : null,
           rolle: rolle || null,
+          pseudonym: pseudonym || null,
           sprache: "de",
           lebenswert: k.lebenswert.name,
           lebenswert_cat: k.lebenswert.cat,
