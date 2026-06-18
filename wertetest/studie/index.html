@@ -769,7 +769,9 @@ function App() {
     }
   };
 
-  const gameUrl = klasse ? `../?code=${encodeURIComponent(klasse.code)}` : null;
+  const gameUrl = klasse && pseudonym
+    ? `../?code=${encodeURIComponent(klasse.code)}&pseudonym=${encodeURIComponent(pseudonym)}`
+    : klasse ? `../?code=${encodeURIComponent(klasse.code)}` : null;
 
   /* ─────────────────── RENDER ─────────────────── */
 
