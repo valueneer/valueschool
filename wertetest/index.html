@@ -1105,10 +1105,15 @@ function setStoredResultIdForKlasse(klasseId, resultId) {
 }
 
 function parseCodeFromUrl() {
+  // Auto-Pre-Fill des Klassencodes nur, wenn ein Pseudonym dabei ist —
+  // das ist das Signal, dass der Schüler gerade von der Uni-Studie
+  // hierher geleitet wurde. Bei direkten Aufrufen ohne Pseudonym muss
+  // der Code immer manuell eingetippt werden (Standardisierung).
   try {
     const u = new URL(window.location.href);
     const c = u.searchParams.get("code");
-    if (!c) return null;
+    const p = u.searchParams.get("pseudonym");
+    if (!c || !p) return null;
     return c.trim().toUpperCase();
   } catch (e) { return null; }
 }
@@ -1127,24 +1132,37 @@ const ROLES = [
 ];
 
 function CodeEntry({ onValid, onBack, initialCode }) {
-  const [code, setCode] = useState(initialCode || "");
+  // Code-Format GSO05B26 — drei Teile: Schul-Kürzel (3), Klasse (3), Jahr (2).
+  // Visuell auch dreigeteilt eingegeben.
+  const init = (initialCode || "").toUpperCase().replace(/[^A-Z0-9]/g, "");
+  const [schul, setSchul] = useState(init.slice(0, 3));
+  const [klasse, setKlasse] = useState(init.slice(3, 6));
+  const [jahr, setJahr] = useState(init.slice(6, 8));
   const [checking, setChecking] = useState(false);
   const [error, setError] = useState("");
+  const schulRef = useRef(null);
+  const klasseRef = useRef(null);
+  const jahrRef = useRef(null);
+
+  useEffect(() => { if (schul.length === 3 && klasse.length === 0) klasseRef.current && klasseRef.current.focus(); }, [schul]);
+  useEffect(() => { if (klasse.length === 3 && jahr.length === 0) jahrRef.current && jahrRef.current.focus(); }, [klasse]);
+
+  const code = schul + klasse + jahr;
+  const formValid = schul.length === 3 && klasse.length === 3 && jahr.length === 2;
 
   const submit = async () => {
-    const c = code.trim().toUpperCase();
-    if (!c) { setError("Bitte Code eingeben"); return; }
+    if (!formValid) { setError("Bitte alle drei Teile vollständig ausfüllen"); return; }
     setChecking(true); setError("");
     try {
-      const klassen = await supa.selectWhere("klassen", `code=eq.${encodeURIComponent(c)}`);
+      const klassen = await supa.selectWhere("klassen", `code=eq.${encodeURIComponent(code)}`);
       if (!klassen || klassen.length === 0) {
         setError("Dieser Code ist uns nicht bekannt. Bitte prüfen.");
         setChecking(false); return;
       }
-      const klasse = klassen[0];
-      const schulen = await supa.selectWhere("schulen", `id=eq.${klasse.schule_id}`);
+      const klObj = klassen[0];
+      const schulen = await supa.selectWhere("schulen", `id=eq.${klObj.schule_id}`);
       const schule = (schulen && schulen[0]) || null;
-      onValid({ klasse, schule });
+      onValid({ klasse: klObj, schule });
     } catch (e) {
       setError("Fehler beim Prüfen: " + e.message);
       setChecking(false);
@@ -1152,26 +1170,46 @@ function CodeEntry({ onValid, onBack, initialCode }) {
   };
 
   var VS_BLUE = "#2E2D8E";
+  const fieldStyle = {
+    padding: "14px 8px", fontSize: 24, fontWeight: 800,
+    borderRadius: 12, border: "2px solid " + (error ? "#dc2626" : "#e5e7eb"),
+    outline: "none", textAlign: "center", fontFamily: "monospace", letterSpacing: 2,
+    textTransform: "uppercase", boxSizing: "border-box",
+    color: VS_BLUE, background: "#fff",
+  };
+  const sepStyle = { fontSize: 26, fontWeight: 800, color: "#9ca3af", padding: "0 4px" };
+
   return (
     <div style={{ padding: "32px 20px 40px", textAlign: "center" }}>
       <div style={{ fontSize: 40, marginBottom: 10 }}>🎫</div>
       <h2 style={{ fontSize: 24, fontWeight: 900, color: VS_BLUE, marginBottom: 6 }}>Klassen-Code</h2>
-      <p style={{ color: "#6b7280", fontSize: 14, marginBottom: 20, maxWidth: 320, margin: "0 auto 20px", lineHeight: 1.5 }}>
-        Deine Lehrkraft hat einen Code an die Tafel geschrieben oder einen QR-Code gezeigt. Tipp den Code hier ein.
+      <p style={{ color: "#6b7280", fontSize: 14, marginBottom: 20, maxWidth: 360, margin: "0 auto 20px", lineHeight: 1.5 }}>
+        Deine Lehrkraft hat einen Code an die Tafel geschrieben. Tipp ihn hier in drei Teilen ein.
       </p>
-      <input value={code} onChange={e => setCode(e.target.value.toUpperCase())}
-        onKeyDown={e => e.key === "Enter" && submit()}
-        placeholder="z.B. GSOWL05B26"
-        style={{
-          maxWidth: 320, width: "100%", padding: "14px 16px", fontSize: 18, fontWeight: 700,
-          borderRadius: 12, border: "2px solid " + (error ? "#dc2626" : "#e5e7eb"),
-          outline: "none", textAlign: "center", fontFamily: "monospace", letterSpacing: 1,
-          textTransform: "uppercase", boxSizing: "border-box", marginBottom: 6,
-        }} />
-      {error && <div style={{ color: "#dc2626", fontSize: 13, fontWeight: 600, marginBottom: 10 }}>{error}</div>}
-      <div style={{ display: "flex", gap: 10, justifyContent: "center", marginTop: 18, flexWrap: "wrap" }}>
+      <div style={{ display: "flex", justifyContent: "center", alignItems: "center", maxWidth: 360, margin: "0 auto" }}>
+        <input ref={schulRef} value={schul}
+          onChange={e => setSchul(e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 3))}
+          onKeyDown={e => { if (e.key === "Enter" && formValid) submit(); }}
+          maxLength={3} placeholder="GSO" style={{ ...fieldStyle, width: 88 }} />
+        <span style={sepStyle}>·</span>
+        <input ref={klasseRef} value={klasse}
+          onChange={e => setKlasse(e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 3))}
+          onKeyDown={e => { if (e.key === "Enter" && formValid) submit(); }}
+          maxLength={3} placeholder="05B" style={{ ...fieldStyle, width: 88 }} />
+        <span style={sepStyle}>·</span>
+        <input ref={jahrRef} value={jahr}
+          onChange={e => setJahr(e.target.value.replace(/[^0-9]/g, "").slice(0, 2))}
+          onKeyDown={e => { if (e.key === "Enter" && formValid) submit(); }}
+          maxLength={2} placeholder={currentYear2()} inputMode="numeric"
+          style={{ ...fieldStyle, width: 68 }} />
+      </div>
+      <div style={{ fontSize: 11, color: "#9ca3af", marginTop: 8 }}>
+        Schul-Kürzel · Klasse · Jahr
+      </div>
+      {error && <div style={{ color: "#dc2626", fontSize: 13, fontWeight: 600, marginTop: 12 }}>{error}</div>}
+      <div style={{ display: "flex", gap: 10, justifyContent: "center", marginTop: 22, flexWrap: "wrap" }}>
         <Btn onClick={onBack}>← Zurück</Btn>
-        <Btn primary onClick={submit} disabled={checking || !code.trim()}>{checking ? "Prüfe…" : "Weiter"}</Btn>
+        <Btn primary onClick={submit} disabled={checking || !formValid}>{checking ? "Prüfe…" : "Weiter"}</Btn>
       </div>
     </div>
   );
@@ -1223,25 +1261,18 @@ function RolePicker({ onPick, onBack, schule, klasse }) {
 
 function DemographicsLight({ schule, klasse, onSubmit, onBack }) {
   const [geschlecht, setGeschlecht] = useState("");
-  const [consent, setConsent] = useState(false);
   var VS_BLUE = "#2E2D8E";
   return (
     <div style={{ textAlign: "center", padding: "32px 20px 40px" }}>
       {schule && klasse && (
         <div style={{
           background: "#f0f0ff", borderRadius: 14, padding: "10px 16px",
-          maxWidth: 360, margin: "0 auto 18px", border: "1px solid " + VS_BLUE + "33",
+          maxWidth: 360, margin: "0 auto 24px", border: "1px solid " + VS_BLUE + "33",
         }}>
           <div style={{ fontSize: 13, fontWeight: 700, color: VS_BLUE }}>{schule.name} · Klasse {klasse.bezeichnung}</div>
         </div>
       )}
-      <div style={{ fontSize: 40, marginBottom: 10 }}>👋</div>
-      <h2 style={{ fontSize: 22, fontWeight: 900, color: VS_BLUE, marginBottom: 6 }}>Nur noch eins</h2>
-      <p style={{ color: "#6b7280", fontSize: 14, marginBottom: 20, maxWidth: 320, margin: "0 auto 20px", lineHeight: 1.5 }}>
-        Klasse und Schule sind schon erkannt — eine letzte Angabe.
-      </p>
-
-      <label style={{ fontSize: 14, fontWeight: 700, color: VS_BLUE, marginBottom: 8, display: "block", maxWidth: 320, margin: "0 auto 8px" }}>Geschlecht</label>
+      <label style={{ fontSize: 16, fontWeight: 800, color: VS_BLUE, marginBottom: 14, display: "block", maxWidth: 320, margin: "0 auto 14px" }}>Geschlecht</label>
       <div style={{ maxWidth: 320, margin: "0 auto", display: "flex", gap: 8, flexWrap: "wrap" }}>
         {[
           { id: "m", label: "männlich", emoji: "👦" },
@@ -1265,19 +1296,9 @@ function DemographicsLight({ schule, klasse, onSubmit, onBack }) {
         })}
       </div>
 
-      <div style={{ maxWidth: 320, margin: "20px auto 0", textAlign: "left" }}>
-        <label style={{ display: "flex", gap: 10, cursor: "pointer", alignItems: "flex-start" }}>
-          <input type="checkbox" checked={consent} onChange={e => setConsent(e.target.checked)}
-            style={{ marginTop: 3, width: 20, height: 20, flexShrink: 0, cursor: "pointer", accentColor: VS_BLUE }} />
-          <span style={{ fontSize: 12, color: "#9ca3af", lineHeight: 1.5 }}>
-            Ich bin einverstanden, dass meine anonymen Angaben zusammen mit meinem Ergebnis gespeichert werden. Keine Namen, keine persönlichen Daten — nur für die Schulauswertung.
-          </span>
-        </label>
-      </div>
-
-      <div style={{ display: "flex", gap: 10, justifyContent: "center", marginTop: 24, flexWrap: "wrap" }}>
+      <div style={{ display: "flex", gap: 10, justifyContent: "center", marginTop: 28, flexWrap: "wrap" }}>
         <Btn onClick={onBack}>← Zurück</Btn>
-        <Btn primary disabled={!geschlecht || !consent} onClick={() => onSubmit({ geschlecht })}>Los geht's →</Btn>
+        <Btn primary disabled={!geschlecht} onClick={() => onSubmit({ geschlecht })}>Los geht's →</Btn>
       </div>
     </div>
   );
@@ -2516,11 +2537,6 @@ function RankValues({ values8, onDone }) {
           fontSize: 16, fontWeight: 800, cursor: "pointer",
           boxShadow: "0 6px 24px rgba(46,45,142,0.3)",
         }}>Das ist mein Ranking ✓</button>
-        <button onClick={function() { setDeepPinOpen(!deepPinOpen); setDeepPinError(false); setDeepPin(""); }} style={{
-          background: "#d1d5db", color: "#9ca3af",
-          border: "none", borderRadius: 99, padding: "10px 24px",
-          fontSize: 13, fontWeight: 600, cursor: "pointer",
-        }}>🔒 Tiefer gehen — Lebenswert & Superkräfte einzeln wählen</button>
       </div>
 
       {deepPinOpen && (
@@ -3061,51 +3077,14 @@ function Result({ kompass, onRestart, valHistory, maxRound, demographics, saveEr
         <p style={{ fontSize: 13, color: "#4b5563", lineHeight: 1.7, margin: 0, textAlign: "left" }}>{desc.text}</p>
       </div>
 
-      {/* V-Code */}
-      <div style={{ background: "#1e1b4b", borderRadius: 14, padding: "16px 20px", marginBottom: 24, maxWidth: 380, margin: "0 auto 24px" }}>
-        <div style={{ fontSize: 10, color: "#6366f1", marginBottom: 6, textTransform: "uppercase", letterSpacing: 3 }}>Dein V‑Code</div>
-        <div style={{ display: "flex", justifyContent: "center", gap: 3, flexWrap: "wrap" }}>
-          {all.map(function(v, i) {
-            return (
-              <span key={v.name} style={{ fontFamily: "monospace", fontSize: 14, fontWeight: 800, color: CAT[v.cat].bg }}>
-                {VALUE_ABBR[v.name] || "?"}{i < all.length - 1 ? <span style={{ color: "#ffffff22", margin: "0 1px" }}>·</span> : ""}
-              </span>
-            );
-          })}
-        </div>
-      </div>
-
-      {/* Share */}
+      {/* Bild erstellen */}
       <div style={{ display: "flex", gap: 10, justifyContent: "center", flexWrap: "wrap", marginBottom: 18 }}>
         <button onClick={handleShare} style={{
           background: "linear-gradient(135deg,#E4405F,#C13584)", color: "#fff", border: "none", borderRadius: 12,
           padding: "12px 20px", fontSize: 14, fontWeight: 700, cursor: "pointer",
         }}>📸 Bild erstellen</button>
-        <button onClick={handleCopy} style={{
-          background: "linear-gradient(135deg,#0077B5,#00A0DC)", color: "#fff", border: "none", borderRadius: 12,
-          padding: "12px 20px", fontSize: 14, fontWeight: 700, cursor: "pointer",
-        }}>{copied ? "✅ Kopiert!" : "📋 Text kopieren"}</button>
-        {resultId && (
-          <button onClick={() => {
-            const url = buildShareUrl(resultId);
-            try { navigator.clipboard.writeText(url).then(() => { setCopied(true); setTimeout(() => setCopied(false), 2000); }); }
-            catch (e) { prompt("Link kopieren:", url); }
-          }} style={{
-            background: "linear-gradient(135deg,#2E2D8E,#3b2d8e)", color: "#fff", border: "none", borderRadius: 12,
-            padding: "12px 20px", fontSize: 14, fontWeight: 700, cursor: "pointer",
-          }}>🔗 Link teilen</button>
-        )}
       </div>
 
-      {klasse && (
-        <div style={{ marginBottom: 24 }}>
-          <button onClick={onClassView} style={{
-            background: "#fff", color: "#2E2D8E",
-            border: "2px solid #2E2D8E", borderRadius: 12,
-            padding: "12px 22px", fontSize: 14, fontWeight: 700, cursor: "pointer",
-          }}>👥 So tickt eure Klasse</button>
-        </div>
-      )}
       {shareImg && (
         <div style={{ marginBottom: 24, maxWidth: 380, margin: "0 auto 24px" }}>
           <img src={shareImg} alt="Wertekompass" style={{ width: "100%", borderRadius: 12, border: "1px solid #e5e7eb" }} />
@@ -3116,78 +3095,8 @@ function Result({ kompass, onRestart, valHistory, maxRound, demographics, saveEr
         </div>
       )}
 
-      {/* Deep dive section - PIN locked */}
-      {!showDeep && (
-        <div style={{ background: "#f8fafc", borderRadius: 16, padding: 20, marginBottom: 24, maxWidth: 380, margin: "0 auto 24px" }}>
-          <div style={{ fontSize: 28, marginBottom: 8 }}>🔍</div>
-          <div style={{ fontSize: 16, fontWeight: 800, color: "#2E2D8E", marginBottom: 4 }}>Tiefer gehen?</div>
-          <p style={{ fontSize: 12, color: "#9ca3af", marginBottom: 14, lineHeight: 1.5 }}>
-            Finde heraus was dein Lebenswert und deine Superkräfte sind. Deine Lehrkraft gibt dir den Code dafür.
-          </p>
-          <div style={{ display: "flex", gap: 8, justifyContent: "center", alignItems: "center" }}>
-            <input type="text" value={deepPin} onChange={function(e) { setDeepPin(e.target.value); setDeepError(false); }}
-              onKeyDown={function(e) { if (e.key === "Enter") tryDeepPin(); }}
-              placeholder="Code eingeben"
-              style={{
-                padding: "10px 16px", fontSize: 15, fontWeight: 600, borderRadius: 10,
-                border: deepError ? "2px solid #ef4444" : "2px solid #e5e7eb",
-                outline: "none", width: 180, textAlign: "center", textTransform: "uppercase",
-              }}
-            />
-            <Btn small primary onClick={tryDeepPin}>Freischalten</Btn>
-          </div>
-          {deepError && <p style={{ color: "#ef4444", fontSize: 12, marginTop: 6 }}>Falscher Code</p>}
-        </div>
-      )}
-
-      {/* Deep dive content - unlocked */}
-      {showDeep && (
-        <div style={{ maxWidth: 380, margin: "0 auto 24px" }}>
-          <div style={{ background: "#f0fdf4", border: "1px solid #bbf7d0", borderRadius: 12, padding: "10px 16px", marginBottom: 20, fontSize: 13, color: "#166534", fontWeight: 600 }}>
-            ✅ Detailansicht freigeschaltet
-          </div>
-
-          <div style={{ background: "linear-gradient(140deg,#1e1b4b,#312e81)", borderRadius: 20, padding: 24, marginBottom: 16, color: "#fff" }}>
-            <div style={{ fontSize: 11, textTransform: "uppercase", letterSpacing: 3, opacity: 0.6, marginBottom: 8 }}>Lebenswert</div>
-            <div style={{ fontSize: 32, fontWeight: 900 }}>{lw.name}</div>
-            <div style={{ display: "inline-block", marginTop: 8, background: CAT[lw.cat].bg, padding: "4px 14px", borderRadius: 99, fontSize: 11, fontWeight: 600 }}>{CAT[lw.cat].label}</div>
-          </div>
-
-          <div style={{ marginBottom: 16 }}>
-            <div style={{ fontSize: 11, textTransform: "uppercase", letterSpacing: 3, color: "#9ca3af", marginBottom: 8 }}>Superkräfte</div>
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 6 }}>
-              {sk.map(function(v) {
-                var c = CAT[v.cat];
-                return (
-                  <div key={v.name} style={{ padding: "10px 6px", borderRadius: 12, background: "linear-gradient(140deg," + c.bg + "ee," + c.bg + ")", color: "#fff", fontSize: 13, fontWeight: 700, textAlign: "center" }}>
-                    💪 {v.name}
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-
-          <div style={{ marginBottom: 20 }}>
-            <div style={{ fontSize: 11, textTransform: "uppercase", letterSpacing: 3, color: "#9ca3af", marginBottom: 8 }}>Grundwerte</div>
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 6 }}>
-              {gw.map(function(v) {
-                var c = CAT[v.cat];
-                return (
-                  <div key={v.name} style={{ padding: "8px 6px", borderRadius: 10, background: c.bg + "15", color: c.bg, fontSize: 13, fontWeight: 600, textAlign: "center" }}>
-                    {v.name}
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* DNA Viz */}
-          <VCodeDNA allValues={all} valHistory={valHistory} maxRound={maxRound} />
-        </div>
-      )}
-
-      <div style={{ marginTop: 8 }}>
-        <Btn onClick={onRestart}>🔄 Nochmal spielen</Btn>
+      <div style={{ marginTop: 24 }}>
+        <Btn primary onClick={onRestart}>Abschluss ✓</Btn>
       </div>
     </div>
   );
@@ -3221,8 +3130,9 @@ function currentYear2() {
 function makeClassCode(schulkuerzel, klasse, year2) {
   const klBez = sanitizeKlassenBezeichnung(klasse);
   const yy = year2 || currentYear2();
-  // Schul-Code säubern: nur A-Z0-9, evtl. altes 4-stelliges Jahr-Suffix abschneiden, auf 5 Zeichen begrenzen
-  const schul = schulkuerzel.toUpperCase().replace(/[^A-Z0-9]/g, "").replace(/\d{4}$/, "").slice(0, 5);
+  // Schul-Code säubern: nur A-Z0-9, auf 3 Zeichen begrenzen (z.B. GSO)
+  // Gesamtformat: GSO05B26 (3+3+2 = 8 Zeichen)
+  const schul = schulkuerzel.toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 3);
   return `${schul}${klBez}${yy}`;
 }
 function classCodeToTestUrl(code) {
@@ -3280,7 +3190,7 @@ function SchulenManager({ onBack, onShowKlasse }) {
     const name = newSchule.name.trim();
     const kuerzel = newSchule.kuerzel.trim().toUpperCase().replace(/[^A-Z0-9]/g, "");
     if (!name) return flash("⚠️ Name fehlt");
-    if (kuerzel.length !== 5) return flash("⚠️ Schul-Code muss genau 5 Zeichen sein (Buchstaben/Zahlen, z.B. GSOWL)");
+    if (kuerzel.length !== 3) return flash("⚠️ Schul-Code muss genau 3 Zeichen sein (Buchstaben/Zahlen, z.B. GSO)");
     try {
       const schulCode = kuerzel;
       const created = await supa.insertReturning("schulen", {
@@ -3380,8 +3290,8 @@ function SchulenManager({ onBack, onShowKlasse }) {
           <input value={newSchule.name} onChange={e => setNewSchule({ ...newSchule, name: e.target.value })}
             placeholder="Name der Schule (z.B. Muckelheimer Oberschule)" style={{ ...inputStyle, marginBottom: 8 }} />
           <input value={newSchule.kuerzel} onChange={e => setNewSchule({ ...newSchule, kuerzel: e.target.value })}
-            placeholder="Schul-Code (genau 5 Zeichen, z.B. GSOWL)" style={{ ...inputStyle, marginBottom: 8 }} maxLength={5} />
-          <div style={{ fontSize: 11, color: "#9ca3af", marginBottom: 8 }}>Genau 5 Zeichen, GROSS, keine Sonderzeichen. Klassencodes werden dann z.B. {(newSchule.kuerzel.toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 5) || "GSOWL")}05B{currentYear2()}.</div>
+            placeholder="Schul-Code (genau 3 Zeichen, z.B. GSO)" style={{ ...inputStyle, marginBottom: 8 }} maxLength={3} />
+          <div style={{ fontSize: 11, color: "#9ca3af", marginBottom: 8 }}>Genau 3 Zeichen, GROSS, keine Sonderzeichen. Klassencodes werden dann z.B. {(newSchule.kuerzel.toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 3) || "GSO")}05B{currentYear2()}.</div>
           <select value={newSchule.schulform} onChange={e => setNewSchule({ ...newSchule, schulform: e.target.value })}
             style={{ ...selectStyle, width: "100%", marginBottom: 8 }}>
             {SCHULFORMEN.map(f => <option key={f.id} value={f.id}>{f.label}</option>)}

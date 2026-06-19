@@ -21,8 +21,7 @@ window.FRAGEBOGEN_SCHUELER = {
       "ein paar Fragen zu dir und deiner Schule stellen. Antworte gerne ehrlich " +
       "und spontan.\n\n" +
       "Es gibt keine „richtigen“ oder „falschen“ und keine „guten“ oder " +
-      "„schlechten“ Antworten. Wir fragen auch nirgendwo nach deinem Namen. " +
-      "Keiner wird wissen, was genau du geantwortet hast.\n\n" +
+      "„schlechten“ Antworten.\n\n" +
       "Vielen Dank, dass du mit dabei bist. Du bist WERTvoll!",
   },
 
