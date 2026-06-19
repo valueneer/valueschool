@@ -564,6 +564,45 @@ function PseudonymBuilder({ initial, onComplete, intro }) {
 /* ════════════════════════════════════════════════════════════════════
    WELCOME SCREEN
    ════════════════════════════════════════════════════════════════════ */
+/* ════════════════════════════════════════════════════════════════════
+   SCHULCODE-EINGABE — erste Seite wenn URL ohne ?schule= aufgerufen wird
+   ════════════════════════════════════════════════════════════════════ */
+function SchulcodeEntry({ rolle, onSubmit, checking, error, initial }) {
+  const [code, setCode] = useState(initial || "");
+  const submit = () => onSubmit(code);
+  return (
+    <div className="fade-in" style={{ padding: "48px 20px 60px", textAlign: "center" }}>
+      <div style={{ fontSize: 48, marginBottom: 8 }}>🎫</div>
+      <div style={{ fontSize: 24, fontWeight: 900, color: COL.blueDark, marginBottom: 8 }}>
+        {rolle === "schueler" ? "Hi! Schön, dass du da bist." : "Hallo!"}
+      </div>
+      <p style={{ fontSize: 14, color: COL.textMuted, lineHeight: 1.55, maxWidth: 380, margin: "0 auto 24px" }}>
+        {rolle === "schueler"
+          ? "Tipp den Code ein, den du von deiner Lehrkraft bekommen hast."
+          : "Bitte gib den Code ein, den ihr für eure Schule bekommen habt."}
+      </p>
+      <input value={code}
+        onChange={e => setCode(e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 12))}
+        onKeyDown={e => { if (e.key === "Enter" && code.trim()) submit(); }}
+        placeholder="z.B. ABC1234"
+        autoFocus
+        style={{
+          padding: "16px 20px", border: `2px solid ${error ? "#dc2626" : COL.border}`, borderRadius: 14,
+          fontSize: 24, fontWeight: 800, textAlign: "center", fontFamily: "monospace",
+          letterSpacing: 4, color: COL.blue, width: "100%", maxWidth: 280, boxSizing: "border-box",
+          textTransform: "uppercase",
+        }}
+      />
+      {error && <div style={{ color: "#dc2626", fontSize: 13, fontWeight: 600, marginTop: 12, maxWidth: 380, margin: "12px auto 0", lineHeight: 1.4 }}>{error}</div>}
+      <div style={{ marginTop: 24 }}>
+        <Btn primary disabled={checking || !code.trim()} onClick={submit}>
+          {checking ? "Prüfe…" : "Weiter →"}
+        </Btn>
+      </div>
+    </div>
+  );
+}
+
 function WelcomeScreen({ intro, schule, klasse, rolle, phase, onStart }) {
   const isPost = phase === "post";
   return (
@@ -636,7 +675,7 @@ function App() {
   const schuleParam = params.get("schule");  // Schul-Code (Lehrer)
   const phaseParam = params.get("phase") || "pre"; // pre | post
 
-  const [phase, setPhase] = useState("loading"); // loading | invalid | welcome | pseudonym | survey | done | error
+  const [phase, setPhase] = useState("loading"); // loading | invalid | schulcode-entry | welcome | pseudonym | survey | done | error
   const [error, setError] = useState(null);
   const [schule, setSchule] = useState(null);
   const [klasse, setKlasse] = useState(null);
@@ -645,6 +684,8 @@ function App() {
   const [responses, setResponses] = useState({});
   const [sectionIdx, setSectionIdx] = useState(0);
   const [saving, setSaving] = useState(false);
+  const [codeCheckError, setCodeCheckError] = useState(null);
+  const [codeChecking, setCodeChecking] = useState(false);
 
   const rolle = rolleFromUrl === "lehrkraft" || rolleFromUrl === "lehrer" ? "lehrkraft"
               : rolleFromUrl === "schueler" || rolleFromUrl === "schüler" ? "schueler"
@@ -654,48 +695,59 @@ function App() {
                    : rolle === "schueler" ? window.FRAGEBOGEN_SCHUELER
                    : null;
 
-  // LocalStorage Key für Wiedererkennung
+  // LocalStorage Key für Wiedererkennung — bindet Pseudonym an Schul-Code
   const lsKey = useMemo(() => {
-    if (!rolle || (!codeParam && !schuleParam)) return null;
-    const scope = codeParam || schuleParam;
-    return `vs_studie_${rolle}_${scope}`;
-  }, [rolle, codeParam, schuleParam]);
+    if (!rolle || !schule) return null;
+    return `vs_studie_${rolle}_${schule.code}`;
+  }, [rolle, schule]);
 
-  // Initial Load: Schule + Klasse aus URL ziehen, localStorage prüfen
+  // Schul-Code-Lookup gemeinsam für Schüler + Lehrer
+  const lookupSchule = async (code) => {
+    setCodeChecking(true);
+    setCodeCheckError(null);
+    try {
+      const trimmed = (code || "").trim().toUpperCase();
+      if (!trimmed) { setCodeCheckError("Bitte Schul-Code eingeben"); setCodeChecking(false); return false; }
+      const schulen = await supa.selectWhere("schulen", "*", { code: trimmed });
+      if (!schulen.length) {
+        setCodeCheckError(`Code „${trimmed}“ nicht gefunden. Stimmt der Code von der Lehrkraft?`);
+        setCodeChecking(false); return false;
+      }
+      setSchule(schulen[0]);
+      // localStorage prüfen für Pseudonym-Wiedererkennung
+      try {
+        const k = `vs_studie_${rolle}_${schulen[0].code}`;
+        const stored = localStorage.getItem(k);
+        if (stored) {
+          const parsed = JSON.parse(stored);
+          if (parsed.pseudonym) setSavedPseudonym(parsed.pseudonym);
+        }
+      } catch (e) {}
+      setPhase("welcome");
+      setCodeChecking(false);
+      return true;
+    } catch (e) {
+      setCodeCheckError("Fehler beim Prüfen: " + e.message);
+      setCodeChecking(false);
+      return false;
+    }
+  };
+
+  // Initial Load: URL-Parameter auswerten
   useEffect(() => {
     (async () => {
       try {
         if (!rolle) { setError("URL-Parameter ?role= fehlt (schueler oder lehrkraft)"); setPhase("invalid"); return; }
         if (!fragebogen) { setError("Kein Fragebogen für diese Rolle"); setPhase("invalid"); return; }
 
-        if (rolle === "schueler") {
-          if (!codeParam) { setError("Klassen-Code fehlt (?code=)"); setPhase("invalid"); return; }
-          const klassen = await supa.selectWhere("klassen", "*", { code: codeParam });
-          if (!klassen.length) { setError(`Klassen-Code „${codeParam}“ nicht gefunden`); setPhase("invalid"); return; }
-          const k = klassen[0];
-          setKlasse(k);
-          const schulen = await supa.selectWhere("schulen", "*", { id: k.schule_id });
-          if (schulen.length) setSchule(schulen[0]);
+        // Schul-Code in URL? Direkt prüfen. Sonst Eingabemaske.
+        const codeInUrl = schuleParam || codeParam; // codeParam für Rückwärts-Kompatibilität
+        if (codeInUrl) {
+          const ok = await lookupSchule(codeInUrl);
+          if (!ok) { setPhase("schulcode-entry"); }
         } else {
-          // Lehrkraft
-          if (!schuleParam) { setError("Schul-Code fehlt (?schule=)"); setPhase("invalid"); return; }
-          const schulen = await supa.selectWhere("schulen", "*", { code: schuleParam });
-          if (!schulen.length) { setError(`Schul-Code „${schuleParam}“ nicht gefunden`); setPhase("invalid"); return; }
-          setSchule(schulen[0]);
+          setPhase("schulcode-entry");
         }
-
-        // localStorage prüfen für Wiedererkennung
-        if (lsKey) {
-          try {
-            const stored = localStorage.getItem(lsKey);
-            if (stored) {
-              const parsed = JSON.parse(stored);
-              if (parsed.pseudonym) setSavedPseudonym(parsed.pseudonym);
-            }
-          } catch (e) { /* ignore */ }
-        }
-
-        setPhase("welcome");
       } catch (e) {
         setError("Fehler beim Laden: " + e.message);
         setPhase("error");
@@ -764,9 +816,10 @@ function App() {
     }
   };
 
-  const gameUrl = klasse && pseudonym
-    ? `../?code=${encodeURIComponent(klasse.code)}&pseudonym=${encodeURIComponent(pseudonym)}`
-    : klasse ? `../?code=${encodeURIComponent(klasse.code)}` : null;
+  // Übergabe an Wertetest: Schul-Code + Pseudonym. Klasse wählt der Schüler dort.
+  const gameUrl = schule && pseudonym
+    ? `../?schule=${encodeURIComponent(schule.code)}&pseudonym=${encodeURIComponent(pseudonym)}`
+    : schule ? `../?schule=${encodeURIComponent(schule.code)}` : null;
 
   /* ─────────────────── RENDER ─────────────────── */
 
@@ -785,6 +838,11 @@ function App() {
         </p>
       </div>
     );
+  }
+
+  if (phase === "schulcode-entry") {
+    return <SchulcodeEntry rolle={rolle} onSubmit={lookupSchule}
+      checking={codeChecking} error={codeCheckError} initial={schuleParam || codeParam} />;
   }
 
   if (phase === "welcome") {

@@ -1308,9 +1308,22 @@ function RolePicker({ onPick, onBack, schule, klasse }) {
   );
 }
 
-function DemographicsLight({ schule, klasse, onSubmit, onBack }) {
+function DemographicsLight({ schule, klasse, onSubmit, onBack, needsKlassenwahl }) {
   const [geschlecht, setGeschlecht] = useState("");
+  const [stufe, setStufe] = useState("");      // "1" .. "13"
+  const [zug, setZug] = useState("");          // "A" .. "D"
+  const [freitext, setFreitext] = useState(""); // alternativer Klassen-Name
   var VS_BLUE = "#2E2D8E";
+
+  // Klassen-Bezeichnung berechnen — entweder Dropdown oder Freitext
+  let klasseLabel = "";
+  if (needsKlassenwahl) {
+    if (freitext.trim()) klasseLabel = freitext.trim();
+    else if (stufe && zug) klasseLabel = (stufe.length === 1 ? "0" + stufe : stufe) + zug;
+  }
+
+  const ready = !!geschlecht && (!needsKlassenwahl || !!klasseLabel);
+
   return (
     <div style={{ textAlign: "center", padding: "32px 20px 40px" }}>
       {schule && klasse && (
@@ -1321,6 +1334,7 @@ function DemographicsLight({ schule, klasse, onSubmit, onBack }) {
           <div style={{ fontSize: 13, fontWeight: 700, color: VS_BLUE }}>{schule.name} · Klasse {klasse.bezeichnung}</div>
         </div>
       )}
+
       <label style={{ fontSize: 16, fontWeight: 800, color: VS_BLUE, marginBottom: 14, display: "block", maxWidth: 320, margin: "0 auto 14px" }}>Geschlecht</label>
       <div style={{ maxWidth: 320, margin: "0 auto", display: "flex", gap: 8, flexWrap: "wrap" }}>
         {[
@@ -1345,9 +1359,48 @@ function DemographicsLight({ schule, klasse, onSubmit, onBack }) {
         })}
       </div>
 
+      {needsKlassenwahl && (
+        <div style={{ maxWidth: 320, margin: "24px auto 0", textAlign: "left" }}>
+          <label style={{ fontSize: 16, fontWeight: 800, color: VS_BLUE, marginBottom: 10, display: "block", textAlign: "center" }}>Deine Klasse</label>
+          <div style={{ display: "flex", gap: 8, marginBottom: 10 }}>
+            <select value={stufe} onChange={e => { setStufe(e.target.value); setFreitext(""); }} style={{
+              flex: 2, padding: "10px 12px", borderRadius: 10, border: "2px solid #e5e7eb",
+              fontSize: 14, fontWeight: 600, color: VS_BLUE, background: "#fff", cursor: "pointer",
+            }}>
+              <option value="">Stufe wählen</option>
+              {Array.from({ length: 13 }, (_, i) => i + 1).map(n => (
+                <option key={n} value={String(n)}>Klasse {n}</option>
+              ))}
+            </select>
+            <select value={zug} onChange={e => { setZug(e.target.value); setFreitext(""); }} style={{
+              flex: 1, padding: "10px 12px", borderRadius: 10, border: "2px solid #e5e7eb",
+              fontSize: 14, fontWeight: 600, color: VS_BLUE, background: "#fff", cursor: "pointer",
+            }}>
+              <option value="">Zug</option>
+              {["A", "B", "C", "D"].map(z => <option key={z} value={z}>{z}</option>)}
+            </select>
+          </div>
+          <input value={freitext}
+            onChange={e => { setFreitext(e.target.value); if (e.target.value) { setStufe(""); setZug(""); } }}
+            placeholder="oder eigenen Klassennamen eintippen"
+            style={{
+              width: "100%", padding: "10px 12px", borderRadius: 10, border: "2px solid #e5e7eb",
+              fontSize: 14, fontWeight: 600, color: VS_BLUE, boxSizing: "border-box",
+            }} />
+          <div style={{ fontSize: 11, color: "#9ca3af", marginTop: 6, lineHeight: 1.4 }}>
+            Wenn nichts oben passt, gib hier deinen Klassennamen ein.
+          </div>
+          {klasseLabel && (
+            <div style={{ marginTop: 10, padding: "8px 12px", background: "#eef2ff", borderRadius: 8, fontSize: 13, color: VS_BLUE, fontWeight: 700, textAlign: "center" }}>
+              Deine Klasse: {klasseLabel}
+            </div>
+          )}
+        </div>
+      )}
+
       <div style={{ display: "flex", gap: 10, justifyContent: "center", marginTop: 28, flexWrap: "wrap" }}>
         <Btn onClick={onBack}>← Zurück</Btn>
-        <Btn primary disabled={!geschlecht} onClick={() => onSubmit({ geschlecht })}>Los geht's →</Btn>
+        <Btn primary disabled={!ready} onClick={() => onSubmit({ geschlecht, klasseLabel: needsKlassenwahl ? klasseLabel : null })}>Los geht's →</Btn>
       </div>
     </div>
   );
@@ -4025,7 +4078,7 @@ function App() {
           }
         } catch (e) { console.error("Werte-Beschreibungen load error:", e); }
       }
-      // URL-Code lesen
+      // URL-Code lesen (Klassencode, alter Pfad mit klasse-spezifischer URL)
       const urlCode = parseCodeFromUrl();
       if (urlCode && USE_SUPABASE) {
         try {
@@ -4035,7 +4088,6 @@ function App() {
             setKlasse(k);
             const sch = await supa.selectWhere("schulen", `id=eq.${k.schule_id}`);
             if (sch && sch[0]) setSchule(sch[0]);
-            // Prüfe ob dieser Browser für diese Klasse schon mal gespielt hat (persistent)
             const prevId = getStoredResultIdForKlasse(k.id);
             if (prevId) {
               setMySessionResultId(prevId);
@@ -4046,6 +4098,21 @@ function App() {
           }
         } catch (e) { console.error("Code-Lookup-Fehler:", e); }
       }
+
+      // URL-?schule= lesen (neuer Pfad: Übergabe von Studie, Klasse wählt der Schüler selbst)
+      try {
+        const u = new URL(window.location.href);
+        const schuleParam = u.searchParams.get("schule");
+        if (schuleParam && USE_SUPABASE) {
+          const schulen = await supa.selectWhere("schulen", `code=eq.${encodeURIComponent(schuleParam.toUpperCase())}`);
+          if (schulen && schulen[0]) {
+            setSchule(schulen[0]);
+            setRolle("schueler");
+          } else {
+            setCodeError("Schul-Code unbekannt: " + schuleParam);
+          }
+        }
+      } catch (e) { console.error("Schule-Lookup-Fehler:", e); }
 
       // URL-ResultId lesen (geteilter V-Code-Link)
       const vId = parseVIdFromUrl();
@@ -4101,11 +4168,35 @@ function App() {
     setPhase("compare");
   };
 
-  const handleSchoolDemoSubmit = (demo) => {
-    // Schul-Pfad: nur geschlecht von demo, Klasse/Schule aus State
+  const handleSchoolDemoSubmit = async (demo) => {
+    // Schul-Pfad: Geschlecht + (falls Klassenwahl) Klasse aus demo
+    let klasseFinal = klasse;
+
+    // Klassenwahl: Klasse on-the-fly anlegen, falls neu
+    if (!klasse && demo.klasseLabel && schule && USE_SUPABASE) {
+      try {
+        const bez = demo.klasseLabel.trim().toUpperCase();
+        // Existiert in der Schule schon eine Klasse mit dieser Bezeichnung?
+        const existing = await supa.selectWhere("klassen", `bezeichnung=eq.${encodeURIComponent(bez)}&schule_id=eq.${schule.id}`);
+        if (existing && existing[0]) {
+          klasseFinal = existing[0];
+        } else {
+          // Klassencode bauen: SchulPrefix(3) + Bezeichnung + Jahr2
+          const schulPrefix = (schule.code || "").toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 3);
+          const jahr2 = String(new Date().getFullYear()).slice(-2);
+          const klCode = schulPrefix + bez + jahr2;
+          const created = await supa.insertReturning("klassen", {
+            schule_id: schule.id, bezeichnung: bez, code: klCode,
+          });
+          klasseFinal = created;
+        }
+        setKlasse(klasseFinal);
+      } catch (e) { console.error("Klasse anlegen Fehler:", e); }
+    }
+
     setDemographics({
       geschlecht: demo.geschlecht,
-      klasse: klasse ? (klasse.klassenstufe || klasse.bezeichnung) : null,
+      klasse: klasseFinal ? (klasseFinal.klassenstufe || klasseFinal.bezeichnung) : (demo.klasseLabel || null),
       schulform: schule ? schule.schulform : null,
     });
     initGame();
@@ -4303,7 +4394,11 @@ function App() {
         </div>
       )}
       {phase === "intro" && <Intro
-        onStart={() => { if (schule && klasse) { setRolle("schueler"); setPhase("demographics-light"); } else setPhase("code-entry"); }}
+        onStart={() => {
+          // Schule erkannt? → direkt Demographics-Light (mit Klassenwahl falls keine Klasse pre-erkannt)
+          if (schule) { setRolle("schueler"); setPhase("demographics-light"); }
+          else setPhase("code-entry");
+        }}
         onCodeEntry={() => setPhase("code-entry")}
         onFreeStart={() => setPhase("demographics")}
         valueCount={values.length}
@@ -4346,6 +4441,7 @@ function App() {
       />}
       {phase === "demographics-light" && <DemographicsLight
         schule={schule} klasse={klasse}
+        needsKlassenwahl={!klasse}
         onSubmit={handleSchoolDemoSubmit}
         onBack={() => setPhase("intro")}
       />}
