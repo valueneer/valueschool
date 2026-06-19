@@ -572,14 +572,9 @@ function WelcomeScreen({ intro, schule, klasse, rolle, phase, onStart }) {
       <div style={{ fontSize: 26, fontWeight: 900, color: COL.blueDark, marginBottom: 12, lineHeight: 1.2 }}>
         {isPost ? "Schön, dass du wieder da bist." : intro.titel}
       </div>
-      {schule && (
-        <div style={{
-          display: "inline-block", padding: "6px 14px", background: "#eef2ff",
-          borderRadius: 99, fontSize: 13, color: COL.blue, fontWeight: 700, marginBottom: 16,
-        }}>
-          {schule.name}{klasse ? ` · Klasse ${klasse.bezeichnung}` : ""}
-        </div>
-      )}
+      {/* Schul-Chip bewusst nicht angezeigt: Lehrer/Schüler wissen, in welcher Schule sie sind,
+          und im Tester-Modus mit "Test-Schule" wirkt das nur verwirrend. Kontext wandert per
+          Pseudonym + schule_id intern in die DB, das reicht. */}
       <p style={{ fontSize: 15, color: COL.textMuted, lineHeight: 1.6, textAlign: "left", whiteSpace: "pre-wrap", maxWidth: 520, margin: "0 auto 24px" }}>
         {isPost
           ? "Wir möchten dir jetzt die gleichen Fragen wie beim ersten Mal stellen. So können wir sehen, was sich verändert hat. Antworte wieder ehrlich und spontan — wie es heute für dich passt."
