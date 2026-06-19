@@ -1118,6 +1118,55 @@ function parseCodeFromUrl() {
   } catch (e) { return null; }
 }
 
+/* ════════════════════════════════════════════════════════════════════
+   FEATURE-FLAGS
+   ════════════════════════════════════════════════════════════════════
+   Der Wertetest hat zwei Erscheinungsformen:
+
+   (1) ALLGEMEINER TEST — Default, alle Features an:
+       V-Code, Share-Buttons (Text + Link), Klassenlandschaft-Button,
+       Tiefer-gehen-Bereich auf Ranking und Ergebnis, "Nochmal spielen".
+
+   (2) SCHUL-EINSATZ / STUDIE — reduzierte Variante, nur Spielfluss:
+       Bild erstellen + Abschluss. Alles andere aus.
+
+   Erkannt wird "Schul-Einsatz" automatisch am ?pseudonym=-Parameter
+   (Studie-Übergang). Manuell auch mit ?lite=1 zu erzwingen.
+
+   Erweiterung: weitere Profile (z.B. ?config=workshop, ?config=open-day)
+   können später hier zentral konfiguriert werden, ohne den Komponenten-
+   Code anzufassen. */
+const FEATURE_PROFILES = {
+  full: {
+    vCode:        true,
+    shareText:    true,
+    shareLink:    true,
+    classView:    true,
+    deepDive:     true,
+    replayLabel:  "🔄 Nochmal spielen",
+  },
+  lite: {
+    vCode:        false,
+    shareText:    false,
+    shareLink:    false,
+    classView:    false,
+    deepDive:     false,
+    replayLabel:  "Abschluss ✓",
+  },
+};
+
+function detectFeatureProfile() {
+  try {
+    const u = new URL(window.location.href);
+    if (u.searchParams.get("lite") === "1") return "lite";
+    if (u.searchParams.get("config")) return u.searchParams.get("config");
+    if (u.searchParams.get("pseudonym")) return "lite"; // Studie-Übergang
+    return "full";
+  } catch (e) { return "full"; }
+}
+
+const FEATURES = FEATURE_PROFILES[detectFeatureProfile()] || FEATURE_PROFILES.full;
+
 const ROLES = [
   { id: "schueler",     label: "Schüler:in",     emoji: "🎒", group: "schueler" },
   { id: "lehrkraft",    label: "Lehrkraft",      emoji: "👩‍🏫", group: "schule" },
@@ -2537,6 +2586,13 @@ function RankValues({ values8, onDone }) {
           fontSize: 16, fontWeight: 800, cursor: "pointer",
           boxShadow: "0 6px 24px rgba(46,45,142,0.3)",
         }}>Das ist mein Ranking ✓</button>
+        {FEATURES.deepDive && (
+          <button onClick={function() { setDeepPinOpen(!deepPinOpen); setDeepPinError(false); setDeepPin(""); }} style={{
+            background: "#d1d5db", color: "#9ca3af",
+            border: "none", borderRadius: 99, padding: "10px 24px",
+            fontSize: 13, fontWeight: 600, cursor: "pointer",
+          }}>🔒 Tiefer gehen — Lebenswert & Superkräfte einzeln wählen</button>
+        )}
       </div>
 
       {deepPinOpen && (
@@ -3077,13 +3133,55 @@ function Result({ kompass, onRestart, valHistory, maxRound, demographics, saveEr
         <p style={{ fontSize: 13, color: "#4b5563", lineHeight: 1.7, margin: 0, textAlign: "left" }}>{desc.text}</p>
       </div>
 
-      {/* Bild erstellen */}
+      {/* V-Code (allgemein an, Schul-Einsatz aus) */}
+      {FEATURES.vCode && (
+        <div style={{ background: "#1e1b4b", borderRadius: 14, padding: "16px 20px", marginBottom: 24, maxWidth: 380, margin: "0 auto 24px" }}>
+          <div style={{ fontSize: 10, color: "#6366f1", marginBottom: 6, textTransform: "uppercase", letterSpacing: 3 }}>Dein V‑Code</div>
+          <div style={{ display: "flex", justifyContent: "center", gap: 3, flexWrap: "wrap" }}>
+            {all.map(function(v, i) {
+              return (
+                <span key={v.name} style={{ fontFamily: "monospace", fontSize: 14, fontWeight: 800, color: CAT[v.cat].bg }}>
+                  {VALUE_ABBR[v.name] || "?"}{i < all.length - 1 ? <span style={{ color: "#ffffff22", margin: "0 1px" }}>·</span> : ""}
+                </span>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* Share-Buttons */}
       <div style={{ display: "flex", gap: 10, justifyContent: "center", flexWrap: "wrap", marginBottom: 18 }}>
         <button onClick={handleShare} style={{
           background: "linear-gradient(135deg,#E4405F,#C13584)", color: "#fff", border: "none", borderRadius: 12,
           padding: "12px 20px", fontSize: 14, fontWeight: 700, cursor: "pointer",
         }}>📸 Bild erstellen</button>
+        {FEATURES.shareText && (
+          <button onClick={handleCopy} style={{
+            background: "linear-gradient(135deg,#0077B5,#00A0DC)", color: "#fff", border: "none", borderRadius: 12,
+            padding: "12px 20px", fontSize: 14, fontWeight: 700, cursor: "pointer",
+          }}>{copied ? "✅ Kopiert!" : "📋 Text kopieren"}</button>
+        )}
+        {FEATURES.shareLink && resultId && (
+          <button onClick={() => {
+            const url = buildShareUrl(resultId);
+            try { navigator.clipboard.writeText(url).then(() => { setCopied(true); setTimeout(() => setCopied(false), 2000); }); }
+            catch (e) { prompt("Link kopieren:", url); }
+          }} style={{
+            background: "linear-gradient(135deg,#2E2D8E,#3b2d8e)", color: "#fff", border: "none", borderRadius: 12,
+            padding: "12px 20px", fontSize: 14, fontWeight: 700, cursor: "pointer",
+          }}>🔗 Link teilen</button>
+        )}
       </div>
+
+      {FEATURES.classView && klasse && (
+        <div style={{ marginBottom: 24 }}>
+          <button onClick={onClassView} style={{
+            background: "#fff", color: "#2E2D8E",
+            border: "2px solid #2E2D8E", borderRadius: 12,
+            padding: "12px 22px", fontSize: 14, fontWeight: 700, cursor: "pointer",
+          }}>👥 So tickt eure Klasse</button>
+        </div>
+      )}
 
       {shareImg && (
         <div style={{ marginBottom: 24, maxWidth: 380, margin: "0 auto 24px" }}>
@@ -3095,8 +3193,77 @@ function Result({ kompass, onRestart, valHistory, maxRound, demographics, saveEr
         </div>
       )}
 
-      <div style={{ marginTop: 24 }}>
-        <Btn primary onClick={onRestart}>Abschluss ✓</Btn>
+      {/* Tiefer gehen — PIN locked (Default an) */}
+      {FEATURES.deepDive && !showDeep && (
+        <div style={{ background: "#f8fafc", borderRadius: 16, padding: 20, marginBottom: 24, maxWidth: 380, margin: "0 auto 24px" }}>
+          <div style={{ fontSize: 28, marginBottom: 8 }}>🔍</div>
+          <div style={{ fontSize: 16, fontWeight: 800, color: "#2E2D8E", marginBottom: 4 }}>Tiefer gehen?</div>
+          <p style={{ fontSize: 12, color: "#9ca3af", marginBottom: 14, lineHeight: 1.5 }}>
+            Finde heraus was dein Lebenswert und deine Superkräfte sind. Deine Lehrkraft gibt dir den Code dafür.
+          </p>
+          <div style={{ display: "flex", gap: 8, justifyContent: "center", alignItems: "center" }}>
+            <input type="text" value={deepPin} onChange={function(e) { setDeepPin(e.target.value); setDeepError(false); }}
+              onKeyDown={function(e) { if (e.key === "Enter") tryDeepPin(); }}
+              placeholder="Code eingeben"
+              style={{
+                padding: "10px 16px", fontSize: 15, fontWeight: 600, borderRadius: 10,
+                border: deepError ? "2px solid #ef4444" : "2px solid #e5e7eb",
+                outline: "none", width: 180, textAlign: "center", textTransform: "uppercase",
+              }}
+            />
+            <Btn small primary onClick={tryDeepPin}>Freischalten</Btn>
+          </div>
+          {deepError && <p style={{ color: "#ef4444", fontSize: 12, marginTop: 6 }}>Falscher Code</p>}
+        </div>
+      )}
+
+      {/* Deep dive content — unlocked */}
+      {FEATURES.deepDive && showDeep && (
+        <div style={{ maxWidth: 380, margin: "0 auto 24px" }}>
+          <div style={{ background: "#f0fdf4", border: "1px solid #bbf7d0", borderRadius: 12, padding: "10px 16px", marginBottom: 20, fontSize: 13, color: "#166534", fontWeight: 600 }}>
+            ✅ Detailansicht freigeschaltet
+          </div>
+
+          <div style={{ background: "linear-gradient(140deg,#1e1b4b,#312e81)", borderRadius: 20, padding: 24, marginBottom: 16, color: "#fff" }}>
+            <div style={{ fontSize: 11, textTransform: "uppercase", letterSpacing: 3, opacity: 0.6, marginBottom: 8 }}>Lebenswert</div>
+            <div style={{ fontSize: 32, fontWeight: 900 }}>{lw.name}</div>
+            <div style={{ display: "inline-block", marginTop: 8, background: CAT[lw.cat].bg, padding: "4px 14px", borderRadius: 99, fontSize: 11, fontWeight: 600 }}>{CAT[lw.cat].label}</div>
+          </div>
+
+          <div style={{ marginBottom: 16 }}>
+            <div style={{ fontSize: 11, textTransform: "uppercase", letterSpacing: 3, color: "#9ca3af", marginBottom: 8 }}>Superkräfte</div>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 6 }}>
+              {sk.map(function(v) {
+                var c = CAT[v.cat];
+                return (
+                  <div key={v.name} style={{ padding: "10px 6px", borderRadius: 12, background: "linear-gradient(140deg," + c.bg + "ee," + c.bg + ")", color: "#fff", fontSize: 13, fontWeight: 700, textAlign: "center" }}>
+                    💪 {v.name}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          <div style={{ marginBottom: 20 }}>
+            <div style={{ fontSize: 11, textTransform: "uppercase", letterSpacing: 3, color: "#9ca3af", marginBottom: 8 }}>Grundwerte</div>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 6 }}>
+              {gw.map(function(v) {
+                var c = CAT[v.cat];
+                return (
+                  <div key={v.name} style={{ padding: "8px 6px", borderRadius: 10, background: c.bg + "15", color: c.bg, fontSize: 13, fontWeight: 600, textAlign: "center" }}>
+                    {v.name}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          <VCodeDNA allValues={all} valHistory={valHistory} maxRound={maxRound} />
+        </div>
+      )}
+
+      <div style={{ marginTop: 8 }}>
+        <Btn onClick={onRestart}>{FEATURES.replayLabel}</Btn>
       </div>
     </div>
   );
