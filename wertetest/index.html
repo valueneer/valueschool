@@ -1659,14 +1659,14 @@ function Intro({ onStart, onCodeEntry, onFreeStart, valueCount, onAdmin, onScan,
 
         <p style={{ color: "#b0b0b0", fontSize: 13, marginBottom: 24 }}>⏱ Dauert ca. 5–10 Minuten</p>
 
-        {schule && klasse && (
+        {schule && (
           <div style={{
             background: "#f0f0ff", borderRadius: 14, padding: "10px 16px",
             maxWidth: 360, margin: "0 auto 18px", border: "1px solid rgba(46,45,142,0.25)",
           }}>
             <div style={{ fontSize: 11, color: "#6b7280", fontWeight: 600, textTransform: "uppercase", letterSpacing: 0.5 }}>Erkannt:</div>
             <div style={{ fontSize: 14, fontWeight: 800, color: "#2E2D8E", marginTop: 2 }}>{schule.name}</div>
-            <div style={{ fontSize: 13, color: "#2E2D8E" }}>Klasse {klasse.bezeichnung}</div>
+            {klasse && <div style={{ fontSize: 13, color: "#2E2D8E" }}>Klasse {klasse.bezeichnung}</div>}
             {isReturning && (
               <div style={{ fontSize: 12, color: "#92400e", marginTop: 6, fontStyle: "italic" }}>
                 👋 Du hast hier schon mal gespielt.
@@ -1688,8 +1688,8 @@ function Intro({ onStart, onCodeEntry, onFreeStart, valueCount, onAdmin, onScan,
             color: "#fff", border: "none", borderRadius: 99, padding: "16px 44px",
             fontSize: 18, fontWeight: 800, cursor: "pointer",
             boxShadow: "0 6px 24px rgba(46,45,142,0.3)", letterSpacing: "0.02em",
-          }}>{schule && klasse ? (isReturning ? "Werte neu erspielen →" : "Jetzt starten →") : "Mit Klassen-Code starten"}</button>
-          {!(schule && klasse) && (
+          }}>{schule ? (isReturning ? "Werte neu erspielen →" : "Jetzt starten →") : "Mit Klassen-Code starten"}</button>
+          {!schule && (
             <button onClick={onFreeStart} style={{
               background: "#fff", color: "#2E2D8E",
               border: "2px solid #2E2D8E", borderRadius: 99, padding: "12px 30px",
