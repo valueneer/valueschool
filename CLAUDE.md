@@ -36,6 +36,22 @@ Gründer: **Hendrik** (hendrik@valueverse.de), Mitgründer: **Sebastian Thamm**.
 
 Markenstruktur, Vision und Tonalität → `.project/VISION.md`.
 
+## ⚙️ Architektur-Prinzip: EIN Wertetest mit Feature-Profilen
+
+**Sehr wichtig — niemals subtraktiv Features killen.**
+
+Es gibt **einen** Wertetest in `wertetest/index.html`. Der hat alle Features. Welche Features in welchem Kontext angezeigt werden, regelt das `FEATURE_PROFILES`-Objekt am Anfang der Datei (gesucht nach `FEATURE_PROFILES`).
+
+Aktuelle Profile:
+- **`full`** (Default) — alle Features an: V-Code-Box, Share-Buttons (Text + Link), Klassenlandschaft-Button, Tiefer-gehen-Bereich auf Ranking und Ergebnis, "Nochmal spielen"-Button. Das ist der allgemeine Test, der weiterentwickelt wird.
+- **`lite`** — reduzierte Variante für Schul-Einsatz und Studie-Übergang. Nur Bild erstellen + "Abschluss ✓". Alles andere aus.
+
+Aktivierung: automatisch `lite` bei `?pseudonym=…` (Studie-Übergang). Manuell `?lite=1`. Default `full`.
+
+**Erweiterung später:** Neues Profil = neuer Eintrag in `FEATURE_PROFILES`, aktivieren per `?config=neuername`. **Kein Komponenten-Code anfassen.** Wenn ein Feature für einen bestimmten Kontext nicht passt, hinter Flag stellen — nicht löschen.
+
+Die zweite eigenständige App `wertetest/studie/index.html` ist die Wirksamkeitsstudie der Uni Osnabrück. Eigene React-App, eigener Supabase-Connect, eigene `studie_responses`-Tabelle. Leitet nach Schüler-Studie automatisch in den Wertetest mit `?code=…&pseudonym=…`.
+
 ## Technik
 
 - **Hauptseite**: `valueschool.html` UND `index.html` (identische Kopien — beide bei jeder Änderung aktualisieren)
