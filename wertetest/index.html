@@ -1316,10 +1316,11 @@ function DemographicsLight({ schule, klasse, onSubmit, onBack, needsKlassenwahl 
   var VS_BLUE = "#2E2D8E";
 
   // Klassen-Bezeichnung berechnen — entweder Dropdown oder Freitext
+  // Zug ist optional (manche Stufen wie 11/12/13 haben keinen)
   let klasseLabel = "";
   if (needsKlassenwahl) {
     if (freitext.trim()) klasseLabel = freitext.trim();
-    else if (stufe && zug) klasseLabel = (stufe.length === 1 ? "0" + stufe : stufe) + zug;
+    else if (stufe) klasseLabel = (stufe.length === 1 ? "0" + stufe : stufe) + (zug || "");
   }
 
   const ready = !!geschlecht && (!needsKlassenwahl || !!klasseLabel);
@@ -1376,7 +1377,7 @@ function DemographicsLight({ schule, klasse, onSubmit, onBack, needsKlassenwahl 
               flex: 1, padding: "10px 12px", borderRadius: 10, border: "2px solid #e5e7eb",
               fontSize: 14, fontWeight: 600, color: VS_BLUE, background: "#fff", cursor: "pointer",
             }}>
-              <option value="">Zug</option>
+              <option value="">Zug (opt.)</option>
               {["A", "B", "C", "D"].map(z => <option key={z} value={z}>{z}</option>)}
             </select>
           </div>
