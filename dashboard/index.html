@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Value School — Dashboard</title>
+  <meta name="description" content="Dashboard für Schulleitung und Lehrkräfte im Value-School-Programm">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Outfit:wght@300;400;600;700;800;900&display=swap" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Outfit', 'Segoe UI', system-ui, sans-serif;
+      background: #f8fafc;
+      color: #1e1b4b;
+      -webkit-font-smoothing: antialiased;
+      min-height: 100vh;
+    }
+    #root { min-height: 100vh; }
+
+    button { font-family: inherit; cursor: pointer; }
+    input, select { font-family: inherit; }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .fade-in { animation: fadeIn 0.3s ease-out; }
+  </style>
+
+  <script>
+    window.SUPABASE_URL = "https://iwsgkwmtsrqpqlahvrhl.supabase.co";
+    window.SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Iml3c2drd210c3JxcHFsYWh2cmhsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ2MjM4ODMsImV4cCI6MjA5MDE5OTg4M30.elfrwQNUhw75rFQ6eRCrXQdKidt3T1WIQmdodyHbzMg";
+  </script>
+</head>
+<body>
+  <div id="root"></div>
+
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.9/babel.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+
+  <script type="text/babel" data-presets="react,env">
+const { useState, useEffect, useMemo, useRef } = React;
+
+const SUPABASE_URL = window.SUPABASE_URL;
+const SUPABASE_KEY = window.SUPABASE_KEY;
+const SESSION_KEY = "vs_dashboard_session";
+const TESTER_CODES = new Set(["VVV9999", "DEMOS", "TST", "BON"]);
+
+const CAT = {
+  blue:   { bg: "#2E2D8E", label: "Veränderung" },
+  pink:   { bg: "#E91E8C", label: "Beziehung" },
+  green:  { bg: "#7CC142", label: "Selbstfindung" },
+  orange: { bg: "#F7941D", label: "Sicherheit" },
+};
+
+/* ═══════════════════════════════════════════════════════════════════
+   Session-Handling: liest, speichert, refresht Supabase-Session
+   ═══════════════════════════════════════════════════════════════════ */
+
+function readSession() {
+  try {
+    const raw = localStorage.getItem(SESSION_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    if (parsed.expires_at && parsed.expires_at * 1000 < Date.now()) return null;
+    return parsed;
+  } catch (e) { return null; }
+}
+
+function saveSession(s) {
+  try { localStorage.setItem(SESSION_KEY, JSON.stringify(s)); } catch (e) {}
+}
+
+function clearSession() {
+  try { localStorage.removeItem(SESSION_KEY); } catch (e) {}
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   Auth-Callback: URL-Fragment nach Magic-Link-Klick verarbeiten
+   ═══════════════════════════════════════════════════════════════════ */
+
+function extractSessionFromUrl() {
+  try {
+    const hash = window.location.hash.replace(/^#/, "");
+    if (!hash) return null;
+    const params = new URLSearchParams(hash);
+    const access_token = params.get("access_token");
+    const refresh_token = params.get("refresh_token");
+    const expires_at = parseInt(params.get("expires_at") || "0", 10);
+    const type = params.get("type");
+    if (access_token && refresh_token) {
+      // Fragment aus URL entfernen
+      window.history.replaceState({}, "", window.location.pathname);
+      return { access_token, refresh_token, expires_at, type };
+    }
+    return null;
+  } catch (e) { return null; }
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   Supabase-Helper mit User-Session
+   ═══════════════════════════════════════════════════════════════════ */
+
+async function apiFetch(path, options, session) {
+  const headers = {
+    "apikey": SUPABASE_KEY,
+    "Authorization": `Bearer ${session ? session.access_token : SUPABASE_KEY}`,
+    "Content-Type": "application/json",
+    ...(options && options.headers || {}),
+  };
+  const r = await fetch(`${SUPABASE_URL}${path}`, { ...(options || {}), headers });
+  if (!r.ok) {
+    const txt = await r.text();
+    throw new Error(`${r.status} ${txt}`);
+  }
+  if (r.status === 204) return null;
+  return r.json();
+}
+
+async function signInWithOtp(email) {
+  const r = await fetch(`${SUPABASE_URL}/auth/v1/otp`, {
+    method: "POST",
+    headers: {
+      "apikey": SUPABASE_KEY,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      email,
+      options: { emailRedirectTo: window.location.origin + "/dashboard/" },
+    }),
+  });
+  if (!r.ok) {
+    const err = await r.json().catch(() => ({}));
+    throw new Error(err.msg || err.error_description || `${r.status}`);
+  }
+  return true;
+}
+
+async function signOut(session) {
+  try {
+    await fetch(`${SUPABASE_URL}/auth/v1/logout`, {
+      method: "POST",
+      headers: {
+        "apikey": SUPABASE_KEY,
+        "Authorization": `Bearer ${session.access_token}`,
+      },
+    });
+  } catch (e) {}
+  clearSession();
+}
+
+async function getUserRolle(session) {
+  const rows = await apiFetch(`/rest/v1/user_rollen?select=rolle,schule_id,klasse_id&limit=1`, {}, session);
+  return rows && rows[0] ? rows[0] : null;
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   UI-Bausteine
+   ═══════════════════════════════════════════════════════════════════ */
+
+const COLOR = {
+  blue: "#2E2D8E", blueDark: "#1C1B5E",
+  pink: "#E91E8C", cyan: "#00BCD4",
+  green: "#7CC142", orange: "#F7941D",
+  text: "#1e1b4b", textMuted: "#6b7280", textLight: "#9ca3af",
+  border: "#e5e7eb", bg: "#f8fafc", surface: "#ffffff",
+};
+
+function Btn({ children, onClick, primary, disabled, small, full }) {
+  return (
+    <button onClick={onClick} disabled={disabled} style={{
+      background: disabled ? "#e5e7eb"
+        : primary ? `linear-gradient(135deg, ${COLOR.blue}, ${COLOR.pink})`
+        : COLOR.surface,
+      color: disabled ? "#aaa" : primary ? "#fff" : COLOR.text,
+      border: primary ? "none" : `2px solid ${COLOR.border}`,
+      borderRadius: 99,
+      padding: small ? "8px 18px" : "14px 32px",
+      fontSize: small ? 13 : 16,
+      fontWeight: 700,
+      cursor: disabled ? "not-allowed" : "pointer",
+      boxShadow: primary && !disabled ? "0 4px 20px rgba(46,45,142,0.25)" : "none",
+      width: full ? "100%" : "auto",
+    }}>{children}</button>
+  );
+}
+
+function Card({ children, style }) {
+  return (
+    <div style={{
+      background: COLOR.surface, border: `1px solid ${COLOR.border}`,
+      borderRadius: 16, padding: 20, ...(style || {}),
+    }}>{children}</div>
+  );
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   LOGIN-Screens
+   ═══════════════════════════════════════════════════════════════════ */
+
+function LoginScreen({ onSent }) {
+  const [email, setEmail] = useState("");
+  const [sending, setSending] = useState(false);
+  const [error, setError] = useState("");
+
+  const submit = async () => {
+    if (!email.trim()) return;
+    setSending(true);
+    setError("");
+    try {
+      await signInWithOtp(email.trim().toLowerCase());
+      onSent(email.trim().toLowerCase());
+    } catch (e) {
+      setError(e.message || "Konnte den Link nicht schicken");
+    } finally {
+      setSending(false);
+    }
+  };
+
+  return (
+    <div className="fade-in" style={{
+      minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center",
+      padding: 20, background: "linear-gradient(135deg, #f8fafc, #eef2ff)",
+    }}>
+      <div style={{
+        maxWidth: 440, width: "100%", background: "#fff", borderRadius: 24,
+        padding: "48px 36px", boxShadow: "0 24px 80px rgba(46,45,142,0.12)",
+        textAlign: "center",
+      }}>
+        <div style={{
+          fontFamily: "'Bangers', system-ui", fontSize: 40, color: COLOR.blue,
+          letterSpacing: 1, marginBottom: 6,
+        }}>Value School</div>
+        <div style={{ fontSize: 16, color: COLOR.textMuted, marginBottom: 32 }}>
+          Dashboard-Login
+        </div>
+        <label style={{ display: "block", textAlign: "left", fontSize: 13, fontWeight: 700, color: COLOR.text, marginBottom: 6 }}>
+          E-Mail-Adresse
+        </label>
+        <input type="email" value={email} onChange={e => setEmail(e.target.value)}
+          onKeyDown={e => { if (e.key === "Enter") submit(); }}
+          placeholder="name@schule.de"
+          style={{
+            width: "100%", padding: "14px 16px", fontSize: 16,
+            border: `2px solid ${error ? "#dc2626" : COLOR.border}`, borderRadius: 12,
+            outline: "none", boxSizing: "border-box", marginBottom: 16,
+          }}
+        />
+        {error && (
+          <div style={{ color: "#dc2626", fontSize: 13, marginBottom: 16 }}>{error}</div>
+        )}
+        <Btn primary full disabled={sending || !email.trim()} onClick={submit}>
+          {sending ? "Schicke Link…" : "Login-Link schicken"}
+        </Btn>
+        <div style={{ fontSize: 12, color: COLOR.textLight, marginTop: 20, lineHeight: 1.5 }}>
+          Du bekommst eine E-Mail mit einem Link. Ein Klick reicht — kein Passwort nötig.
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function MagicLinkSent({ email, onBack }) {
+  return (
+    <div className="fade-in" style={{
+      minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center",
+      padding: 20, background: "linear-gradient(135deg, #f8fafc, #eef2ff)",
+    }}>
+      <div style={{
+        maxWidth: 440, width: "100%", background: "#fff", borderRadius: 24,
+        padding: "48px 36px", boxShadow: "0 24px 80px rgba(46,45,142,0.12)",
+        textAlign: "center",
+      }}>
+        <div style={{ fontSize: 56, marginBottom: 16 }}>📬</div>
+        <div style={{ fontSize: 22, fontWeight: 800, color: COLOR.blueDark, marginBottom: 10, lineHeight: 1.3 }}>
+          Check deine E-Mails
+        </div>
+        <p style={{ color: COLOR.textMuted, lineHeight: 1.6, marginBottom: 24, fontSize: 15 }}>
+          Wir haben einen Login-Link geschickt an<br />
+          <strong style={{ color: COLOR.blue }}>{email}</strong>
+        </p>
+        <p style={{ color: COLOR.textLight, fontSize: 13, marginBottom: 24, lineHeight: 1.5 }}>
+          Öffne die E-Mail, klick auf den Link, dann bist du drin. Der Link ist eine Stunde gültig.
+        </p>
+        <Btn small onClick={onBack}>Andere E-Mail eingeben</Btn>
+      </div>
+    </div>
+  );
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   Dashboard-Views nach Rolle
+   ═══════════════════════════════════════════════════════════════════ */
+
+function TopBar({ user, rolle, onLogout }) {
+  const rolleLabel = { admin: "Admin", schulleitung: "Schulleitung", lehrkraft: "Lehrkraft" }[rolle && rolle.rolle] || "?";
+  return (
+    <div style={{
+      background: "#fff", borderBottom: `1px solid ${COLOR.border}`,
+      padding: "14px 24px", display: "flex", justifyContent: "space-between",
+      alignItems: "center", position: "sticky", top: 0, zIndex: 10,
+    }}>
+      <div>
+        <div style={{
+          fontFamily: "'Bangers', system-ui", fontSize: 24, color: COLOR.blue,
+          letterSpacing: 1, lineHeight: 1,
+        }}>Value School</div>
+        <div style={{ fontSize: 12, color: COLOR.textLight, marginTop: 2 }}>Dashboard</div>
+      </div>
+      <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
+        <div style={{ textAlign: "right" }}>
+          <div style={{ fontSize: 13, fontWeight: 700, color: COLOR.text }}>{user.email}</div>
+          <div style={{ fontSize: 11, color: COLOR.textLight }}>{rolleLabel}</div>
+        </div>
+        <button onClick={onLogout} style={{
+          background: "#f3f4f6", border: "none", borderRadius: 99,
+          padding: "8px 16px", fontSize: 13, fontWeight: 600, color: COLOR.text,
+          cursor: "pointer",
+        }}>Ausloggen</button>
+      </div>
+    </div>
+  );
+}
+
+function DashboardLoader() {
+  return (
+    <div style={{ padding: 60, textAlign: "center", color: COLOR.textLight }}>
+      Lade Daten…
+    </div>
+  );
+}
+
+function DashboardError({ message, onRetry, onLogout }) {
+  return (
+    <div style={{ padding: 40, maxWidth: 480, margin: "0 auto", textAlign: "center" }}>
+      <div style={{ fontSize: 48, marginBottom: 12 }}>⚠️</div>
+      <div style={{ fontSize: 18, fontWeight: 700, marginBottom: 8, color: COLOR.text }}>
+        Da hakt was
+      </div>
+      <p style={{ color: COLOR.textMuted, lineHeight: 1.5, marginBottom: 20 }}>{message}</p>
+      <div style={{ display: "flex", gap: 10, justifyContent: "center" }}>
+        {onRetry && <Btn onClick={onRetry}>Nochmal versuchen</Btn>}
+        {onLogout && <Btn small onClick={onLogout}>Ausloggen</Btn>}
+      </div>
+    </div>
+  );
+}
+
+function NoRoleView({ user, onLogout }) {
+  return (
+    <div style={{ padding: 60, maxWidth: 520, margin: "0 auto", textAlign: "center" }}>
+      <div style={{ fontSize: 48, marginBottom: 16 }}>🔐</div>
+      <div style={{ fontSize: 22, fontWeight: 800, color: COLOR.blueDark, marginBottom: 12 }}>
+        Noch keine Freigabe
+      </div>
+      <p style={{ color: COLOR.textMuted, lineHeight: 1.6, marginBottom: 20 }}>
+        Dein Zugang <strong>{user.email}</strong> ist eingerichtet, aber noch keiner Schule oder Klasse zugeordnet.
+        Melde dich beim Value-School-Team, dann kriegst du die passende Rolle.
+      </p>
+      <Btn small onClick={onLogout}>Ausloggen</Btn>
+    </div>
+  );
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   MAIN APP
+   ═══════════════════════════════════════════════════════════════════ */
+
+function App() {
+  const [phase, setPhase] = useState("boot"); // boot | login | linksent | loading | error | ready | norole
+  const [session, setSession] = useState(null);
+  const [user, setUser] = useState(null);
+  const [rolle, setRolle] = useState(null);
+  const [linkSentTo, setLinkSentTo] = useState("");
+  const [error, setError] = useState("");
+
+  // Session-Bootstrap: URL-Fragment oder localStorage
+  useEffect(() => {
+    const fromUrl = extractSessionFromUrl();
+    if (fromUrl) {
+      saveSession(fromUrl);
+      setSession(fromUrl);
+      setPhase("loading");
+      return;
+    }
+    const stored = readSession();
+    if (stored) {
+      setSession(stored);
+      setPhase("loading");
+    } else {
+      setPhase("login");
+    }
+  }, []);
+
+  // Rolle nach Session laden
+  useEffect(() => {
+    if (!session || phase !== "loading") return;
+    (async () => {
+      try {
+        // User-Info aus /auth/v1/user
+        const r = await fetch(`${SUPABASE_URL}/auth/v1/user`, {
+          headers: {
+            "apikey": SUPABASE_KEY,
+            "Authorization": `Bearer ${session.access_token}`,
+          },
+        });
+        if (!r.ok) {
+          throw new Error("Session ungültig — bitte neu einloggen");
+        }
+        const userJson = await r.json();
+        setUser(userJson);
+
+        const rl = await getUserRolle(session);
+        if (!rl) {
+          setPhase("norole");
+        } else {
+          setRolle(rl);
+          setPhase("ready");
+        }
+      } catch (e) {
+        setError(e.message);
+        clearSession();
+        setPhase("error");
+      }
+    })();
+  }, [session, phase]);
+
+  const doLogout = async () => {
+    if (session) await signOut(session);
+    setSession(null); setUser(null); setRolle(null);
+    setPhase("login");
+  };
+
+  if (phase === "boot") return null;
+
+  if (phase === "login") {
+    return <LoginScreen onSent={(email) => { setLinkSentTo(email); setPhase("linksent"); }} />;
+  }
+
+  if (phase === "linksent") {
+    return <MagicLinkSent email={linkSentTo} onBack={() => setPhase("login")} />;
+  }
+
+  if (phase === "loading") {
+    return (
+      <>
+        {user && <TopBar user={user} rolle={rolle} onLogout={doLogout} />}
+        <DashboardLoader />
+      </>
+    );
+  }
+
+  if (phase === "error") {
+    return <DashboardError message={error} onRetry={() => setPhase("login")} />;
+  }
+
+  if (phase === "norole") {
+    return (
+      <>
+        <TopBar user={user} rolle={null} onLogout={doLogout} />
+        <NoRoleView user={user} onLogout={doLogout} />
+      </>
+    );
+  }
+
+  // phase === "ready"
+  return (
+    <>
+      <TopBar user={user} rolle={rolle} onLogout={doLogout} />
+      <div style={{ padding: 24, textAlign: "center", color: COLOR.textMuted }}>
+        <div style={{ fontSize: 48, marginBottom: 12 }}>✨</div>
+        <div style={{ fontSize: 20, fontWeight: 700, color: COLOR.blueDark, marginBottom: 8 }}>
+          Login läuft. Dashboard-Inhalt kommt gleich.
+        </div>
+        <p style={{ maxWidth: 480, margin: "0 auto", lineHeight: 1.6 }}>
+          Du bist eingeloggt als <strong>{user.email}</strong> mit der Rolle <strong>{rolle.rolle}</strong>.
+          Der eigentliche Dashboard-Inhalt (Zahlen, Wortwolke, Vorher-Nachher) baue ich als Nächstes ein.
+        </p>
+      </div>
+    </>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+  </script>
+</body>
+</html>
