@@ -471,17 +471,431 @@ function App() {
   return (
     <>
       <TopBar user={user} rolle={rolle} onLogout={doLogout} />
-      <div style={{ padding: 24, textAlign: "center", color: COLOR.textMuted }}>
-        <div style={{ fontSize: 48, marginBottom: 12 }}>✨</div>
-        <div style={{ fontSize: 20, fontWeight: 700, color: COLOR.blueDark, marginBottom: 8 }}>
-          Login läuft. Dashboard-Inhalt kommt gleich.
-        </div>
-        <p style={{ maxWidth: 480, margin: "0 auto", lineHeight: 1.6 }}>
-          Du bist eingeloggt als <strong>{user.email}</strong> mit der Rolle <strong>{rolle.rolle}</strong>.
-          Der eigentliche Dashboard-Inhalt (Zahlen, Wortwolke, Vorher-Nachher) baue ich als Nächstes ein.
-        </p>
-      </div>
+      <DashboardMain session={session} rolle={rolle} />
     </>
+  );
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   DashboardMain — Live-Daten aus Supabase, gefiltert per RLS
+   ═══════════════════════════════════════════════════════════════════ */
+
+function DashboardMain({ session, rolle }) {
+  const [data, setData] = useState(null);
+  const [err, setErr] = useState("");
+  const [filter, setFilter] = useState({ schule: "", klasse: "" });
+  const [sort, setSort] = useState({ col: "count", dir: "desc" });
+  const [reloadKey, setReloadKey] = useState(0);
+
+  useEffect(() => {
+    let alive = true;
+    (async () => {
+      try {
+        const [schulen, klassen, studie, results] = await Promise.all([
+          apiFetch("/rest/v1/schulen?select=id,name,code&order=created_at.asc", {}, session),
+          apiFetch("/rest/v1/klassen?select=id,schule_id,bezeichnung,code&order=bezeichnung.asc", {}, session),
+          apiFetch("/rest/v1/studie_responses?select=id,pseudonym,rolle,schule_id,messzeitpunkt,created_at&order=created_at.desc", {}, session),
+          apiFetch("/rest/v1/results?select=id,pseudonym,schule_id,klasse_id,dominant,all_values,created_at&order=created_at.desc", {}, session),
+        ]);
+        if (!alive) return;
+        setData({ schulen: schulen || [], klassen: klassen || [], studie_responses: studie || [], results: results || [] });
+      } catch (e) {
+        if (alive) setErr(e.message);
+      }
+    })();
+    return () => { alive = false; };
+  }, [session, reloadKey]);
+
+  if (err) return <DashboardError message={err} onRetry={() => { setErr(""); setReloadKey(k => k + 1); }} />;
+  if (!data) return <DashboardLoader />;
+
+  return (
+    <div style={{ maxWidth: 1200, margin: "0 auto", padding: "20px 20px 60px" }}>
+      <SnapshotHint onReload={() => setReloadKey(k => k + 1)} />
+      <TotalsRow data={data} />
+      <TrendChart data={data} />
+      <WerteSection data={data} filter={filter} setFilter={setFilter} sort={sort} setSort={setSort} />
+      <SchulenGrid data={data} />
+      <RecentRows data={data} />
+    </div>
+  );
+}
+
+function SnapshotHint({ onReload }) {
+  return (
+    <div style={{
+      background: "#eef2ff", border: "1px solid #c7d2fe", color: "#3730a3",
+      padding: "10px 14px", borderRadius: 10, fontSize: 13, marginBottom: 16,
+      display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12, flexWrap: "wrap",
+    }}>
+      <span>Live-Daten aus Supabase. Was du siehst, richtet sich nach deiner Rolle.</span>
+      <button onClick={onReload} style={{
+        background: "#fff", border: "1px solid #c7d2fe", borderRadius: 8, padding: "6px 14px",
+        fontSize: 12, fontWeight: 600, color: "#3730a3", cursor: "pointer",
+      }}>Neu laden</button>
+    </div>
+  );
+}
+
+function TotalsRow({ data }) {
+  const totals = useMemo(() => {
+    const t = { lehrer_pre: 0, lehrer_post: 0, schueler_pre: 0, schueler_post: 0, wertetest: data.results.length };
+    for (const r of data.studie_responses) {
+      const k = r.rolle + "_" + r.messzeitpunkt;
+      if (k in t) t[k]++;
+    }
+    return t;
+  }, [data]);
+  const tiles = [
+    { label: "Wertetest-Runden", value: totals.wertetest },
+    { label: "Lehrkraft Pre", value: totals.lehrer_pre },
+    { label: "Lehrkraft Post", value: totals.lehrer_post },
+    { label: "Schüler Pre", value: totals.schueler_pre },
+    { label: "Schüler Post", value: totals.schueler_post },
+    { label: "Schulen", value: data.schulen.length },
+  ];
+  return (
+    <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))", gap: 10, marginBottom: 20 }}>
+      {tiles.map((t, i) => (
+        <div key={i} style={{ background: "#fff", border: `1px solid ${COLOR.border}`, borderRadius: 12, padding: "12px 16px" }}>
+          <div style={{ fontSize: 12, color: COLOR.textMuted, marginBottom: 4 }}>{t.label}</div>
+          <div style={{ fontSize: 24, fontWeight: 800, color: COLOR.blueDark }}>{t.value}</div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function TrendChart({ data }) {
+  const canvasRef = useRef(null);
+  const chartRef = useRef(null);
+  const trend = useMemo(() => {
+    const days = 30;
+    const byDay = new Map();
+    const now = new Date();
+    for (let i = days - 1; i >= 0; i--) {
+      const d = new Date(now.getTime() - i * 86400000);
+      byDay.set(d.toISOString().slice(0, 10), { studie: 0, wertetest: 0 });
+    }
+    for (const r of data.studie_responses) {
+      const key = (r.created_at || "").slice(0, 10);
+      if (byDay.has(key)) byDay.get(key).studie++;
+    }
+    for (const r of data.results) {
+      const key = (r.created_at || "").slice(0, 10);
+      if (byDay.has(key)) byDay.get(key).wertetest++;
+    }
+    const labels = [...byDay.keys()].map(k => k.slice(5));
+    const studie = [...byDay.values()].map(v => v.studie);
+    const wertetest = [...byDay.values()].map(v => v.wertetest);
+    return { labels, studie, wertetest };
+  }, [data]);
+
+  useEffect(() => {
+    if (!canvasRef.current || !window.Chart) return;
+    if (chartRef.current) chartRef.current.destroy();
+    chartRef.current = new window.Chart(canvasRef.current, {
+      type: "bar",
+      data: { labels: trend.labels, datasets: [
+        { label: "Studie", data: trend.studie, backgroundColor: COLOR.blue, borderRadius: 4 },
+        { label: "Wertetest", data: trend.wertetest, backgroundColor: COLOR.pink, borderRadius: 4 },
+      ]},
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { position: "bottom", labels: { boxWidth: 12, boxHeight: 12, font: { size: 12 } } } },
+        scales: {
+          x: { stacked: true, grid: { display: false }, ticks: { font: { size: 11 } } },
+          y: { stacked: true, beginAtZero: true, ticks: { font: { size: 11 }, precision: 0 } },
+        },
+      },
+    });
+    return () => { if (chartRef.current) { chartRef.current.destroy(); chartRef.current = null; } };
+  }, [trend]);
+
+  return (
+    <div style={{ background: "#fff", border: `1px solid ${COLOR.border}`, borderRadius: 12, padding: "18px 20px", marginBottom: 20 }}>
+      <div style={{ fontSize: 16, fontWeight: 700, color: COLOR.blueDark, marginBottom: 4 }}>Aktivität letzte 30 Tage</div>
+      <div style={{ position: "relative", height: 260, marginTop: 8 }}>
+        <canvas ref={canvasRef} />
+      </div>
+    </div>
+  );
+}
+
+function WerteSection({ data, filter, setFilter, sort, setSort }) {
+  const werteAgg = useMemo(() => {
+    const filtered = data.results.filter(r => {
+      if (filter.schule && r.schule_id !== filter.schule) return false;
+      if (filter.klasse && r.klasse_id !== filter.klasse) return false;
+      return true;
+    });
+    const map = new Map();
+    for (const r of filtered) {
+      for (const v of r.all_values || []) {
+        const key = v.name;
+        if (!map.has(key)) map.set(key, { name: v.name, cat: v.cat, count: 0 });
+        map.get(key).count++;
+      }
+    }
+    const arr = [...map.values()];
+    arr.sort((a, b) => {
+      const dir = sort.dir === "asc" ? 1 : -1;
+      if (sort.col === "name") return dir * a.name.localeCompare(b.name);
+      if (sort.col === "cat") return dir * a.cat.localeCompare(b.cat);
+      return dir * (a.count - b.count);
+    });
+    return { rows: arr, total: filtered.length };
+  }, [data, filter, sort]);
+
+  const max = werteAgg.rows.length ? Math.max(...werteAgg.rows.map(r => r.count)) : 1;
+  const klassenOpts = data.klassen.filter(k => !filter.schule || k.schule_id === filter.schule);
+
+  const onSort = (col) => {
+    if (sort.col === col) setSort({ col, dir: sort.dir === "asc" ? "desc" : "asc" });
+    else setSort({ col, dir: col === "name" ? "asc" : "desc" });
+  };
+
+  return (
+    <div style={{ background: "#fff", border: `1px solid ${COLOR.border}`, borderRadius: 12, padding: "18px 20px", marginBottom: 20 }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 8, marginBottom: 12 }}>
+        <div style={{ fontSize: 16, fontWeight: 700, color: COLOR.blueDark }}>Werteverteilung</div>
+        <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+          <select value={filter.schule} onChange={e => setFilter({ schule: e.target.value, klasse: "" })}
+            style={{ padding: "6px 10px", border: `1px solid ${COLOR.border}`, borderRadius: 6, background: "#fff", fontSize: 13 }}>
+            <option value="">Alle Schulen</option>
+            {data.schulen.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+          </select>
+          <select value={filter.klasse} onChange={e => setFilter({ ...filter, klasse: e.target.value })}
+            style={{ padding: "6px 10px", border: `1px solid ${COLOR.border}`, borderRadius: 6, background: "#fff", fontSize: 13 }}>
+            <option value="">Alle Klassen</option>
+            {klassenOpts.map(k => <option key={k.id} value={k.id}>{k.bezeichnung}</option>)}
+          </select>
+        </div>
+      </div>
+      <div style={{ fontSize: 12, color: COLOR.textMuted, marginBottom: 10 }}>
+        Basis: {werteAgg.total} Wertetest-Ergebnis{werteAgg.total === 1 ? "" : "se"} - {werteAgg.rows.length} unterschiedliche Werte
+      </div>
+      <WerteCloud rows={werteAgg.rows} />
+      <WerteTable rows={werteAgg.rows} total={werteAgg.total} max={max} sort={sort} onSort={onSort} />
+    </div>
+  );
+}
+
+function WerteCloud({ rows }) {
+  const top = useMemo(() => {
+    const t = [...rows].sort((a, b) => b.count - a.count).slice(0, 10);
+    return [...t].sort(() => Math.random() - 0.5);
+  }, [rows]);
+
+  if (!rows.length) return (
+    <div style={{
+      padding: "40px 8px", textAlign: "center", color: COLOR.textLight,
+      background: "#fafaf9", borderRadius: 8, marginBottom: 16, fontStyle: "italic",
+    }}>Keine Daten für diese Auswahl.</div>
+  );
+
+  const sorted = [...rows].sort((a, b) => b.count - a.count).slice(0, 10);
+  const topMax = sorted[0] ? sorted[0].count : 1;
+  const topMin = sorted.length ? sorted[sorted.length - 1].count : 0;
+  const range = Math.max(1, topMax - topMin);
+
+  const catColor = { pink: "#d4537e", blue: "#378add", green: "#639922", orange: "#ba7517" };
+
+  return (
+    <div style={{
+      display: "flex", flexWrap: "wrap", gap: "6px 14px", padding: "24px 8px",
+      justifyContent: "center", alignItems: "center", lineHeight: 1.2,
+      minHeight: 120, background: "#fafaf9", borderRadius: 8, marginBottom: 16,
+    }}>
+      {top.map(r => {
+        const norm = (r.count - topMin) / range;
+        const curved = Math.pow(norm, 0.6);
+        const size = Math.round(14 + (68 - 14) * curved);
+        const opacity = 0.45 + 0.55 * curved;
+        const weight = 400 + Math.round(curved * 400);
+        return (
+          <span key={r.name} title={r.count + "x ausgewählt"} style={{
+            fontSize: size, opacity, fontWeight: weight,
+            color: catColor[r.cat] || COLOR.text,
+          }}>{r.name}</span>
+        );
+      })}
+    </div>
+  );
+}
+
+function WerteTable({ rows, total, max, sort, onSort }) {
+  const catStyle = (cat) => ({
+    pink: { bg: "#fbeaf0", color: "#4b1528" },
+    blue: { bg: "#e6f1fb", color: "#042c53" },
+    green: { bg: "#eaf3de", color: "#173404" },
+    orange: { bg: "#faedda", color: "#412402" },
+  }[cat] || { bg: "#f3f4f6", color: "#374151" });
+
+  const arrow = (col) => sort.col === col ? (sort.dir === "asc" ? " ^" : " v") : " -";
+
+  if (!rows.length) return null;
+
+  return (
+    <div style={{ overflowX: "auto" }}>
+      <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
+        <thead>
+          <tr>
+            {[
+              { col: "name", label: "Wert" },
+              { col: "cat", label: "Kategorie" },
+              { col: "count", label: "Anzahl" },
+            ].map(h => (
+              <th key={h.col} onClick={() => onSort(h.col)} style={{
+                textAlign: "left", padding: "8px 10px", fontWeight: 600, color: COLOR.textMuted,
+                borderBottom: `1px solid ${COLOR.border}`, cursor: "pointer", userSelect: "none",
+              }}>{h.label}<span style={{ opacity: 0.5, fontSize: 10 }}>{arrow(h.col)}</span></th>
+            ))}
+            <th style={{ textAlign: "left", padding: "8px 10px", fontWeight: 600, color: COLOR.textMuted, borderBottom: `1px solid ${COLOR.border}` }}>Anteil</th>
+          </tr>
+        </thead>
+        <tbody>
+          {rows.map(r => {
+            const pct = total ? Math.round(r.count / total * 100) : 0;
+            const barW = Math.max(2, Math.round(r.count / max * 100));
+            const cs = catStyle(r.cat);
+            return (
+              <tr key={r.name}>
+                <td style={{ padding: "6px 10px", borderBottom: "1px solid #e1e0d9", fontWeight: 600 }}>{r.name}</td>
+                <td style={{ padding: "6px 10px", borderBottom: "1px solid #e1e0d9" }}>
+                  <span style={{
+                    display: "inline-block", fontSize: 11, padding: "2px 8px", borderRadius: 99,
+                    fontWeight: 600, background: cs.bg, color: cs.color,
+                  }}>{r.cat}</span>
+                </td>
+                <td style={{ padding: "6px 10px", borderBottom: "1px solid #e1e0d9" }}>
+                  <span style={{
+                    display: "inline-block", width: 100, height: 8, background: "#f1efe8",
+                    borderRadius: 4, overflow: "hidden", verticalAlign: "middle", marginRight: 8,
+                  }}>
+                    <span style={{ display: "block", width: `${barW}%`, height: "100%", background: COLOR.blue, borderRadius: 4 }} />
+                  </span>
+                  {r.count}
+                </td>
+                <td style={{ padding: "6px 10px", borderBottom: "1px solid #e1e0d9" }}>{pct}%</td>
+              </tr>
+            );
+          })}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
+function SchulenGrid({ data }) {
+  const bySchule = useMemo(() => {
+    const m = new Map();
+    for (const s of data.schulen) {
+      m.set(s.id, { id: s.id, name: s.name, code: s.code,
+        lehrer_pre: 0, lehrer_post: 0, schueler_pre: 0, schueler_post: 0,
+        wertetest: 0, last: null });
+    }
+    for (const r of data.studie_responses) {
+      const s = m.get(r.schule_id); if (!s) continue;
+      const k = r.rolle + "_" + r.messzeitpunkt;
+      if (k in s) s[k]++;
+      if (!s.last || r.created_at > s.last) s.last = r.created_at;
+    }
+    for (const r of data.results) {
+      const s = m.get(r.schule_id); if (!s) continue;
+      s.wertetest++;
+      if (!s.last || r.created_at > s.last) s.last = r.created_at;
+    }
+    return [...m.values()].sort((a, b) => {
+      const at = TESTER_CODES.has(a.code) ? 1 : 0;
+      const bt = TESTER_CODES.has(b.code) ? 1 : 0;
+      if (at !== bt) return at - bt;
+      return (b.last || "").localeCompare(a.last || "");
+    });
+  }, [data]);
+
+  if (!bySchule.length) return null;
+
+  return (
+    <div style={{ marginBottom: 24 }}>
+      <div style={{ fontSize: 16, fontWeight: 700, color: COLOR.blueDark, marginBottom: 10 }}>Nach Schule</div>
+      <div style={{ display: "grid", gridTemplateColumns: "1fr", gap: 12 }}>
+        {bySchule.map(s => {
+          const isTester = TESTER_CODES.has(s.code);
+          return (
+            <div key={s.id} style={{
+              background: "#fff", border: `1px solid ${COLOR.border}`, borderRadius: 12, padding: "16px 20px",
+            }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: 8, marginBottom: 12 }}>
+                <div>
+                  <div style={{ fontSize: 15, fontWeight: 700, color: COLOR.blueDark }}>{s.name}</div>
+                  <div style={{ fontSize: 12, color: COLOR.textMuted, fontFamily: "ui-monospace, monospace" }}>{s.code}</div>
+                </div>
+                {isTester && <span style={{
+                  background: "#fef3c7", color: "#78350f", fontSize: 11, padding: "2px 8px",
+                  borderRadius: 99, fontWeight: 600,
+                }}>Test-Schule</span>}
+              </div>
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(120px, 1fr))", gap: 8 }}>
+                {[
+                  { label: "Wertetest", value: s.wertetest },
+                  { label: "Lehrkraft Pre", value: s.lehrer_pre },
+                  { label: "Lehrkraft Post", value: s.lehrer_post },
+                  { label: "Schüler Pre", value: s.schueler_pre },
+                  { label: "Schüler Post", value: s.schueler_post },
+                ].map((t, i) => (
+                  <div key={i} style={{ background: "#f1efe8", padding: "8px 12px", borderRadius: 8 }}>
+                    <div style={{ fontSize: 11, color: COLOR.textMuted }}>{t.label}</div>
+                    <div style={{ fontSize: 18, fontWeight: 700, color: COLOR.text }}>{t.value}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+function RecentRows({ data }) {
+  const rows = useMemo(() => {
+    const merged = [
+      ...data.studie_responses.map(r => ({
+        type: "studie", when: r.created_at, schule_id: r.schule_id,
+        pseudonym: r.pseudonym, meta: r.rolle + " - " + r.messzeitpunkt,
+      })),
+      ...data.results.map(r => ({
+        type: "wertetest", when: r.created_at, schule_id: r.schule_id,
+        pseudonym: r.pseudonym, meta: r.dominant,
+      })),
+    ].sort((a, b) => (b.when || "").localeCompare(a.when || "")).slice(0, 15);
+    const schulenMap = new Map(data.schulen.map(s => [s.id, s.name]));
+    return merged.map(r => ({ ...r, schule: schulenMap.get(r.schule_id) || "-" }));
+  }, [data]);
+
+  const fmt = (iso) => {
+    if (!iso) return "";
+    const d = new Date(iso);
+    return d.toLocaleDateString("de-DE") + " " + d.toLocaleTimeString("de-DE", { hour: "2-digit", minute: "2-digit" });
+  };
+
+  return (
+    <div style={{ background: "#fff", border: `1px solid ${COLOR.border}`, borderRadius: 12, padding: "18px 20px" }}>
+      <div style={{ fontSize: 16, fontWeight: 700, color: COLOR.blueDark, marginBottom: 10 }}>Letzte 15 Einträge</div>
+      {!rows.length && <div style={{ color: COLOR.textLight, fontSize: 13 }}>Noch keine Einträge.</div>}
+      {rows.map((r, i) => (
+        <div key={i} style={{
+          display: "grid", gridTemplateColumns: "150px 1fr 140px 90px", gap: 8, padding: "6px 0",
+          fontSize: 13, borderBottom: i < rows.length - 1 ? "1px solid #e1e0d9" : "none",
+        }}>
+          <span style={{ color: COLOR.textMuted, fontFamily: "ui-monospace, monospace", fontSize: 12 }}>{fmt(r.when)}</span>
+          <span style={{ fontWeight: 600 }}>{r.schule}</span>
+          <span style={{ color: COLOR.textMuted }}>{r.type === "studie" ? r.meta : "Wertetest - " + r.meta}</span>
+          <span style={{ color: COLOR.textMuted, fontFamily: "ui-monospace, monospace", fontSize: 12 }}>{r.pseudonym}</span>
+        </div>
+      ))}
+    </div>
   );
 }
 
