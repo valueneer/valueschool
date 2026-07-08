@@ -1384,15 +1384,8 @@ function DemographicsLight({ schule, klasse, onSubmit, onBack, needsKlassenwahl 
               {["A", "B", "C", "D"].map(z => <option key={z} value={z}>{z}</option>)}
             </select>
           </div>
-          <input value={freitext}
-            onChange={e => { setFreitext(e.target.value); if (e.target.value) { setStufe(""); setZug(""); } }}
-            placeholder="oder eigenen Klassennamen eintippen"
-            style={{
-              width: "100%", padding: "10px 12px", borderRadius: 10, border: "2px solid #e5e7eb",
-              fontSize: 14, fontWeight: 600, color: VS_BLUE, boxSizing: "border-box",
-            }} />
           <div style={{ fontSize: 11, color: "#9ca3af", marginTop: 6, lineHeight: 1.4 }}>
-            Wenn nichts oben passt, gib hier deinen Klassennamen ein.
+            Wenn deine Klasse einen Namen hat (z.B. Panda), nimm den ersten Buchstaben als Zug (P).
           </div>
           {klasseLabel && (
             <div style={{ marginTop: 10, padding: "8px 12px", background: "#eef2ff", borderRadius: 8, fontSize: 13, color: VS_BLUE, fontWeight: 700, textAlign: "center" }}>

@@ -1026,7 +1026,7 @@ function App() {
 
   if (phase === "choice") {
     const spielUrl = schule
-      ? `../?code=${encodeURIComponent(schule.code)}` + (savedPseudonym ? `&pseudonym=${encodeURIComponent(savedPseudonym)}` : "")
+      ? `../?schule=${encodeURIComponent(schule.code)}` + (savedPseudonym ? `&pseudonym=${encodeURIComponent(savedPseudonym)}` : "")
       : null;
     return <ChoiceScreen schule={schule} rolle={rolle}
       studieDone={studieDone} savedPseudonym={savedPseudonym}
