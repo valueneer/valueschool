@@ -121,23 +121,24 @@ async function apiFetch(path, options, session) {
   return r.json();
 }
 
-async function signInWithOtp(email) {
-  const r = await fetch(`${SUPABASE_URL}/auth/v1/otp`, {
+async function signInWithPassword(email, password) {
+  const r = await fetch(`${SUPABASE_URL}/auth/v1/token?grant_type=password`, {
     method: "POST",
     headers: {
       "apikey": SUPABASE_KEY,
       "Content-Type": "application/json",
     },
-    body: JSON.stringify({
-      email,
-      options: { emailRedirectTo: window.location.origin + "/dashboard/" },
-    }),
+    body: JSON.stringify({ email, password }),
   });
   if (!r.ok) {
     const err = await r.json().catch(() => ({}));
-    throw new Error(err.msg || err.error_description || `${r.status}`);
+    const msg = err.msg || err.error_description || err.error || `${r.status}`;
+    // Freundlichere Fehlermeldungen
+    if (/invalid.*credentials/i.test(msg)) throw new Error("E-Mail oder Passwort stimmt nicht.");
+    if (/email.*not.*confirmed/i.test(msg)) throw new Error("Konto noch nicht bestätigt.");
+    throw new Error(msg);
   }
-  return true;
+  return await r.json(); // { access_token, refresh_token, expires_at, ... }
 }
 
 async function signOut(session) {
@@ -202,20 +203,22 @@ function Card({ children, style }) {
    LOGIN-Screens
    ═══════════════════════════════════════════════════════════════════ */
 
-function LoginScreen({ onSent }) {
+function LoginScreen({ onLoggedIn }) {
   const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [sending, setSending] = useState(false);
   const [error, setError] = useState("");
 
   const submit = async () => {
-    if (!email.trim()) return;
+    if (!email.trim() || !password) return;
     setSending(true);
     setError("");
     try {
-      await signInWithOtp(email.trim().toLowerCase());
-      onSent(email.trim().toLowerCase());
+      const s = await signInWithPassword(email.trim().toLowerCase(), password);
+      onLoggedIn(s);
     } catch (e) {
-      setError(e.message || "Konnte den Link nicht schicken");
+      setError(e.message || "Login fehlgeschlagen");
+      setPassword("");
     } finally {
       setSending(false);
     }
@@ -243,7 +246,19 @@ function LoginScreen({ onSent }) {
         </label>
         <input type="email" value={email} onChange={e => setEmail(e.target.value)}
           onKeyDown={e => { if (e.key === "Enter") submit(); }}
-          placeholder="name@schule.de"
+          placeholder="name@schule.de" autoComplete="username"
+          style={{
+            width: "100%", padding: "14px 16px", fontSize: 16,
+            border: `2px solid ${error ? "#dc2626" : COLOR.border}`, borderRadius: 12,
+            outline: "none", boxSizing: "border-box", marginBottom: 16,
+          }}
+        />
+        <label style={{ display: "block", textAlign: "left", fontSize: 13, fontWeight: 700, color: COLOR.text, marginBottom: 6 }}>
+          Passwort
+        </label>
+        <input type="password" value={password} onChange={e => setPassword(e.target.value)}
+          onKeyDown={e => { if (e.key === "Enter") submit(); }}
+          placeholder="••••••••" autoComplete="current-password"
           style={{
             width: "100%", padding: "14px 16px", fontSize: 16,
             border: `2px solid ${error ? "#dc2626" : COLOR.border}`, borderRadius: 12,
@@ -253,40 +268,12 @@ function LoginScreen({ onSent }) {
         {error && (
           <div style={{ color: "#dc2626", fontSize: 13, marginBottom: 16 }}>{error}</div>
         )}
-        <Btn primary full disabled={sending || !email.trim()} onClick={submit}>
-          {sending ? "Schicke Link…" : "Login-Link schicken"}
+        <Btn primary full disabled={sending || !email.trim() || !password} onClick={submit}>
+          {sending ? "Melde an…" : "Einloggen"}
         </Btn>
         <div style={{ fontSize: 12, color: COLOR.textLight, marginTop: 20, lineHeight: 1.5 }}>
-          Du bekommst eine E-Mail mit einem Link. Ein Klick reicht — kein Passwort nötig.
+          Passwort vergessen? Schreib Hendrik oder Sebastian — wir setzen dir eins neu.
         </div>
-      </div>
-    </div>
-  );
-}
-
-function MagicLinkSent({ email, onBack }) {
-  return (
-    <div className="fade-in" style={{
-      minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center",
-      padding: 20, background: "linear-gradient(135deg, #f8fafc, #eef2ff)",
-    }}>
-      <div style={{
-        maxWidth: 440, width: "100%", background: "#fff", borderRadius: 24,
-        padding: "48px 36px", boxShadow: "0 24px 80px rgba(46,45,142,0.12)",
-        textAlign: "center",
-      }}>
-        <div style={{ fontSize: 56, marginBottom: 16 }}>📬</div>
-        <div style={{ fontSize: 22, fontWeight: 800, color: COLOR.blueDark, marginBottom: 10, lineHeight: 1.3 }}>
-          Check deine E-Mails
-        </div>
-        <p style={{ color: COLOR.textMuted, lineHeight: 1.6, marginBottom: 24, fontSize: 15 }}>
-          Wir haben einen Login-Link geschickt an<br />
-          <strong style={{ color: COLOR.blue }}>{email}</strong>
-        </p>
-        <p style={{ color: COLOR.textLight, fontSize: 13, marginBottom: 24, lineHeight: 1.5 }}>
-          Öffne die E-Mail, klick auf den Link, dann bist du drin. Der Link ist eine Stunde gültig.
-        </p>
-        <Btn small onClick={onBack}>Andere E-Mail eingeben</Btn>
       </div>
     </div>
   );
@@ -371,11 +358,10 @@ function NoRoleView({ user, onLogout }) {
    ═══════════════════════════════════════════════════════════════════ */
 
 function App() {
-  const [phase, setPhase] = useState("boot"); // boot | login | linksent | loading | error | ready | norole
+  const [phase, setPhase] = useState("boot"); // boot | login | loading | error | ready | norole
   const [session, setSession] = useState(null);
   const [user, setUser] = useState(null);
   const [rolle, setRolle] = useState(null);
-  const [linkSentTo, setLinkSentTo] = useState("");
   const [error, setError] = useState("");
 
   // Session-Bootstrap: URL-Fragment oder localStorage
@@ -438,11 +424,7 @@ function App() {
   if (phase === "boot") return null;
 
   if (phase === "login") {
-    return <LoginScreen onSent={(email) => { setLinkSentTo(email); setPhase("linksent"); }} />;
-  }
-
-  if (phase === "linksent") {
-    return <MagicLinkSent email={linkSentTo} onBack={() => setPhase("login")} />;
+    return <LoginScreen onLoggedIn={(s) => { saveSession(s); setSession(s); setPhase("loading"); }} />;
   }
 
   if (phase === "loading") {
