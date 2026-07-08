@@ -1373,19 +1373,19 @@ function DemographicsLight({ schule, klasse, onSubmit, onBack, needsKlassenwahl 
             }}>
               <option value="">Stufe wählen</option>
               {Array.from({ length: 13 }, (_, i) => i + 1).map(n => (
-                <option key={n} value={String(n)}>Klasse {n}</option>
+                <option key={n} value={String(n)}>{n}</option>
               ))}
             </select>
             <select value={zug} onChange={e => { setZug(e.target.value); setFreitext(""); }} style={{
               flex: 1, padding: "10px 12px", borderRadius: 10, border: "2px solid #e5e7eb",
               fontSize: 14, fontWeight: 600, color: VS_BLUE, background: "#fff", cursor: "pointer",
             }}>
-              <option value="">Zug (opt.)</option>
-              {["A", "B", "C", "D"].map(z => <option key={z} value={z}>{z}</option>)}
+              <option value="">Klasse (opt.)</option>
+              {Array.from({length: 26}, (_, i) => String.fromCharCode(65 + i)).map(z => <option key={z} value={z}>{z}</option>)}
             </select>
           </div>
           <div style={{ fontSize: 11, color: "#9ca3af", marginTop: 6, lineHeight: 1.4 }}>
-            Wenn deine Klasse einen Namen hat (z.B. Panda), nimm den ersten Buchstaben als Zug (P).
+            Wenn deine Klasse einen Namen hat (z.B. Panda), nimm den ersten Buchstaben als Klasse (P).
           </div>
           {klasseLabel && (
             <div style={{ marginTop: 10, padding: "8px 12px", background: "#eef2ff", borderRadius: 8, fontSize: 13, color: VS_BLUE, fontWeight: 700, textAlign: "center" }}>
