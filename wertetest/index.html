@@ -2339,11 +2339,7 @@ function Compare({ pile, roundNum, onDone, valueDescs }) {
         </div>
       )}
 
-      <div style={{ marginTop: 16, fontSize: 12, color: "#b0b0b0" }}>Noch {pairs.length - idx - 1} Vergleiche</div>
-      <div style={{ marginTop: 14, display: "flex", justifyContent: "center", gap: 6 }}>
-        <span style={{ background: "#e0e7ff", color: "#4338ca", padding: "4px 12px", borderRadius: 99, fontSize: 12, fontWeight: 600 }}>✅ {displayW}</span>
-        <span style={{ background: "#fef2f2", color: "#b91c1c", padding: "4px 12px", borderRadius: 99, fontSize: 12, fontWeight: 600 }}>❌ {displayL}</span>
-      </div>
+      <div style={{ marginTop: 16, fontSize: 13, color: "#6b7280", fontWeight: 600 }}>Noch {pairs.length - idx - 1} Vergleiche</div>
     </div>
   );
 }

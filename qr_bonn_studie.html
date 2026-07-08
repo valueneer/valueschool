@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<title>QR — Value Study Bonn</title>
+<style>
+  @page { size: A4; margin: 20mm; }
+  body {
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    color: #1e1b4b;
+    margin: 0;
+    padding: 40px 20px;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    min-height: 100vh;
+    background: #fff;
+  }
+  .sheet {
+    max-width: 600px;
+    text-align: center;
+    background: #fff;
+    padding: 40px 30px;
+    border-radius: 24px;
+    border: 3px solid #2E2D8E;
+  }
+  h1 {
+    font-family: 'Bangers', system-ui;
+    font-size: 44px;
+    color: #2E2D8E;
+    letter-spacing: 1px;
+    margin: 0 0 8px;
+  }
+  .schule {
+    font-size: 22px;
+    font-weight: 700;
+    color: #E91E8C;
+    margin-bottom: 28px;
+  }
+  .instr {
+    font-size: 20px;
+    line-height: 1.4;
+    margin-bottom: 24px;
+    color: #1e1b4b;
+    font-weight: 600;
+  }
+  .qr {
+    display: inline-block;
+    padding: 16px;
+    background: #fff;
+    border-radius: 16px;
+    box-shadow: 0 4px 20px rgba(46,45,142,0.15);
+    margin-bottom: 20px;
+  }
+  .qr img {
+    display: block;
+    width: 320px;
+    height: 320px;
+  }
+  .url {
+    font-family: ui-monospace, "SF Mono", Menlo, monospace;
+    font-size: 13px;
+    color: #6b7280;
+    word-break: break-all;
+    margin-top: 12px;
+    padding: 10px 14px;
+    background: #f3f4f6;
+    border-radius: 8px;
+  }
+  .schritte {
+    text-align: left;
+    background: #eef2ff;
+    padding: 20px 24px;
+    border-radius: 14px;
+    margin-top: 24px;
+  }
+  .schritte ol {
+    margin: 8px 0 0;
+    padding-left: 20px;
+    font-size: 15px;
+    line-height: 1.7;
+  }
+  .schritte h3 {
+    margin: 0 0 4px;
+    font-size: 16px;
+    color: #2E2D8E;
+  }
+  @media print {
+    body { padding: 0; }
+    .sheet { border: 2px solid #2E2D8E; box-shadow: none; }
+  }
+</style>
+</head>
+<body>
+<div class="sheet">
+  <h1>Value School</h1>
+  <div class="schule">Siebengebirgsschule Bonn</div>
+  <div class="instr">Handy raus. QR-Code scannen.<br>Los geht's.</div>
+  <div class="qr">
+    <img alt="QR-Code" src="https://api.qrserver.com/v1/create-qr-code/?size=320x320&margin=10&data=https%3A%2F%2Fvalue-school.de%2Fwertetest%2Fstudie%2F%3Frole%3Dschueler%26code%3DSGS2606%26phase%3Dpre">
+  </div>
+  <div class="url">
+    https://value-school.de/wertetest/studie/?role=schueler&amp;code=SGS2606&amp;phase=pre
+  </div>
+  <div class="schritte">
+    <h3>So funktioniert's</h3>
+    <ol>
+      <li>QR mit der Handy-Kamera scannen</li>
+      <li>Wertestudie starten (ca. 10 Minuten)</li>
+      <li>Handy weglegen — Pause im Unterricht</li>
+      <li>Später den QR nochmal scannen — Wertespiel machen</li>
+      <li>Am Ende Code notieren, damit ihr euer Ergebnis wiederfindet</li>
+    </ol>
+  </div>
+</div>
+</body>
+</html>
