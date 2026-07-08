@@ -1144,6 +1144,7 @@ const FEATURE_PROFILES = {
     classView:    true,
     deepDive:     true,
     replayLabel:  "🔄 Nochmal spielen",
+    doneScreen:   false,
   },
   lite: {
     vCode:        false,
@@ -1151,7 +1152,8 @@ const FEATURE_PROFILES = {
     shareLink:    false,
     classView:    false,
     deepDive:     false,
-    replayLabel:  "Abschluss ✓",
+    replayLabel:  "Fertig — Code anzeigen",
+    doneScreen:   true,
   },
 };
 
@@ -2140,7 +2142,7 @@ function Compare({ pile, roundNum, onDone, valueDescs }) {
   if (showIntro) return (
     <div style={{ textAlign: "center", padding: "40px 24px" }}>
       <div style={{ fontSize: 52, marginBottom: 14 }}>🎴</div>
-      <h2 style={{ fontSize: 26, fontWeight: 900, color: "#2E2D8E", marginBottom: 6 }}>Werte-Tinder.</h2>
+      <h2 style={{ fontSize: 26, fontWeight: 900, color: "#2E2D8E", marginBottom: 6 }}>Das wertvollste Spiel der Welt.</h2>
       <p style={{ fontSize: 16, color: "#6b7280", marginBottom: 18, fontWeight: 500 }}>Swipe mal deine Werte.</p>
       <div style={{
         background: "linear-gradient(135deg, #f8fafc, #f0f0ff)", borderRadius: 18,
@@ -3135,6 +3137,109 @@ function VCodeDNA({ allValues, valHistory, maxRound }) {
       background: "#06061a",
     }}>
       <canvas ref={canvasRef} style={{ display: "block", width: "100%" }} />
+    </div>
+  );
+}
+
+/* ═══════════════════════════════════════════
+   DONE SCREEN — nach Spiel-Abschluss, mit Code + QR
+   ═══════════════════════════════════════════ */
+
+function DoneScreen({ pseudonym, resultId, onBackToResult, onNextStudent }) {
+  const [copied, setCopied] = useState(false);
+  const code = (pseudonym || resultId || "").toString();
+  const upperCode = code.toUpperCase();
+
+  const returnUrl = React.useMemo(() => {
+    if (!code) return "";
+    const origin = (typeof window !== "undefined" && window.location) ? window.location.origin : "https://value-school.de";
+    return origin + "/wertetest/?resume=" + encodeURIComponent(code);
+  }, [code]);
+
+  const copyCode = async () => {
+    try {
+      await navigator.clipboard.writeText(code);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2500);
+    } catch (e) {
+      const el = document.getElementById("done-code-el");
+      if (el && window.getSelection) {
+        const range = document.createRange();
+        range.selectNode(el);
+        window.getSelection().removeAllRanges();
+        window.getSelection().addRange(range);
+      }
+    }
+  };
+
+  return (
+    <div style={{ maxWidth: 520, margin: "0 auto", padding: "24px 20px", textAlign: "center" }}>
+      <div style={{ fontSize: 56, marginBottom: 10 }}>🎉</div>
+      <h1 style={{ fontSize: 30, fontWeight: 900, color: "#2E2D8E", marginBottom: 8, lineHeight: 1.2 }}>
+        Fertig!
+      </h1>
+      <p style={{ fontSize: 16, color: "#374151", marginBottom: 22, lineHeight: 1.5 }}>
+        Hier ist dein Code. <strong>Bitte kopieren.</strong><br />Der ist wichtig — den brauchst du noch.
+      </p>
+
+      <div style={{
+        background: "linear-gradient(135deg, #FEF3C7, #FDE68A)",
+        border: "3px solid #F59E0B", borderRadius: 20,
+        padding: "22px 16px", marginBottom: 16,
+      }}>
+        <div style={{ fontSize: 11, fontWeight: 700, color: "#78350F", letterSpacing: 1.5, marginBottom: 8 }}>
+          DEIN CODE
+        </div>
+        <div id="done-code-el" style={{
+          fontFamily: "ui-monospace, 'SF Mono', Menlo, monospace",
+          fontSize: 44, fontWeight: 900, color: "#78350F", letterSpacing: 4,
+          userSelect: "all", wordBreak: "break-all", lineHeight: 1.1,
+        }}>{upperCode || "—"}</div>
+      </div>
+
+      <button onClick={copyCode} style={{
+        background: copied ? "#10B981" : "linear-gradient(135deg, #2E2D8E, #E91E8C)",
+        color: "#fff", border: "none", borderRadius: 99,
+        padding: "16px 32px", fontSize: 16, fontWeight: 800,
+        cursor: "pointer", marginBottom: 24, width: "100%", maxWidth: 320,
+        boxShadow: "0 6px 24px rgba(46,45,142,0.25)",
+      }}>
+        {copied ? "✓ Kopiert!" : "📋 Code kopieren"}
+      </button>
+
+      {returnUrl && (
+        <div style={{
+          background: "#F9FAFB", border: "1px solid #E5E7EB", borderRadius: 16,
+          padding: 16, marginBottom: 20,
+        }}>
+          <div style={{ fontSize: 13, color: "#6b7280", marginBottom: 10, fontWeight: 600 }}>
+            Oder scanne den QR-Code, um dein Ergebnis später wieder zu öffnen:
+          </div>
+          <img alt="QR-Code zum Ergebnis"
+            src={"https://api.qrserver.com/v1/create-qr-code/?size=200x200&margin=6&data=" + encodeURIComponent(returnUrl)}
+            style={{ width: 180, height: 180, borderRadius: 12 }}
+          />
+          <div style={{ fontSize: 11, color: "#9CA3AF", marginTop: 8, wordBreak: "break-all" }}>
+            {returnUrl}
+          </div>
+        </div>
+      )}
+
+      <div style={{ display: "flex", flexDirection: "column", gap: 10, marginTop: 8 }}>
+        <button onClick={onBackToResult} style={{
+          background: "#fff", color: "#2E2D8E", border: "2px solid #2E2D8E",
+          borderRadius: 99, padding: "12px 24px", fontSize: 15, fontWeight: 700, cursor: "pointer",
+        }}>
+          👀 Mein Ergebnis nochmal ansehen
+        </button>
+        <button onClick={onNextStudent} style={{
+          background: "transparent", color: "#6b7280", border: "none",
+          padding: "10px", fontSize: 13, fontWeight: 600, cursor: "pointer",
+          textDecoration: "underline",
+        }}>
+          Nächstes Kind ist dran →
+        </button>
+      </div>
     </div>
   );
 }
@@ -4214,6 +4319,37 @@ function App() {
           }
         } catch (e) { console.error("V-Code-Lookup-Fehler:", e); }
       }
+
+      // Resume-Code lesen (Schüler kommt mit ?resume=<pseudonym> zurück)
+      try {
+        const u2 = new URL(window.location.href);
+        const resumeCode = (u2.searchParams.get("resume") || "").trim().toLowerCase();
+        if (resumeCode && /^[a-z0-9]{4,10}$/.test(resumeCode) && USE_SUPABASE) {
+          const rows = await supa.selectWhere("results", "pseudonym=eq." + encodeURIComponent(resumeCode) + "&order=created_at.desc&limit=1");
+          if (rows && rows.length > 0) {
+            const row = rows[0];
+            setPseudonym(resumeCode);
+            if (row.klasse_id) {
+              const ks = await supa.selectWhere("klassen", "id=eq." + row.klasse_id);
+              if (ks && ks[0]) {
+                setKlasse(ks[0]);
+                const ss = await supa.selectWhere("schulen", "id=eq." + ks[0].schule_id);
+                if (ss && ss[0]) setSchule(ss[0]);
+              }
+            }
+            const reconKompass = {
+              lebenswert: { name: row.lebenswert, cat: row.lebenswert_cat },
+              superkraefte: Array.isArray(row.superkraefte) ? row.superkraefte : [],
+              grundwerte: Array.isArray(row.grundwerte) ? row.grundwerte : [],
+            };
+            setKompass(reconKompass);
+            setCurrentResultId(row.id);
+            setMySessionResultId(row.id);
+            setPhase("result");
+          }
+        }
+      } catch (e) { console.error("Resume-Code-Lookup-Fehler:", e); }
+
       setLoaded(true);
     })();
   }, []);
@@ -4348,6 +4484,7 @@ function App() {
       }
     } catch (e) {}
   };
+  const handleFinish = () => { setPhase("done"); };
   const handleResetCode = () => { setSchule(null); setKlasse(null); setRolle(null); };
 
   const MAX_ROUNDS = 3;
@@ -4553,7 +4690,8 @@ function App() {
       {phase === "adjust" && <FinalAdjust values8={pile} lastDiscards={lastLosers} onDone={onAdjust} />}
       {phase === "ranking" && <RankValues values8={pile} onDone={onRankDone} />}
       {phase === "kompass" && <KompassBuild values8={pile} onDone={onKompass} />}
-      {phase === "result" && kompass && <Result kompass={kompass} onRestart={handleRestart} valHistory={valHistory} maxRound={maxRound} demographics={demographics} saveError={saveError} typeDescs={typeDescs} resultId={currentResultId} klasse={klasse} onClassView={() => { setLandschaftReturnPhase("result"); setPhase("klasse-landschaft"); }} />}
+      {phase === "result" && kompass && <Result kompass={kompass} onRestart={FEATURES.doneScreen ? handleFinish : handleRestart} valHistory={valHistory} maxRound={maxRound} demographics={demographics} saveError={saveError} typeDescs={typeDescs} resultId={currentResultId} klasse={klasse} onClassView={() => { setLandschaftReturnPhase("result"); setPhase("klasse-landschaft"); }} />}
+      {phase === "done" && <DoneScreen pseudonym={pseudonym} resultId={currentResultId} onBackToResult={() => setPhase("result")} onNextStudent={handleRestart} />}
       {phase === "klasse-landschaft" && <KlassenLandschaft schule={schule} klasse={klasse} onBack={() => setPhase(landschaftReturnPhase)} adminMode={landschaftReturnPhase === "schulen"} />}
     </div>
   );
