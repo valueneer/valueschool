@@ -1199,7 +1199,8 @@ function CodeEntry({ onValid, onBack, initialCode }) {
   useEffect(() => { if (klasse.length === 3 && jahr.length === 0) jahrRef.current && jahrRef.current.focus(); }, [klasse]);
 
   const code = schul + klasse + jahr;
-  const formValid = schul.length === 3 && klasse.length === 3 && jahr.length === 2;
+  // Mitte darf 2 oder 3 Zeichen sein — Alt-Klassen sind 7-stellig, neue 8-stellig
+  const formValid = schul.length === 3 && (klasse.length === 2 || klasse.length === 3) && jahr.length === 2;
 
   const submit = async () => {
     if (!formValid) { setError("Bitte alle drei Teile vollständig ausfüllen"); return; }
