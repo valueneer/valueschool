@@ -3,8 +3,24 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Value School — Vorab-Befragung (Uni Osnabrück)</title>
-  <meta name="description" content="Wirksamkeitsstudie Uni Osnabrück — Vorab-Befragung für die Value School">
+  <title>Value School — Wertestudie (Uni Osnabrück)</title>
+  <meta name="description" content="Wirksamkeitsstudie der Uni Osnabrück für die Value School">
+  <script>
+    // Titel an die Phase anpassen: pre = erste Befragung, post = zweite
+    (function () {
+      try {
+        var ph = new URLSearchParams(window.location.search).get("phase") || "pre";
+        var t = ph === "post"
+          ? "Value School — Zweite Befragung (Uni Osnabrück)"
+          : "Value School — Erste Befragung (Uni Osnabrück)";
+        document.title = t;
+        var d = document.querySelector('meta[name="description"]');
+        if (d) d.setAttribute("content", ph === "post"
+          ? "Abschluss-Befragung der Wirksamkeitsstudie — Uni Osnabrück"
+          : "Vorab-Befragung der Wirksamkeitsstudie — Uni Osnabrück");
+      } catch (e) {}
+    })();
+  </script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700;800;900&display=swap" rel="stylesheet">
