@@ -482,10 +482,20 @@ function SectionScreen({ section, responses, setResponses, onNext, onBack, canBa
 /* ════════════════════════════════════════════════════════════════════
    PSEUDONYM-BAUER
    ════════════════════════════════════════════════════════════════════ */
-function PseudonymBuilder({ initial, onComplete, intro }) {
+function PseudonymBuilder({ initial, onComplete, intro, isPost }) {
   const [mutter, setMutter] = useState((initial || "").substr(0, 2));
   const [ort, setOrt] = useState((initial || "").substr(2, 2));
   const [tag, setTag] = useState((initial || "").substr(4, 2));
+
+  // Wenn man vom "Code unbekannt"-Screen zurückkommt: Felder mit dem
+  // bereits gebauten Code füllen, damit nur korrigiert werden muss.
+  useEffect(() => {
+    if (initial) {
+      setMutter(initial.substr(0, 2));
+      setOrt(initial.substr(2, 2));
+      setTag(initial.substr(4, 2));
+    }
+  }, [initial]);
 
   const pseudonym = (mutter + ort + tag).toLowerCase();
   const complete = mutter.length === 2 && ort.length === 2 && /^\d{2}$/.test(tag);
@@ -499,11 +509,21 @@ function PseudonymBuilder({ initial, onComplete, intro }) {
   return (
     <div className="fade-in" style={{ padding: "18px 18px 80px" }}>
       <div style={{ fontSize: 22, fontWeight: 800, color: COL.blueDark, marginBottom: 6, lineHeight: 1.2 }}>
-        {intro.titel}
+        {isPost ? "Dein Code von damals" : intro.titel}
       </div>
       <p style={{ fontSize: 14, color: COL.textMuted, lineHeight: 1.55, marginBottom: 24, whiteSpace: "pre-wrap" }}>
-        {intro.text}
+        {isPost
+          ? "Wichtig: Denk dir jetzt keinen neuen Code aus. Beantworte einfach die drei Fragen unten nochmal genauso wie beim ersten Mal — dann kommt automatisch derselbe Code raus. Nur so können wir deine Antworten von damals und heute zusammenbringen."
+          : intro.text}
       </p>
+      {isPost && (
+        <div style={{ background: "#fef3c7", border: "2px solid #f59e0b", borderRadius: 12, padding: "12px 16px", marginBottom: 20 }}>
+          <div style={{ fontSize: 13, fontWeight: 800, color: "#92400e", marginBottom: 2 }}>Gleiche Antworten wie beim ersten Mal</div>
+          <div style={{ fontSize: 13, color: "#78350f", lineHeight: 1.45 }}>
+            Die Fragen beziehen sich auf Dinge, die sich nicht ändern. Antworte einfach ehrlich — der Code stimmt dann von selbst.
+          </div>
+        </div>
+      )}
 
       <div style={{ background: "#f8fafc", border: `1px solid ${COL.border}`, borderRadius: 14, padding: 18 }}>
         <div style={{ marginBottom: 18 }}>
@@ -632,7 +652,7 @@ function WelcomeScreen({ intro, schule, klasse, rolle, phase, onStart }) {
 /* ════════════════════════════════════════════════════════════════════
    DONE SCREEN
    ════════════════════════════════════════════════════════════════════ */
-function DoneScreen({ outro, rolle, onContinueToGame, gameUrl, pseudonym }) {
+function DoneScreen({ outro, rolle, onContinueToGame, gameUrl, pseudonym, isPost }) {
   const qrUrl = gameUrl
     ? "https://api.qrserver.com/v1/create-qr-code/?size=220x220&margin=4&data=" +
       encodeURIComponent(new URL(gameUrl, window.location.href).href)
@@ -642,13 +662,13 @@ function DoneScreen({ outro, rolle, onContinueToGame, gameUrl, pseudonym }) {
     <div className="fade-in" style={{ padding: "40px 18px 60px", textAlign: "center" }}>
       <div style={{ fontSize: 64, marginBottom: 12 }}>✨</div>
       <div style={{ fontSize: 28, fontWeight: 900, color: COL.blueDark, marginBottom: 10 }}>
-        {outro.titel}
+        {isPost ? "Geschafft — vielen Dank!" : outro.titel}
       </div>
 
       {rolle === "schueler" && gameUrl ? (
         <>
           {/* Pseudonym-Code prominent zum Merken/Aufschreiben */}
-          {pseudonym && (
+          {pseudonym && !isPost && (
             <div style={{
               background: "linear-gradient(135deg, #fef3c7, #fde68a)",
               border: "2px solid #f59e0b", borderRadius: 18,
@@ -697,9 +717,11 @@ function DoneScreen({ outro, rolle, onContinueToGame, gameUrl, pseudonym }) {
       ) : (
         <div style={{ maxWidth: 480, margin: "0 auto" }}>
           <p style={{ fontSize: 16, color: COL.textMuted, lineHeight: 1.6, marginBottom: 20 }}>
-            {outro.text}
+            {isPost
+              ? "Das war die zweite Befragung — damit bist du durch. Wir werten jetzt alles aus und melden uns mit den Ergebnissen bei euch, sobald wir sie haben."
+              : outro.text}
           </p>
-          {pseudonym && (
+          {pseudonym && !isPost && (
             <div style={{
               background: "linear-gradient(135deg, #fef3c7, #fde68a)",
               border: "2px solid #f59e0b", borderRadius: 18,
@@ -811,6 +833,9 @@ function App() {
 
   const [phase, setPhase] = useState("loading"); // loading | invalid | schulcode-entry | choice | welcome | pseudonym | survey | done | error
   const [studieDone, setStudieDone] = useState(false);
+  const [unknownCode, setUnknownCode] = useState(null); // bei post: Code ohne Pre-Eintrag
+  const [codeForced, setCodeForced] = useState(false);  // User hat "trotzdem weiter" geklickt
+  const [prefillCode, setPrefillCode] = useState(null);  // Code beim Korrigieren vorbefüllen
   const [error, setError] = useState(null);
   const [schule, setSchule] = useState(null);
   const [klasse, setKlasse] = useState(null);
@@ -935,6 +960,27 @@ function App() {
         }
       } catch (e) { /* nicht kritisch — bei Fehler normalen Weg gehen */ }
     }
+
+    // Bei der Zweitbefragung: gibt es überhaupt einen Vorher-Eintrag mit diesem Code?
+    // Wenn nicht, hat sich die Person vermutlich vertippt. Lieber jetzt klären als
+    // später die Daten von Hand zuordnen zu müssen.
+    if (phaseParam === "post" && schule && rolle && !codeForced) {
+      try {
+        const preHits = await supa.selectWhere("studie_responses", "id", {
+          pseudonym: pseudo,
+          rolle,
+          schule_id: schule.id,
+          messzeitpunkt: "pre",
+        });
+        if (!preHits || preHits.length === 0) {
+          setUnknownCode(pseudo);
+          setPhase("code-unbekannt");
+          window.scrollTo({ top: 0, behavior: "smooth" });
+          return;
+        }
+      } catch (e) { /* bei Netz-Fehler nicht blocken */ }
+    }
+
     setPhase("survey");
     setSectionIdx(0);
     window.scrollTo({ top: 0, behavior: "smooth" });
@@ -954,7 +1000,7 @@ function App() {
           schule_id: schule ? schule.id : null,
           klasse_id: klasse ? klasse.id : null,
           messzeitpunkt: phaseParam,
-          responses,
+          responses: codeForced ? { ...responses, _kein_pre_match: true } : responses,
           fragebogen_version: fragebogen.meta.version,
         };
         // Versuche INSERT; bei Konflikt (unique) → UPDATE
@@ -1039,8 +1085,46 @@ function App() {
       rolle={rolle} phase={phaseParam} onStart={handleStart} />;
   }
 
+  if (phase === "code-unbekannt") {
+    return (
+      <div className="fade-in" style={{ padding: "40px 20px 60px", textAlign: "center" }}>
+        <div style={{ fontSize: 52, marginBottom: 14 }}>🤔</div>
+        <div style={{ fontSize: 24, fontWeight: 900, color: COL.blueDark, marginBottom: 10, lineHeight: 1.25 }}>
+          Diesen Code finden wir nicht
+        </div>
+        <p style={{ fontSize: 15, color: COL.textMuted, lineHeight: 1.6, maxWidth: 460, margin: "0 auto 18px" }}>
+          Du hast <strong style={{ fontFamily: "monospace", color: COL.blue, fontSize: 19 }}>{unknownCode}</strong> gebaut.
+          Unter diesem Code finden wir keine erste Befragung. Vielleicht ein Tippfehler?
+        </p>
+        <div style={{
+          background: "#eef2ff", border: "1px solid #c7d2fe", borderRadius: 14,
+          padding: "16px 18px", maxWidth: 460, margin: "0 auto 24px", textAlign: "left",
+        }}>
+          <div style={{ fontSize: 13, fontWeight: 800, color: COL.blue, marginBottom: 6 }}>Meistens ist es einer davon:</div>
+          <div style={{ fontSize: 14, color: COL.text, lineHeight: 1.7 }}>
+            Umlaut vergessen — <code>kö</code> statt <code>koe</code><br />
+            Anderer Ort gemeint als beim ersten Mal<br />
+            Tag einstellig statt zweistellig — <code>07</code> statt <code>7</code>
+          </div>
+        </div>
+        <div style={{ display: "flex", flexDirection: "column", gap: 10, maxWidth: 340, margin: "0 auto" }}>
+          <Btn primary onClick={() => { setPrefillCode(unknownCode); setUnknownCode(null); setPhase("pseudonym"); }}>
+            Nochmal draufschauen
+          </Btn>
+          <Btn secondary onClick={() => { setCodeForced(true); setUnknownCode(null); setPhase("survey"); setSectionIdx(0); window.scrollTo({ top: 0, behavior: "smooth" }); }}>
+            Ja, der stimmt — weiter
+          </Btn>
+        </div>
+        <div style={{ fontSize: 12, color: COL.textLight, marginTop: 14, maxWidth: 380, margin: "14px auto 0", lineHeight: 1.5 }}>
+          Wenn du dir sicher bist, geht's einfach weiter. Deine Antworten zählen auf jeden Fall.
+        </div>
+      </div>
+    );
+  }
+
   if (phase === "pseudonym") {
-    return <PseudonymBuilder initial={savedPseudonym} intro={fragebogen.pseudonym_intro}
+    return <PseudonymBuilder initial={prefillCode || savedPseudonym} intro={fragebogen.pseudonym_intro}
+      isPost={phaseParam === "post"}
       onComplete={handlePseudonymComplete} />;
   }
 
@@ -1074,7 +1158,7 @@ function App() {
   }
 
   if (phase === "done") {
-    return <DoneScreen outro={fragebogen.outro} rolle={rolle}
+    return <DoneScreen outro={fragebogen.outro} rolle={rolle} isPost={phaseParam === "post"}
       onContinueToGame={() => { setStudieDone(true); setPhase("choice"); }}
       gameUrl={gameUrl}
       pseudonym={pseudonym}
