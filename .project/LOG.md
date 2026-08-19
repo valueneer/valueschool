@@ -4,6 +4,89 @@
 
 ---
 
+## 2026-08-19 (Session 7) — Repo-Identität geklärt, Schreibzugriff steht
+
+**Kein Code angefasst.** Diese Session hat nur aufgeräumt, wo gearbeitet wird.
+
+**Befund:** Eine Standnotiz außerhalb des Repos führte den Pfad `C:\\Users\\hendr\\claude\\landingpage\\`
+als Repo-Ort. Falsch. Das ist eine tote Altkopie vom 05.05.2026 (HEAD `6ad5c9d5`), in der seit Mai keiner
+mehr war. Das gepflegte Repo ist `C:\\Users\\hendr\\OneDrive\\Dokumente\\GitHub\\valueschool\\`.
+
+**Sync-Stand geprüft:** lokal `refs/heads/main` = `74a703d2` = der Commit, den Netlify am 16.07.2026 als
+Deploy `6a5881e87a0ea4000851a7a5` veröffentlicht hat. Fetch am 19.08. brachte nichts Neues.
+**Lokal = GitHub = live.** Nichts zu reparieren.
+
+**Wie der Fehler auffiel:** Nach einem Fetch in GitHub Desktop blieb `FETCH_HEAD` in der Altkopie
+unverändert. Also zeigte GitHub Desktop woanders hin. "Show in Explorer" hat den echten Pfad geliefert.
+Merksatz: wo ein Repo liegt, sagt GitHub Desktop, nicht eine Notiz.
+
+**Arbeitsumgebung:** Der Ordner `OneDrive\\Dokumente\\GitHub` ist jetzt dauerhaft als Cowork-Ordner
+verbunden. Lesen und Schreiben im Repo funktioniert (dieser Eintrag ist der Schreibtest). Commit und Push
+macht Hendrik in GitHub Desktop, das kann Cowork nicht auslösen.
+
+**Diese Log-Datei war seit 12.05.2026 tot,** obwohl weitergearbeitet wurde: `wertetest/studie/` kam mit dem
+Juli-Deploy dazu, `qr_bonn_studie.html` am 07.08. Beides ist hier nie dokumentiert worden. Ab jetzt wieder
+am Session-Ende pflegen.
+
+**Offen aus dieser Session:**
+- `.project/WEEK.md` steht auf KW 20 (Mai). Fokus bestätigen oder neu setzen, bevor gebaut wird.
+- Altkopie `C:\\Users\\hendr\\claude\\landingpage\\` wegräumen, sonst tappt der nächste wieder rein.
+- Sicherheit: in `landingpage\\.git\\config` steht ein GitHub-Token im Klartext. Widerrufen und neu ausstellen.
+
+### Zweiter Teil der Session — Minitest aus dem Funnel genommen
+
+**Briefing Hendrik:** "Nimm den Kurztest raus, inklusive aller Verlinkungen. Wird bald durch einen
+kleinen Wertetest ersetzt." Gemeint war `/minitest/` — der Test, der auf der Seite als "1-Min-Test",
+"1-Min-Wertetest" und "1-Min-Werte-Check" auftritt. Die Seite `/kurztest-werte-mehr-erfahren/` heißt zwar
+wörtlich "Kurztest", war aber schon vorher von nirgendwo verlinkt, also gab es dort nichts zu entfernen.
+
+**Sechs Verlinkungen entfernt:**
+
+*Hauptseite (`index.html` + `valueschool.html`, identische Kopien):*
+1. Hero-CTA "🧭 Wo stehst du? 1-Min-Test"
+2. CTA-Block nach "Warum das jetzt zählt": "Mach den 1-Min-Werte-Check" plus Unterzeile
+   "1 Minute. 5 Fragen. Dein Werte-Typ per Mail."
+3. Footer-Link "1-Min-Wertetest"
+4. Floating-CTA unten rechts
+
+*`programm/index.html`:*
+5. Footer-Link, 6. Floating-CTA
+
+**Entscheidung dabei:** Im Hero standen zwei CTAs nebeneinander, der Test als Hauptbutton und
+"Erstgespräch buchen" als blasser Ghost-Button. Nach dem Entfernen wäre nur der blasse übrig geblieben.
+"Erstgespräch buchen" hat deshalb die Optik des Hauptbuttons übernommen (Pink-Orange-Verlauf, 20/44
+Padding, Schatten). Rückgängig zu machen, sobald der neue Wertetest den Platz einnimmt.
+
+**Nicht angefasst:** Der `showFloating`-State samt Scroll-Listener bleibt drin, ungenutzt. Der neue Test
+kriegt den Floating-Button voraussichtlich zurück. Die Ordner `minitest/` und
+`kurztest-werte-mehr-erfahren/` bleiben liegen, die Seiten sind über die direkte URL weiter erreichbar,
+nur nicht mehr verlinkt.
+
+**Nebenbefund, mit repariert: 171 KB Nullbytes.** `index.html` und `valueschool.html` waren 222 KB groß,
+aber nur 51 KB davon waren HTML. Hinter `</html>` hingen 171.115 Nullbytes, in `programm/index.html`
+weitere 116. Klassischer Schreibabbruch, vermutlich OneDrive. Browser ignorieren das stillschweigend,
+deshalb ist es nie aufgefallen — ausgeliefert wurde es trotzdem bei jedem Aufruf. Abgeschnitten.
+**index.html: 222.193 → 48.885 Bytes.** Damit ist die Hauptseite jetzt wirklich so leicht, wie die
+Performance-Session im Mai gedacht war.
+
+**Geprüft vor dem Schreiben:** Beide Dateien headless in Chromium gerendert. React mountet sauber
+(#root 55.659 Zeichen), kein einziger JS-Fehler, FadeIn/section/footer/ImgBox alle balanciert, im
+sichtbaren Text kommt "1-Min" nicht mehr vor, verbleibende Links sind `/programm/`, `/wer-wir-sind/`,
+Calendly, Valueverse-Shop, Datenschutz, Impressum. `index.html` und `valueschool.html` sind byte-identisch.
+
+**Achtung, Folge fürs Marketing:** Der Minitest war der einzige niedrigschwellige Einstieg und hing an
+Brevo mit Double-Opt-in. Ab jetzt ist "Erstgespräch buchen" der einzige Conversion-Punkt der Seite. Bis
+der neue Wertetest steht, kommen keine neuen E-Mail-Leads rein.
+
+**Kein Backup als `.pre`-Datei angelegt** — der Rückweg ist "Discard changes" in GitHub Desktop, solange
+nicht committed ist. Im Repo liegen ohnehin schon 14 alte `.bak`/`.pre-*`-Dateien.
+
+**Wo weitermachen:** Hendrik prüft lokal im Browser und pusht. Danach: der neue kleine Wertetest, der den
+Platz einnimmt. Vorher die offene Grundsatzfrage klären, ob der als eigene App gebaut wird oder als
+Konfiguration der bestehenden Wertetest-Engine (`FEATURE_PROFILES`).
+
+---
+
 ## 2026-05-12 (Session 6) — Performance-Komplettoptimierung
 
 **Größte Wins:**
