@@ -494,6 +494,7 @@ function DashboardMain({ session, rolle }) {
   return (
     <div style={{ maxWidth: 1200, margin: "0 auto", padding: "20px 20px 60px" }}>
       <SnapshotHint onReload={() => setReloadKey(k => k + 1)} />
+      <AuswertungenBox />
       <TotalsRow data={data} />
       <TrendChart data={data} />
       <WerteSection data={data} filter={filter} setFilter={setFilter} sort={sort} setSort={setSort} />
@@ -515,6 +516,42 @@ function SnapshotHint({ onReload }) {
         background: "#fff", border: "1px solid #c7d2fe", borderRadius: 8, padding: "6px 14px",
         fontSize: 12, fontWeight: 600, color: "#3730a3", cursor: "pointer",
       }}>Neu laden</button>
+    </div>
+  );
+}
+
+/* Feste Auswertungen: in sich geschlossene HTML-Seiten, unabhaengig von der
+   Datenbank. Laufen auch, wenn Supabase pausiert. */
+const AUSWERTUNGEN = [
+  {
+    titel: "Gymnasium Schloss Overhagen, Lippstadt",
+    zeile: "346 Schuelerinnen und Schueler, 25 Lehrkraefte \u00b7 Stand 9. September 2026",
+    href: "/auswertung/lippstadt-gso-ce8fa48d/",
+  },
+];
+
+function AuswertungenBox() {
+  return (
+    <div style={{ background: "#fff", border: `1px solid ${COLOR.border}`, borderRadius: 12, padding: "14px 16px", marginBottom: 20 }}>
+      <div style={{ fontSize: 12, color: COLOR.textMuted, marginBottom: 10, fontWeight: 600, letterSpacing: ".04em", textTransform: "uppercase" }}>
+        Fertige Auswertungen
+      </div>
+      {AUSWERTUNGEN.map((a, i) => (
+        <a key={i} href={a.href} target="_blank" rel="noopener noreferrer" style={{
+          display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12, flexWrap: "wrap",
+          textDecoration: "none", color: "inherit", padding: "10px 12px", borderRadius: 10,
+          border: `1px solid ${COLOR.border}`, marginBottom: i < AUSWERTUNGEN.length - 1 ? 8 : 0,
+        }}>
+          <span>
+            <span style={{ display: "block", fontWeight: 700, color: COLOR.blueDark, fontSize: 15 }}>{a.titel}</span>
+            <span style={{ display: "block", fontSize: 12.5, color: COLOR.textMuted, marginTop: 2 }}>{a.zeile}</span>
+          </span>
+          <span style={{ fontSize: 13, fontWeight: 600, color: COLOR.blueDark, whiteSpace: "nowrap" }}>\u00d6ffnen \u2192</span>
+        </a>
+      ))}
+      <div style={{ fontSize: 12, color: COLOR.textMuted, marginTop: 10 }}>
+        Diese Seiten sind in sich geschlossen und laufen auch, wenn die Datenbank pausiert. Der Link l\u00e4sst sich weitergeben.
+      </div>
     </div>
   );
 }

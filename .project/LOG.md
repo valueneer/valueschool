@@ -81,9 +81,120 @@ der neue Wertetest steht, kommen keine neuen E-Mail-Leads rein.
 **Kein Backup als `.pre`-Datei angelegt** — der Rückweg ist "Discard changes" in GitHub Desktop, solange
 nicht committed ist. Im Repo liegen ohnehin schon 14 alte `.bak`/`.pre-*`-Dateien.
 
-**Wo weitermachen:** Hendrik prüft lokal im Browser und pusht. Danach: der neue kleine Wertetest, der den
-Platz einnimmt. Vorher die offene Grundsatzfrage klären, ob der als eigene App gebaut wird oder als
-Konfiguration der bestehenden Wertetest-Engine (`FEATURE_PROFILES`).
+### Dritter Teil — Comic-Layout, erster Vorschlag
+
+**Briefing Hendrik:** Bildsprache und CI sollen spielerischer werden, Aufbau eher wie eine Comicseite.
+Kästen und Buttons als Panels, Logo mit mehr Power. Vorlage ist der noch unfertige Flyer-Entwurf
+"Value School Superkräfte Broschüre v1" (Superhelden-Cover, Panels mit dicker Kontur, gelbe
+Caption-Boxen, Speedlines, Halbtonraster, Papierton, Wappen-Icons). **Nur Optik, keine Inhalte,
+Farbpalette bleibt gesetzt** — im Comic sind die Farben noch nicht final.
+
+**Neue Datei: `layout-comic-preview.html` im Repo-Root.** Eigenständige Vorschau, `index.html` und
+`valueschool.html` sind unangetastet. Assetpfade sind darin relativ, damit ein Doppelklick im Explorer
+funktioniert. Nicht verlinkt, nicht im Funnel.
+
+**Was die Comic-Ebene macht** (ein zusätzlicher `<style>`-Block, der über die bestehenden Inline-Styles
+greift — der Seitencode selbst ist bis auf Nav-Logo und Hero-Caption unverändert):
+
+- **Papier statt Weiß:** Untergrund #F2E9D5 mit feinem Halbton-Punktraster (Ben-Day) als Textur.
+- **Panels:** jede Karte bekommt 3,5 px Kontur in BLUE_DK und einen harten Versatzschatten 8/8 ohne
+  Weichzeichnung. Keine runden Ecken mehr, keine weichen Schatten.
+- **Caption-Boxen:** die Kicker-Pills werden orange Kästen mit Kontur, leicht gekippt, in Bangers.
+  Orange statt des Gelbs aus dem Flyer, weil Gelb nicht in der Palette ist.
+- **Buttons:** eckig, Kontur, harter Schatten, Versalien. Beim Klick rutscht der Button in seinen
+  Schatten (translate + kleinerer Schatten).
+- **Headlines:** neue Schrift **Anton**, um 5 Grad geneigt. Die H1 im Hero zusätzlich mit
+  Konturlinie und 7-px-Versatzschatten. Bangers bleibt für Karten-Titel und Captions.
+- **Speedlines:** links und rechts jeder zentrierten H2 drei Striche in INK, Cyan und Pink.
+- **Sektionskanten:** gestrichelte Comic-Kante statt weichem Übergang.
+- **Logo mit Power:** sitzt jetzt in einem weißen Panel mit Kontur, um 2,5 Grad gekippt, mit doppeltem
+  Versatzschatten in Pink und Cyan. Auf Mobil kleiner, sonst kollidiert es mit dem Menü.
+- **Bild-Panels, Icon-Kacheln, Formularfelder** bekommen dieselbe Kontur-Logik.
+
+**Geprüft:** headless gerendert in 1440 und 390 Pixel Breite. Kein JS-Fehler, kein horizontales Scrollen
+auf Mobil. Fallstrick unterwegs: die Fakten-Streifen in der dunklen Studien-Box wurden von der
+Panel-Regel auf hellen Grund gesetzt, ihre Schrift ist aber weiß — Text war unsichtbar. Eigene Regel für
+Panels innerhalb dunkler Flächen.
+
+**VERWORFEN am selben Tag.** Hendriks Urteil: "Das ist einfach das aktuelle 1:1 Layout mit ein klein
+wenig anderen Farben." Stimmt. Eine CSS-Ebene über die bestehende Struktur legen ändert die Oberfläche,
+nicht den Aufbau. Eine Comicseite ist eine Anordnung, kein Anstrich.
+
+**Neuer Anlauf: `layout-comic-preview.html` komplett neu gebaut** (überschreibt die erste Fassung),
+diesmal als echte Comicseiten-Struktur statt als Skin.
+
+- **Sieben nummerierte Comicseiten** statt durchlaufender Sektionen. Jede Seite hat einen Papierrand,
+  eine dicke Kontur links und rechts, und unten mittig eine Seitenzahl im Kreis.
+- **Panelraster mit Gutter.** Die Panels stehen in einem Grid mit sichtbarem Papier dazwischen, wie die
+  Bahnen einer Comicseite. Unterschiedliche Spaltenaufteilungen pro Seite, Panels leicht gekippt.
+- **Erzählerkästen** sitzen im Panel, oben links, gekippt, mit Kontur — statt mittiger Kicker-Pillen.
+- **Sprechblasen mit Zacke** für die Kernaussagen: Hero-Claim, Founder-Story, Manifest-Satz.
+- **Fazit-Banner** am Seitenfuß, schräg geschnitten, wie "EIN WERT WIEGT STÄRKER" im Flyer.
+- **Titelleisten** mit Speedlines links und rechts, Anton geneigt.
+- **Seite 1 ist ein Cover:** vollflächiges Splash-Panel, Titel über drei Zeilen mit Kontur und
+  Versatzschatten, Claim in der Sprechblase, CTA rechts unten.
+- **Seite 5 ist eine dunkle Splashseite** fürs Manifest, wie eine Doppelseite im Comic.
+- Bild-Panels haben feste Seitenverhältnisse (16:10, 21:8), damit das Raster nicht auseinanderläuft.
+
+Technisch ist die Vorschau **reines HTML und CSS, kein React**. Für einen Layoutentwurf schneller und
+kontrollierbarer. Wenn die Richtung steht, wird sie in die React-Seite übersetzt.
+
+**Geprüft:** 1440 und 390 Pixel, kein JS-Fehler, kein horizontales Scrollen.
+
+**Auch verworfen.** Hendrik: "Das wird so nichts." Der zweite Versuch hatte zwar Comicseiten-Struktur,
+aber die falsche Formensprache — eckige Panels, dicke Konturen, harte Versatzschatten. Das ist
+Retro-Pop-Comic. Der Flyer ist Superhelden-Comic und funktioniert genau andersherum.
+
+**Dritter Anlauf, mit Briefing statt Raten.** Vorher alle acht PDF-Seiten in Einzelbilder gerendert und
+die Formensprache abgelesen, dann vier Fragen an Hendrik gestellt. Seine Antworten:
+
+1. **Farben:** Website-Palette bleibt führend. Der Flyer fährt Navy, Creme, Gold, Bordeaux — davon wird
+   nur die Rollenverteilung übernommen: BLUE_DK spielt Navy, ORANGE spielt Gold, PINK spielt Bordeaux.
+2. **Bilder:** Platzhalterflächen oder Farbflächen sind in Ordnung, wo im Flyer Illustrationen sitzen.
+3. **Dramaturgie:** Flyer-Ablauf als Gerüst nutzen und um die zusätzlichen Website-Inhalte anreichern.
+4. **Schriften:** auf Flyer-nahe Schriften umstellen. Gewählt: **Archivo Italic 900** für Überschriften
+   (schwere geneigte Grotesk wie im Flyer), **Barlow** für Fließtext. Bangers ist raus — Cartoon-Schrift,
+   falscher Ton für Superhelden-Comic.
+
+**Was den Flyer-Look tatsächlich ausmacht** (das war der Fehler der ersten beiden Versuche):
+
+- Panels sind **weich gerundet** (16 px Radius), nicht eckig.
+- Die Kontur ist **dünn** (2,5 px), nicht 4–5 px.
+- Statt harter Versatzschatten: **eine dünne dunkle Kante unter dem Panel** plus weicher Bodenschatten.
+- Der Wiedererkennungswert kommt aus den **Kopfleisten**: farbige Pillen mit weißer kursiver
+  Versalschrift, die oben über den Panelrand hinausragen.
+- **Wappen-Icons** statt quadratischer Icon-Kacheln.
+- **Gestrichelte Trennlinien** zwischen Listenpunkten im Panel.
+- **Outline-Pfeile** als Übergang zwischen Panelgruppen.
+- **Gerissene Schraffur** in zwei Seitenecken, Halbtonraster in den Flächen.
+- Seitenkicker als dunkler Balken oben links, Seitenzahl als Lasche unten mittig.
+
+**Sieben Seiten nach Flyer-Dramaturgie:** Cover → der blinde Fleck → was Schulen herausfordert (mit
+Belegen) → zwei Wege, Kollegium und Schülerschaft → Manifest als Splashseite → warum wir das können,
+inklusive "So entlasten wir eure Schule" nach dem Muster von Flyerseite 7 → gemeinsam Werte bewegen mit
+den drei Einstiegsfragen und Pfeilen wie auf Flyerseite 8.
+
+Zwei Platzhalterflächen markieren, wo Comic-Illustrationen hingehören.
+
+**Geprüft:** 1400 und 390 Pixel, kein JS-Fehler, kein horizontales Scrollen.
+
+**Offen für die nächste Runde:**
+- Die Comic-Illustrationen fehlen. Zwei Platzhalterflächen markieren die Stellen. Sobald es Zeichnungen
+  gibt, rein damit — das ist der größte verbliebene Hebel.
+- Der Flyer hat eine Seite "Finanzierung und Organisation", die es auf der Website nicht gibt. Teile davon
+  sind als "So entlasten wir eure Schule" eingeflossen, die Finanzierungsseite selbst fehlt. Es gibt eine
+  Unterseite `/finanzierung-schule-check/`, die im Funnel nicht verlinkt ist — passt hier hin.
+- Der Flyer hat Testimonials von Schulleitungen. Die Website hat keine einzige Schulreferenz. Das ist
+  laut Schulleiter-Audit ohnehin eine der fünf großen Lücken.
+- Die Unterseiten (`/programm/`, `/wer-wir-sind/`) sind noch im alten Layout.
+- Wenn die Richtung steht: in React übersetzen und in `index.html` / `valueschool.html` überführen.
+
+**Wo weitermachen:** Hendrik schaut sich `layout-comic-preview.html` an und sagt, was bleibt und was
+weg soll. Erst danach wandert die Comic-Ebene in `index.html` und `valueschool.html`.
+
+Weiter offen aus dem zweiten Teil: der neue kleine Wertetest, der den Platz des Minitests einnimmt.
+Vorher die Grundsatzfrage klären, ob als eigene App oder als Konfiguration der bestehenden
+Wertetest-Engine (`FEATURE_PROFILES`).
 
 ---
 
