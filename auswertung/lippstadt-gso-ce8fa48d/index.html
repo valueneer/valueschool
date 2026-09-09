@@ -472,7 +472,7 @@ function drawVerlauf(){
   });
   const geprueft=kand.length;
   const top=kand.filter(v=>v.ges>=3&&v.r2>=0.15&&Math.abs(v.trend)>=5.5)
-                .sort((a,b)=>Math.abs(b.trend)-Math.abs(a.trend)).slice(0,8);
+                .sort((a,b)=>Math.abs(b.trend)-Math.abs(a.trend)).slice(0,6);
   const sicht=top.filter(v=>!vfAus[v.w]);
   const mx=Math.max(10,...sicht.flatMap(v=>v.ys))*1.12;
   const W=920,H=430,x0=52,y0=20,xw=W-x0-186,yh=H-y0-52;
@@ -516,7 +516,7 @@ function drawVerlauf(){
     (auf?'Stärkster Anstieg: '+sagt(auf)+'. ':'')+(ab?'Stärkster Rückgang: '+sagt(ab)+'. ':'')+
     '<br><span style="opacity:.75">Ein Wert kommt in die Grafik, wenn er insgesamt mindestens 3 Prozent der Nennungen hat, '+
     'eine Trendgerade über die sieben Jahrgänge mindestens 15 Prozent seiner Streuung erklärt und dabei um mindestens '+
-    '5,5 Prozentpunkte steigt oder fällt. Sortiert nach Stärke des Trends, höchstens acht Linien. '+
+    '5,5 Prozentpunkte steigt oder fällt. Gezeigt werden die sechs stärksten Bewegungen der Familie. '+
     'Der Abiturjahrgang 12 bleibt außen vor, mit 22 Schülern ist er zu klein. '+
     'Die Linienfarben unterscheiden nur die Werte, sie stehen nicht für Wertefamilien.</span>';
 }
