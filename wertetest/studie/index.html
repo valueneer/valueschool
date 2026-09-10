@@ -120,6 +120,14 @@ async function supaFetch(path, options = {}) {
 }
 
 const supa = {
+  /* Aufruf einer der oeff_-Funktionen. Ueber sie laeuft ab jetzt jeder
+     Zugriff dieser App auf die Datenbank. */
+  rpc(name, args) {
+    return supaFetch(`/rest/v1/rpc/${name}`, {
+      method: "POST",
+      body: JSON.stringify(args || {}),
+    });
+  },
   selectWhere(table, columns, filters) {
     const params = new URLSearchParams();
     params.set("select", columns || "*");
@@ -884,7 +892,8 @@ function App() {
     try {
       const trimmed = (code || "").trim().toUpperCase();
       if (!trimmed) { setCodeCheckError("Bitte Schul-Code eingeben"); setCodeChecking(false); return false; }
-      const schulen = await supa.selectWhere("schulen", "*", { code: trimmed });
+      const treffer = await supa.rpc("oeff_schule_per_code", { p_code: trimmed });
+      const schulen = treffer && treffer.schule ? [treffer.schule] : [];
       if (!schulen.length) {
         setCodeCheckError(`Code „${trimmed}“ nicht gefunden. Stimmt der Code von der Lehrkraft?`);
         setCodeChecking(false); return false;
@@ -951,14 +960,11 @@ function App() {
     // eine gespeicherte Antwort? Dann skip zum Done-Screen (Schüler geht direkt weiter zum Spiel).
     if (schule && rolle && phaseParam) {
       try {
-        const filters = {
-          pseudonym: pseudo,
-          rolle,
-          schule_id: schule.id,
-          messzeitpunkt: phaseParam,
-        };
-        const existing = await supa.selectWhere("studie_responses", "id", filters);
-        if (existing && existing.length > 0) {
+        const status = await supa.rpc("oeff_studie_status", {
+          p_pseudonym: pseudo, p_rolle: rolle, p_schule_id: schule.id,
+        });
+        const existing = (status && status[phaseParam]) ? [1] : [];
+        if (existing.length > 0) {
           try {
           if (schule && rolle) {
             const _lsK = `vs_studie_${rolle}_${schule.code}`;
@@ -982,13 +988,11 @@ function App() {
     // später die Daten von Hand zuordnen zu müssen.
     if (phaseParam === "post" && schule && rolle && !codeForced) {
       try {
-        const preHits = await supa.selectWhere("studie_responses", "id", {
-          pseudonym: pseudo,
-          rolle,
-          schule_id: schule.id,
-          messzeitpunkt: "pre",
+        const status = await supa.rpc("oeff_studie_status", {
+          p_pseudonym: pseudo, p_rolle: rolle, p_schule_id: schule.id,
         });
-        if (!preHits || preHits.length === 0) {
+        const preHits = (status && status.pre) ? [1] : [];
+        if (preHits.length === 0) {
           setUnknownCode(pseudo);
           setPhase("code-unbekannt");
           window.scrollTo({ top: 0, behavior: "smooth" });
@@ -1010,32 +1014,18 @@ function App() {
       // Fertig — speichern
       setSaving(true);
       try {
-        const payload = {
-          pseudonym,
-          rolle,
-          schule_id: schule ? schule.id : null,
-          klasse_id: klasse ? klasse.id : null,
-          messzeitpunkt: phaseParam,
-          responses: codeForced ? { ...responses, _kein_pre_match: true } : responses,
-          fragebogen_version: fragebogen.meta.version,
-        };
-        // Versuche INSERT; bei Konflikt (unique) → UPDATE
-        try {
-          await supa.insertReturning("studie_responses", payload);
-        } catch (e) {
-          if (e.message.includes("409") || e.message.includes("duplicate")) {
-            // Update statt Insert
-            const filters = {
-              pseudonym,
-              rolle,
-              messzeitpunkt: phaseParam,
-            };
-            if (schule) filters.schule_id = schule.id;
-            await supa.update("studie_responses", filters, { responses, fragebogen_version: fragebogen.meta.version });
-          } else {
-            throw e;
-          }
-        }
+        // Ein Aufruf fuer beides: legt an oder aktualisiert den vorhandenen
+        // Eintrag zu diesem Code. Die Datenbank prueft Rolle, Schule und
+        // Messzeitpunkt selbst.
+        await supa.rpc("oeff_studie_speichern", {
+          p_pseudonym: pseudonym,
+          p_rolle: rolle,
+          p_schule_id: schule ? schule.id : null,
+          p_klasse_id: klasse ? klasse.id : null,
+          p_messzeitpunkt: phaseParam,
+          p_responses: codeForced ? { ...responses, _kein_pre_match: true } : responses,
+          p_version: fragebogen.meta.version,
+        });
         try {
           if (schule && rolle) {
             const _lsK = `vs_studie_${rolle}_${schule.code}`;
