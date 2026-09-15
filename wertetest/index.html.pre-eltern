@@ -1212,12 +1212,17 @@ function detectFeatureProfile() {
 
 const FEATURES = FEATURE_PROFILES[detectFeatureProfile()] || FEATURE_PROFILES.full;
 
-/* Rollen-Weiche am Start. Drei Gruppen, mehr nicht. Wer sonst zur Schule
-   gehoert (Schulleitung, Sekretariat, Hausmeister) waehlt "Lehrkraft". */
 const ROLES = [
-  { id: "schueler",  label: "Schüler:in", emoji: "🎒", hint: "Ich gehe auf diese Schule" },
-  { id: "lehrkraft", label: "Lehrkraft",  emoji: "🍎", hint: "Ich arbeite an dieser Schule" },
-  { id: "eltern",    label: "Eltern",     emoji: "👪", hint: "Mein Kind geht auf diese Schule" },
+  { id: "schueler",     label: "Schüler:in",     emoji: "🎒", group: "schueler" },
+  { id: "lehrkraft",    label: "Lehrkraft",      emoji: "👩‍🏫", group: "schule" },
+  { id: "schulleitung", label: "Schulleitung",   emoji: "🎓", group: "schule" },
+  { id: "supporter",    label: "Supporter:in",   emoji: "💪", group: "schule" },
+  { id: "schultraeger", label: "Schulträger",    emoji: "🏛️", group: "schule" },
+  { id: "mensa",        label: "Mensa",          emoji: "🍽️", group: "schule" },
+  { id: "hausmeister",  label: "Hausmeister:in", emoji: "🔧", group: "schule" },
+  { id: "sekretariat",  label: "Sekretariat",    emoji: "📋", group: "schule" },
+  { id: "eltern",       label: "Eltern",         emoji: "👪", group: "eltern" },
+  { id: "sonstige",     label: "Sonstige",       emoji: "✨", group: "eltern" },
 ];
 
 function CodeEntry({ onValid, onBack, initialCode }) {
@@ -1322,7 +1327,7 @@ function RolePicker({ onPick, onBack, schule, klasse }) {
         Wähl deine Rolle aus — dann passt das Ergebnis besser zu dir.
       </p>
       <div style={{
-        display: "grid", gridTemplateColumns: "1fr", gap: 10,
+        display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 10,
         maxWidth: 360, margin: "0 auto",
       }}>
         {ROLES.map(r => (
@@ -1335,167 +1340,12 @@ function RolePicker({ onPick, onBack, schule, klasse }) {
             onMouseOut={e => { e.currentTarget.style.borderColor = "#e5e7eb"; e.currentTarget.style.background = "#fff"; }}
           >
             <div style={{ fontSize: 28, marginBottom: 4 }}>{r.emoji}</div>
-            <div style={{ fontSize: 15, fontWeight: 800, color: VS_BLUE }}>{r.label}</div>
-            <div style={{ fontSize: 12, color: "#6b7280", marginTop: 3 }}>{r.hint}</div>
+            <div style={{ fontSize: 13, fontWeight: 700, color: VS_BLUE }}>{r.label}</div>
           </button>
         ))}
       </div>
       <div style={{ marginTop: 22 }}>
         <Btn onClick={onBack}>← Zurück</Btn>
-      </div>
-    </div>
-  );
-}
-
-/* Code-Eingabe fuer Eltern und Lehrkraefte.
-   Die beiden bekommen den SCHUL-Code (z.B. GSO2606), nicht den
-   Klassencode. Ein Feld statt drei, weil der Schulcode nicht dem
-   Dreier-Schema Schule-Klasse-Jahr folgt. Es entsteht bewusst keine
-   klasse_id: Eltern und Lehrkraefte haengen an der Schule, nicht an
-   einer Klasse, und fallen damit aus der Klassenauswertung heraus. */
-function SchulcodeEntry({ rolle, onValid, onBack }) {
-  const [code, setCode] = useState("");
-  const [checking, setChecking] = useState(false);
-  const [error, setError] = useState("");
-  var VS_BLUE = "#2E2D8E";
-  const clean = code.toUpperCase().replace(/[^A-Z0-9]/g, "");
-  const formValid = clean.length >= 4;
-
-  const submit = async () => {
-    if (!formValid) { setError("Bitte den Code eingeben"); return; }
-    setChecking(true); setError("");
-    try {
-      const treffer = await supa.rpc("oeff_schule_per_code", { p_code: clean });
-      if (treffer && treffer.schule) {
-        /* Nur die Schule uebernehmen. Dieselbe Antwort traegt auch die
-           Liste aller Klassen samt Klassencodes, die bleibt hier drin. */
-        onValid(treffer.schule); return;
-      }
-      /* Rueckfall: manche tippen den Klassencode ihres Kindes ein.
-         Auch dann wird nur die Schule uebernommen. */
-      const k = await supa.rpc("oeff_klasse_per_code", { p_code: clean });
-      if (k && k.schule) { onValid(k.schule); return; }
-      setError("Diesen Code kennen wir nicht. Bitte prüfen.");
-      setChecking(false);
-    } catch (e) {
-      setError("Fehler beim Prüfen: " + e.message);
-      setChecking(false);
-    }
-  };
-
-  return (
-    <div style={{ padding: "32px 20px 40px", textAlign: "center" }}>
-      <div style={{ fontSize: 40, marginBottom: 10 }}>🎫</div>
-      <h2 style={{ fontSize: 24, fontWeight: 900, color: VS_BLUE, marginBottom: 6 }}>Code der Schule</h2>
-      <p style={{ color: "#6b7280", fontSize: 14, maxWidth: 360, margin: "0 auto 20px", lineHeight: 1.5 }}>
-        {rolle === "eltern"
-          ? "Die Schule deines Kindes hat euch einen Code geschickt. Tipp ihn hier ein."
-          : "Deine Schule hat einen Code. Tipp ihn hier ein."}
-      </p>
-      <input value={code}
-        onChange={e => { setCode(e.target.value); setError(""); }}
-        onKeyDown={e => { if (e.key === "Enter" && formValid) submit(); }}
-        maxLength={16} placeholder="Code" autoFocus
-        style={{
-          padding: "14px 18px", fontSize: 24, fontWeight: 800,
-          borderRadius: 12, border: "2px solid " + (error ? "#dc2626" : "#e5e7eb"),
-          outline: "none", textAlign: "center", fontFamily: "monospace", letterSpacing: 3,
-          textTransform: "uppercase", boxSizing: "border-box",
-          color: VS_BLUE, background: "#fff", width: 240, maxWidth: "100%",
-        }} />
-      {error && <div style={{ color: "#dc2626", fontSize: 13, fontWeight: 600, marginTop: 12 }}>{error}</div>}
-      <div style={{ display: "flex", gap: 10, justifyContent: "center", marginTop: 22, flexWrap: "wrap" }}>
-        <Btn onClick={onBack}>← Zurück</Btn>
-        <Btn primary onClick={submit} disabled={checking || !formValid}>{checking ? "Prüfe…" : "Weiter"}</Btn>
-      </div>
-    </div>
-  );
-}
-
-/* Kurze Abfrage fuer Eltern und Lehrkraefte.
-   Eltern geben Geschlecht und Stufe IHRES KINDES an — die landen in den
-   eigenen Spalten kind_geschlecht / kind_stufe, damit die Schuelerdaten
-   der Studie sauber bleiben (geschlecht / klassenstufe bleiben NULL).
-   Lehrkraefte geben nur ihr eigenes Geschlecht an. */
-function DemographicsErwachsene({ rolle, schule, onSubmit, onBack }) {
-  const istEltern = rolle === "eltern";
-  const [geschlecht, setGeschlecht] = useState("");
-  const [kindGeschlecht, setKindGeschlecht] = useState("");
-  const [kindStufe, setKindStufe] = useState("");
-  var VS_BLUE = "#2E2D8E";
-
-  const optionen = istEltern
-    ? [{ id: "m", label: "Sohn", emoji: "👦" }, { id: "w", label: "Tochter", emoji: "👧" },
-       { id: "d", label: "divers", emoji: "🌈" }, { id: "k", label: "keine Angabe", emoji: "🤷" }]
-    : [{ id: "m", label: "männlich", emoji: "👨" }, { id: "w", label: "weiblich", emoji: "👩" },
-       { id: "d", label: "divers", emoji: "🌈" }, { id: "k", label: "keine Angabe", emoji: "🤷" }];
-  const wert = istEltern ? kindGeschlecht : geschlecht;
-  const setzeWert = istEltern ? setKindGeschlecht : setGeschlecht;
-  const ready = istEltern ? (!!kindGeschlecht && !!kindStufe) : !!geschlecht;
-
-  return (
-    <div style={{ textAlign: "center", padding: "32px 20px 40px" }}>
-      {schule && (
-        <div style={{
-          background: "#f0f0ff", borderRadius: 14, padding: "10px 16px",
-          maxWidth: 360, margin: "0 auto 24px", border: "1px solid " + VS_BLUE + "33",
-        }}>
-          <div style={{ fontSize: 13, fontWeight: 700, color: VS_BLUE }}>{schule.name}</div>
-        </div>
-      )}
-
-      <h2 style={{ fontSize: 22, fontWeight: 900, color: VS_BLUE, marginBottom: 18 }}>
-        {istEltern ? "Kurz zu deinem Kind" : "Kurz über dich"}
-      </h2>
-
-      <label style={{ fontSize: 16, fontWeight: 800, color: VS_BLUE, display: "block", maxWidth: 320, margin: "0 auto 14px" }}>
-        {istEltern ? "Dein Kind ist" : "Geschlecht"}
-      </label>
-      <div style={{ maxWidth: 320, margin: "0 auto", display: "flex", gap: 8, flexWrap: "wrap" }}>
-        {optionen.map(opt => {
-          const sel = wert === opt.id;
-          return (
-            <button key={opt.id} onClick={() => setzeWert(opt.id)} style={{
-              flex: 1, minWidth: 70, padding: "10px 6px", borderRadius: 12, fontSize: 13,
-              fontWeight: 700, cursor: "pointer", border: "2px solid",
-              borderColor: sel ? VS_BLUE : "#e5e7eb",
-              background: sel ? "#f0f0ff" : "#fff",
-              color: sel ? VS_BLUE : "#6b7280",
-            }}>
-              <div style={{ fontSize: 18, marginBottom: 2 }}>{opt.emoji}</div>
-              {opt.label}
-            </button>
-          );
-        })}
-      </div>
-
-      {istEltern && (
-        <div style={{ maxWidth: 320, margin: "24px auto 0" }}>
-          <label style={{ fontSize: 16, fontWeight: 800, color: VS_BLUE, display: "block", marginBottom: 10 }}>
-            In welcher Stufe?
-          </label>
-          <select value={kindStufe} onChange={e => setKindStufe(e.target.value)} style={{
-            width: "100%", padding: "12px 14px", borderRadius: 10, border: "2px solid #e5e7eb",
-            fontSize: 15, fontWeight: 600, color: VS_BLUE, background: "#fff", cursor: "pointer",
-          }}>
-            <option value="">Stufe wählen</option>
-            {Array.from({ length: 13 }, (_, i) => i + 1).map(n => (
-              <option key={n} value={String(n)}>{"Stufe " + n}</option>
-            ))}
-          </select>
-          <div style={{ fontSize: 11, color: "#9ca3af", marginTop: 8, lineHeight: 1.4 }}>
-            Mehrere Kinder an der Schule? Spiel einfach pro Kind einmal.
-          </div>
-        </div>
-      )}
-
-      <div style={{ display: "flex", gap: 10, justifyContent: "center", marginTop: 28, flexWrap: "wrap" }}>
-        <Btn onClick={onBack}>← Zurück</Btn>
-        <Btn primary disabled={!ready} onClick={() => onSubmit({
-          geschlecht: istEltern ? null : geschlecht,
-          kindGeschlecht: istEltern ? kindGeschlecht : null,
-          kindStufe: istEltern ? kindStufe : null,
-        })}>Los geht's →</Btn>
       </div>
     </div>
   );
@@ -3981,11 +3831,7 @@ function AdminDashboard({ onBack }) {
     return {
       id: r.id,
       ts: r.created_at,
-      /* rolle und die kind_-Felder bleiben getrennt von geschlecht/klasse:
-         bei Eltern sind Letztere leer, die Angaben betreffen das Kind. */
-      rolle: r.rolle || "schueler",
-      demographics: { geschlecht: r.geschlecht, klasse: r.klassenstufe, schulform: r.schulform,
-                      kindGeschlecht: r.kind_geschlecht, kindStufe: r.kind_stufe },
+      demographics: { geschlecht: r.geschlecht, klasse: r.klassenstufe, schulform: r.schulform },
       lebenswert: { name: r.lebenswert, cat: r.lebenswert_cat },
       superkraefte: r.superkraefte || [],
       grundwerte: r.grundwerte || [],
@@ -4045,14 +3891,11 @@ function AdminDashboard({ onBack }) {
   };
 
   const exportCSV = () => {
-    const headers = ["Datum","Rolle","Geschlecht","Klasse","Kind Geschlecht","Kind Stufe","Schulform","Lebenswert","Superkräfte","Grundwerte","V-Code","Dominanter Typ"];
+    const headers = ["Datum","Geschlecht","Klasse","Schulform","Lebenswert","Superkräfte","Grundwerte","V-Code","Dominanter Typ"];
     const rows = filtered.map(r => [
       new Date(r.ts).toLocaleDateString("de-DE"),
-      r.rolle || "schueler",
       r.demographics?.geschlecht || "",
       r.demographics?.klasse || "",
-      r.demographics?.kindGeschlecht || "",
-      r.demographics?.kindStufe || "",
       r.demographics?.schulform || "",
       r.lebenswert?.name || "",
       (r.superkraefte||[]).map(v=>v.name).join("; "),
@@ -4553,7 +4396,7 @@ function App() {
   // Karten im Hintergrund vorladen, sobald der User aus Intro in Demografie/Code-Eingabe wechselt
   useEffect(() => {
     if (typeof window === "undefined") return;
-    if (phase === "demographics" || phase === "demographics-light" || phase === "code-entry" || phase === "demographics-erwachsene") {
+    if (phase === "demographics" || phase === "demographics-light" || phase === "code-entry") {
       values.forEach(v => { const img = new Image(); img.src = `./karten/${encodeURIComponent(v.name)}.png`; });
     }
   }, [phase, values]);
@@ -4590,21 +4433,6 @@ function App() {
     setPhase("compare");
   };
 
-  const handleErwachsenenDemoSubmit = (demo) => {
-    /* Eltern und Lehrkraefte haengen an der Schule, nie an einer Klasse.
-       klasse bleibt null, damit oeff_klasse_holen_oder_anlegen gar nicht
-       erst anspringt und keine Phantomklassen entstehen. */
-    setDemographics({
-      geschlecht: demo.geschlecht || null,
-      klasse: null,
-      schulform: schule ? schule.schulform : null,
-      kindGeschlecht: demo.kindGeschlecht || null,
-      kindStufe: demo.kindStufe || null,
-    });
-    initGame();
-    setPhase("compare");
-  };
-
   const saveAndShowResult = async (k, demo) => {
     const all = [k.lebenswert, ...k.superkraefte, ...k.grundwerte];
     const cc = {}; all.forEach(v => { cc[v.cat] = (cc[v.cat] || 0) + 1; });
@@ -4617,8 +4445,6 @@ function App() {
         const payload = {
           geschlecht: demo?.geschlecht || null,
           klassenstufe: demo?.klasse || null,
-          kind_geschlecht: demo?.kindGeschlecht || null,
-          kind_stufe: demo?.kindStufe || null,
           schulform: demo?.schulform || null,
           schule_id: schule ? schule.id : null,
           klasse_id: klasse ? klasse.id : null,
@@ -4747,7 +4573,7 @@ function App() {
   );
 
   const maxRound = roundNum;
-  const noHeader = ["intro","result","admin","admin-login","scan","demographics","demographics-light","dashboard","schulen","klasse-landschaft","code-entry","role","schulcode","demographics-erwachsene"];
+  const noHeader = ["intro","result","admin","admin-login","scan","demographics","demographics-light","dashboard","schulen","klasse-landschaft","code-entry"];
 
   var stepIdx = 0;
   if (phase === "compare" || phase === "joker") stepIdx = roundNum;
@@ -4813,13 +4639,10 @@ function App() {
       {phase === "intro" && <Intro
         onStart={() => {
           // Schule erkannt? → direkt Demographics-Light (mit Klassenwahl falls keine Klasse pre-erkannt)
-          /* Rolle steht schon fest (Eltern/Lehrkraft spielen nochmal)?
-             Dann nicht zurueck auf den Schuelerpfad zwingen. */
-          if (schule && (rolle === "eltern" || rolle === "lehrkraft")) setPhase("demographics-erwachsene");
-          else if (schule) { setRolle("schueler"); setPhase("demographics-light"); }
-          else setPhase("role");
+          if (schule) { setRolle("schueler"); setPhase("demographics-light"); }
+          else setPhase("code-entry");
         }}
-        onCodeEntry={() => setPhase("role")}
+        onCodeEntry={() => setPhase("code-entry")}
         onFreeStart={() => setPhase("demographics")}
         valueCount={values.length}
         onAdmin={() => setPhase("admin-login")}
@@ -4843,28 +4666,6 @@ function App() {
             }
           } catch (e) { console.error("Old-Result-Lookup:", e); }
         }}
-      />}
-      {phase === "role" && <RolePicker
-        onPick={(id) => {
-          /* Rollenwechsel heisst neuer Datensatz. Ohne das Zuruecksetzen
-             wuerde die 24-Stunden-Update-Logik in oeff_ergebnis_speichern
-             den vorherigen Eintrag desselben Browsers ueberschreiben. */
-          setRolle(id);
-          setMySessionResultId(null); setCurrentResultId(null); setReturningStudent(false);
-          setPhase(id === "schueler" ? "code-entry" : "schulcode");
-        }}
-        onBack={() => setPhase("intro")}
-        schule={null} klasse={null}
-      />}
-      {phase === "schulcode" && <SchulcodeEntry
-        rolle={rolle}
-        onValid={(s) => { setSchule(s); setKlasse(null); setPhase("demographics-erwachsene"); }}
-        onBack={() => setPhase("role")}
-      />}
-      {phase === "demographics-erwachsene" && <DemographicsErwachsene
-        rolle={rolle} schule={schule}
-        onSubmit={handleErwachsenenDemoSubmit}
-        onBack={() => setPhase("schulcode")}
       />}
       {phase === "code-entry" && <CodeEntry
         onValid={({ klasse: k, schule: s }) => {
