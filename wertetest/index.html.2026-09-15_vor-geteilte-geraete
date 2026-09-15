@@ -1823,7 +1823,7 @@ function PseudonymPromptModal({ schule, onSubmit, onCancel }) {
   );
 }
 
-function Intro({ onStart, onCodeEntry, onFreeStart, valueCount, onAdmin, onScan, schule, klasse, isReturning, onShowOldResult, onAndereRolle }) {
+function Intro({ onStart, onCodeEntry, onFreeStart, valueCount, onAdmin, onScan, schule, klasse, isReturning, onShowOldResult }) {
   const [scanPin, setScanPin] = useState("");
   const [scanPinOpen, setScanPinOpen] = useState(false);
   const [scanPinError, setScanPinError] = useState(false);
@@ -1903,7 +1903,7 @@ function Intro({ onStart, onCodeEntry, onFreeStart, valueCount, onAdmin, onScan,
             {klasse && <div style={{ fontSize: 13, color: "#2E2D8E" }}>Klasse {klasse.bezeichnung}</div>}
             {isReturning && (
               <div style={{ fontSize: 12, color: "#92400e", marginTop: 6, fontStyle: "italic" }}>
-                👋 Auf diesem Gerät wurde hier schon gespielt.
+                👋 Du hast hier schon mal gespielt.
               </div>
             )}
           </div>
@@ -1915,21 +1915,14 @@ function Intro({ onStart, onCodeEntry, onFreeStart, valueCount, onAdmin, onScan,
               background: "#fff", color: "#2E2D8E",
               border: "2px solid #2E2D8E", borderRadius: 99, padding: "14px 36px",
               fontSize: 16, fontWeight: 700, cursor: "pointer",
-            }}>👀 Letztes Ergebnis auf diesem Gerät</button>
+            }}>👀 Mein letztes Ergebnis ansehen</button>
           )}
           <button onClick={onStart} style={{
             background: "linear-gradient(135deg, #2E2D8E, #3b2d8e)",
             color: "#fff", border: "none", borderRadius: 99, padding: "16px 44px",
             fontSize: 18, fontWeight: 800, cursor: "pointer",
             boxShadow: "0 6px 24px rgba(46,45,142,0.3)", letterSpacing: "0.02em",
-          }}>{schule ? "Jetzt starten →" : "Mit Klassen-Code starten"}</button>
-          {schule && onAndereRolle && (
-            <button onClick={onAndereRolle} style={{
-              background: "#fff", color: "#6b7280",
-              border: "2px solid #e5e7eb", borderRadius: 99, padding: "10px 24px",
-              fontSize: 13, fontWeight: 700, cursor: "pointer",
-            }}>Andere Klasse oder Rolle</button>
-          )}
+          }}>{schule ? (isReturning ? "Werte neu erspielen →" : "Jetzt starten →") : "Mit Klassen-Code starten"}</button>
           {!schule && (
             <button onClick={onFreeStart} style={{
               background: "#fff", color: "#2E2D8E",
@@ -3437,7 +3430,7 @@ function DoneScreen({ pseudonym, resultId, onBackToResult, onNextStudent, schule
    RESULT SCREEN
    ═══════════════════════════════════════════ */
 
-function Result({ kompass, onRestart, restartLabel, onNochmalIch, valHistory, maxRound, demographics, saveError, typeDescs, resultId, klasse, onClassView }) {
+function Result({ kompass, onRestart, restartLabel, valHistory, maxRound, demographics, saveError, typeDescs, resultId, klasse, onClassView }) {
   const { lebenswert: lw, superkraefte: sk, grundwerte: gw } = kompass;
   const all = [lw, ...sk, ...gw];
   const cc = {}; all.forEach(v => { cc[v.cat] = (cc[v.cat] || 0) + 1; });
@@ -3660,14 +3653,6 @@ function Result({ kompass, onRestart, restartLabel, onNochmalIch, valHistory, ma
       <div style={{ marginTop: 8 }}>
         <Btn onClick={onRestart}>{restartLabel || FEATURES.replayLabel}</Btn>
       </div>
-      {onNochmalIch && (
-        <div style={{ marginTop: 10 }}>
-          <button onClick={onNochmalIch} style={{
-            background: "none", border: "none", color: "#9ca3af",
-            fontSize: 12, textDecoration: "underline", cursor: "pointer", padding: 6,
-          }}>Das war ich — nochmal spielen und mein Ergebnis überschreiben</button>
-        </div>
-      )}
     </div>
   );
 }
@@ -4395,14 +4380,6 @@ function App() {
   const [currentResultId, setCurrentResultId] = useState(null);
   const [mySessionResultId, setMySessionResultId] = useState(null);
   const [returningStudent, setReturningStudent] = useState(false);
-  /* Ergebnis-ID aus dem Browserspeicher dieser Klasse. NUR zum Anzeigen.
-     Sie darf nie automatisch nach mySessionResultId wandern, sonst
-     ueberschreibt auf einem geteilten iPad das naechste Kind das vorherige. */
-  const [letztesKlassenErgebnisId, setLetztesKlassenErgebnisId] = useState(null);
-  /* Klasse kam aus einem Klassencode (dann gilt sie fuer alle am Geraet)
-     oder wurde vom Kind selbst gewaehlt (dann nicht). */
-  const [klasseAusCode, setKlasseAusCode] = useState(false);
-  const [pseudonymAusstehend, setPseudonymAusstehend] = useState(false);
   const [landschaftReturnPhase, setLandschaftReturnPhase] = useState("result");
   const [typeDescs, setTypeDescs] = useState(TYPE_DESC);
   const [valueDescs, setValueDescs] = useState(VALUE_DESC);
@@ -4460,10 +4437,9 @@ function App() {
             const k = klassen[0];
             setKlasse(k);
             if (treffer.schule) { bootSchule = treffer.schule; setSchule(treffer.schule); }
-            setKlasseAusCode(true);
             const prevId = getStoredResultIdForKlasse(k.id);
             if (prevId) {
-              setLetztesKlassenErgebnisId(prevId);
+              setMySessionResultId(prevId);
               setReturningStudent(true);
             }
           } else {
@@ -4484,9 +4460,6 @@ function App() {
             const foundSchule = schulen[0];
             bootSchule = foundSchule;
             setSchule(foundSchule);
-            /* Kein Rollen-Direktlink. Entscheidung Hendrik 15.09.2026: Eltern
-               kommen ueber die normale Startseite und tippen den Schulcode,
-               der auf dem Aushang steht. ?schule= bleibt der Schuelerpfad. */
             setRolle("schueler");
             // Wenn kein Pseudonym in URL: erst localStorage prüfen, sonst höflich fragen
             if (!pseudonymInUrl) {
@@ -4561,16 +4534,6 @@ function App() {
             setCurrentResultId(row.id);
             setMySessionResultId(row.id);
             setPhase("result");
-            /* Resume-Link aus der Adresszeile nehmen. Sonst startet ein
-               Neuladen des Geraets wieder im fremden Ergebnis samt
-               Ueberschreib-Modus. */
-            try {
-              if (window.history && window.history.replaceState) {
-                const uc = new URL(window.location.href);
-                uc.searchParams.delete("resume");
-                window.history.replaceState({}, "", uc.pathname + (uc.searchParams.toString() ? "?" + uc.searchParams.toString() : ""));
-              }
-            } catch (e2) {}
           }
         }
       } catch (e) { console.error("Resume-Code-Lookup-Fehler:", e); }
@@ -4703,49 +4666,28 @@ function App() {
     setPhase("result");
   };
 
-  /* Adresszeile aufraeumen: Ergebnis- und Resume-Links raus, Schule, Klasse
-     und Edition bleiben, damit ein Neuladen nicht in den freien Test faellt. */
-  const urlAufraeumen = () => {
+  const handleRestart = () => {
+    setDemographics(null); setKompass(null); setCurrentResultId(null); setPhase("intro");
+    /* Schuelerpfad: mySessionResultId bleibt erhalten — wer in derselben
+       Session nochmal spielt, aktualisiert seinen Eintrag statt eine Dublette
+       zu erzeugen.
+       Eltern und Lehrkraefte: umgekehrt. Am selben Rechner spielt typisch
+       erst die Mutter, dann der Vater. Ohne das Zuruecksetzen wuerde der
+       zweite Durchlauf den ersten ueberschreiben (24-h-UPDATE in
+       oeff_ergebnis_speichern). Bewusst gegen die konkreten Rollen geprueft:
+       der freie Test hat rolle === null und bleibt beim alten Verhalten. */
+    if (rolle === "eltern" || rolle === "lehrkraft") {
+      setMySessionResultId(null); setReturningStudent(false);
+    }
+    // URL bereinigen: nur ?v= entfernen, ?code= behalten falls vorhanden
     try {
       if (window.history && window.history.replaceState) {
         const u = new URL(window.location.href);
-        ["v", "resume", "pseudonym"].forEach(k => u.searchParams.delete(k));
-        window.history.replaceState({}, "", u.pathname + (u.searchParams.toString() ? "?" + u.searchParams.toString() : ""));
+        const code = u.searchParams.get("code");
+        const newUrl = window.location.pathname + (code ? `?code=${encodeURIComponent(code)}` : "");
+        window.history.replaceState({}, "", newUrl);
       }
     } catch (e) {}
-  };
-
-  /* Naechster Mensch am selben Geraet. Alles Persoenliche faellt weg, der
-     naechste Durchlauf legt eine NEUE Zeile an. Das ist der Regelfall:
-     geteilte iPads im Klassenraum, Mutter und Vater nacheinander.
-     Ein Datensatz wird nur noch wiederverwendet, wenn jemand ausdruecklich
-     "das war ich" sagt (handleNochmalIch). */
-  const handleNaechstePerson = (opts) => {
-    const pseudonymNeu = !!(opts && opts.pseudonymNeu === true);
-    setDemographics(null); setKompass(null);
-    setCurrentResultId(null); setMySessionResultId(null);
-    setLetztesKlassenErgebnisId(null); setReturningStudent(false);
-    setPseudonym(null);
-    /* Klasse nur behalten, wenn sie aus einem Klassencode kommt. Hat das
-       vorherige Kind sie selbst gewaehlt, gilt sie nicht fuer den naechsten. */
-    if (!klasseAusCode) setKlasse(null);
-    if (pseudonymNeu && schule) {
-      /* Der Schul-Eintrag im Browserspeicher gilt pro Schule, nicht pro Kind.
-         Bleibt er stehen, erbt das uebernaechste Kind still ein fremdes
-         Pseudonym. */
-      try { localStorage.removeItem("vs_studie_schueler_" + schule.code); } catch (e) {}
-      setPseudonymAusstehend(true);
-    }
-    urlAufraeumen();
-    setPhase("intro");
-  };
-
-  /* "Das war ich" — der einzige Weg, auf dem ein bestehender Datensatz
-     bewusst ueberschrieben wird. */
-  const handleNochmalIch = () => {
-    setDemographics(null); setKompass(null); setCurrentResultId(null);
-    urlAufraeumen();
-    setPhase("intro");
   };
   const handleFinish = () => { setPhase("done"); };
 
@@ -4816,12 +4758,6 @@ function App() {
   const maxRound = roundNum;
   const noHeader = ["intro","result","admin","admin-login","scan","demographics","demographics-light","dashboard","schulen","klasse-landschaft","code-entry","role","schulcode","demographics-erwachsene"];
 
-  /* Sobald eine Schule im Spiel ist, laeuft der Test auf einem Geraet, das
-     sich mehrere Menschen teilen. Dort legt der Knopf im Ergebnis eine neue
-     Zeile an. Der freie Test ohne Schule bleibt beim alten Verhalten. */
-  const geteiltesGeraet = !FEATURES.doneScreen && !!schule;
-  const resultRestart = FEATURES.doneScreen ? handleFinish : (schule ? handleNaechstePerson : handleNochmalIch);
-
   var stepIdx = 0;
   if (phase === "compare" || phase === "joker") stepIdx = roundNum;
   if (phase === "adjust") stepIdx = 4;
@@ -4888,22 +4824,9 @@ function App() {
           // Schule erkannt? → direkt Demographics-Light (mit Klassenwahl falls keine Klasse pre-erkannt)
           /* Rolle steht schon fest (Eltern/Lehrkraft spielen nochmal)?
              Dann nicht zurueck auf den Schuelerpfad zwingen. */
-          if (pseudonymAusstehend) { setShowPseudonymModal(true); setPseudonymAusstehend(false); }
           if (schule && (rolle === "eltern" || rolle === "lehrkraft")) setPhase("demographics-erwachsene");
           else if (schule) { setRolle("schueler"); setPhase("demographics-light"); }
           else setPhase("role");
-        }}
-        onAndereRolle={() => {
-          setSchule(null); setKlasse(null); setRolle(null); setKlasseAusCode(false);
-          setMySessionResultId(null); setCurrentResultId(null);
-          setLetztesKlassenErgebnisId(null); setReturningStudent(false);
-          setPseudonym(null); setCodeError(null);
-          try {
-            if (window.history && window.history.replaceState) {
-              window.history.replaceState({}, "", window.location.pathname);
-            }
-          } catch (e) {}
-          setPhase("role");
         }}
         onCodeEntry={() => setPhase("role")}
         onFreeStart={() => setPhase("demographics")}
@@ -4913,9 +4836,9 @@ function App() {
         schule={schule} klasse={klasse}
         isReturning={returningStudent}
         onShowOldResult={async () => {
-          if (!letztesKlassenErgebnisId) return;
+          if (!mySessionResultId) return;
           try {
-            const treffer = await supa.rpc("oeff_ergebnis_per_id", { p_id: letztesKlassenErgebnisId });
+            const treffer = await supa.rpc("oeff_ergebnis_per_id", { p_id: mySessionResultId });
             const rows = treffer && treffer.result ? [treffer.result] : [];
             if (rows.length > 0) {
               const row = rows[0];
@@ -4937,7 +4860,6 @@ function App() {
              den vorherigen Eintrag desselben Browsers ueberschreiben. */
           setRolle(id);
           setMySessionResultId(null); setCurrentResultId(null); setReturningStudent(false);
-          setLetztesKlassenErgebnisId(null); setKlasseAusCode(false); setPseudonym(null);
           setPhase(id === "schueler" ? "code-entry" : "schulcode");
         }}
         onBack={() => setPhase("intro")}
@@ -4955,12 +4877,11 @@ function App() {
       />}
       {phase === "code-entry" && <CodeEntry
         onValid={({ klasse: k, schule: s }) => {
-          setKlasse(k); setSchule(s); setRolle("schueler"); setKlasseAusCode(true);
+          setKlasse(k); setSchule(s); setRolle("schueler");
           const prevId = getStoredResultIdForKlasse(k.id);
           if (prevId) {
-            /* Auf diesem Geraet wurde in dieser Klasse schon gespielt.
-               Nur anzeigen, nicht in den Ueberschreib-Modus gehen. */
-            setLetztesKlassenErgebnisId(prevId);
+            // Wiederkehr: zur Intro mit Hinweis + Wahlmöglichkeit
+            setMySessionResultId(prevId);
             setReturningStudent(true);
             setPhase("intro");
           } else {
@@ -4999,8 +4920,8 @@ function App() {
       {phase === "adjust" && <FinalAdjust values8={pile} lastDiscards={lastLosers} onDone={onAdjust} />}
       {phase === "ranking" && <RankValues values8={pile} onDone={onRankDone} />}
       {phase === "kompass" && <KompassBuild values8={pile} onDone={onKompass} />}
-      {phase === "result" && kompass && <Result kompass={kompass} onRestart={resultRestart} restartLabel={geteiltesGeraet ? "Nächste Person →" : undefined} onNochmalIch={(geteiltesGeraet && mySessionResultId) ? handleNochmalIch : undefined} valHistory={valHistory} maxRound={maxRound} demographics={demographics} saveError={saveError} typeDescs={typeDescs} resultId={currentResultId} klasse={klasse} onClassView={() => { setLandschaftReturnPhase("result"); setPhase("klasse-landschaft"); }} />}
-      {phase === "done" && <DoneScreen pseudonym={pseudonym} resultId={currentResultId} schule={schule} onBackToResult={() => setPhase("result")} onNextStudent={() => handleNaechstePerson({ pseudonymNeu: true })} />}
+      {phase === "result" && kompass && <Result kompass={kompass} onRestart={FEATURES.doneScreen ? handleFinish : handleRestart} restartLabel={(rolle === "eltern" || rolle === "lehrkraft") ? "Nächste Person →" : undefined} valHistory={valHistory} maxRound={maxRound} demographics={demographics} saveError={saveError} typeDescs={typeDescs} resultId={currentResultId} klasse={klasse} onClassView={() => { setLandschaftReturnPhase("result"); setPhase("klasse-landschaft"); }} />}
+      {phase === "done" && <DoneScreen pseudonym={pseudonym} resultId={currentResultId} schule={schule} onBackToResult={() => setPhase("result")} onNextStudent={handleRestart} />}
       {phase === "klasse-landschaft" && <KlassenLandschaft schule={schule} klasse={klasse} onBack={() => setPhase(landschaftReturnPhase)} adminMode={landschaftReturnPhase === "schulen"} />}
     </div>
   );
