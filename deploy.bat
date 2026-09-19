@@ -1,5 +1,5 @@
 @echo off
-cd /d C:\Users\Hendrik\claude\landingpage
+cd /d C:\Users\hendr\OneDrive\Dokumente\GitHub\valueschool
 echo === Hole Aenderungen von GitHub ===
 git pull --rebase
 echo.
