@@ -468,6 +468,11 @@ function DashboardMain({ session, rolle }) {
   const [filter, setFilter] = useState({ schule: "", klasse: "" });
   const [sort, setSort] = useState({ col: "count", dir: "desc" });
   const [reloadKey, setReloadKey] = useState(0);
+  /* Seit dem 15.09.2026 spielen auch Eltern und Lehrkraefte mit. Alle
+     Bestands-Auswertungen sind fuer Schueler gebaut, deshalb ist Schueler
+     die Voreinstellung: die Zahlen bleiben mit dem vergleichbar, was
+     Schulen bisher gesehen haben. */
+  const [gruppe, setGruppe] = useState("schueler");
 
   useEffect(() => {
     let alive = true;
@@ -477,7 +482,7 @@ function DashboardMain({ session, rolle }) {
           apiFetch("/rest/v1/schulen?select=id,name,code&order=created_at.asc", {}, session),
           apiFetch("/rest/v1/klassen?select=id,schule_id,bezeichnung,code&order=bezeichnung.asc", {}, session),
           apiFetch("/rest/v1/studie_responses?select=id,pseudonym,rolle,schule_id,messzeitpunkt,created_at&order=created_at.desc", {}, session),
-          apiFetch("/rest/v1/results?select=id,pseudonym,schule_id,klasse_id,dominant,all_values,created_at&order=created_at.desc", {}, session),
+          apiFetch("/rest/v1/results?select=id,pseudonym,schule_id,klasse_id,rolle,kind_geschlecht,kind_stufe,dominant,all_values,created_at&order=created_at.desc", {}, session),
         ]);
         if (!alive) return;
         setData({ schulen: schulen || [], klassen: klassen || [], studie_responses: studie || [], results: results || [] });
@@ -491,15 +496,24 @@ function DashboardMain({ session, rolle }) {
   if (err) return <DashboardError message={err} onRetry={() => { setErr(""); setReloadKey(k => k + 1); }} />;
   if (!data) return <DashboardLoader />;
 
+  /* Eine Zeile ohne Rolle stammt aus der Zeit vor der Rollen-Weiche und
+     ist immer ein Schueler-Durchlauf. */
+  const gruppeVon = (r) => (r.rolle === "eltern" || r.rolle === "lehrkraft") ? r.rolle : "schueler";
+  const sicht = gruppe === "alle"
+    ? data
+    : { ...data, results: data.results.filter(r => gruppeVon(r) === gruppe) };
+
   return (
     <div style={{ maxWidth: 1200, margin: "0 auto", padding: "20px 20px 60px" }}>
       <SnapshotHint onReload={() => setReloadKey(k => k + 1)} />
       <AuswertungenBox />
-      <TotalsRow data={data} />
-      <TrendChart data={data} />
-      <WerteSection data={data} filter={filter} setFilter={setFilter} sort={sort} setSort={setSort} />
-      <SchulenGrid data={data} />
-      <RecentRows data={data} />
+      <GruppenSchalter data={data} gruppe={gruppe} setGruppe={setGruppe} gruppeVon={gruppeVon} />
+      <TotalsRow data={sicht} />
+      <TrendChart data={sicht} />
+      <WerteSection data={sicht} filter={filter} setFilter={setFilter} sort={sort} setSort={setSort} />
+      <ElternVergleich data={data} gruppeVon={gruppeVon} />
+      <SchulenGrid data={sicht} />
+      <RecentRows data={sicht} />
     </div>
   );
 }
@@ -553,6 +567,139 @@ function AuswertungenBox() {
         Diese Seiten sind in sich geschlossen und laufen auch, wenn die Datenbank pausiert. Der Link l\u00e4sst sich weitergeben.
       </div>
     </div>
+  );
+}
+
+/* ═══════════════════════════════════════════
+   GRUPPEN: Schueler, Eltern, Lehrkraefte
+   ═══════════════════════════════════════════ */
+
+function GruppenSchalter({ data, gruppe, setGruppe, gruppeVon }) {
+  const zahl = useMemo(() => {
+    const z = { schueler: 0, eltern: 0, lehrkraft: 0 };
+    for (const r of data.results) z[gruppeVon(r)]++;
+    return z;
+  }, [data, gruppeVon]);
+
+  const knoepfe = [
+    { id: "schueler", label: "Schüler", n: zahl.schueler },
+    { id: "eltern", label: "Eltern", n: zahl.eltern },
+    { id: "lehrkraft", label: "Lehrkräfte", n: zahl.lehrkraft },
+    { id: "alle", label: "Alle zusammen", n: data.results.length },
+  ];
+
+  return (
+    <Card style={{ marginBottom: 20, padding: "14px 16px" }}>
+      <div style={{ fontSize: 12, color: COLOR.textMuted, marginBottom: 10, fontWeight: 600,
+        letterSpacing: ".04em", textTransform: "uppercase" }}>Wen du gerade siehst</div>
+      <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+        {knoepfe.map(k => {
+          const aktiv = gruppe === k.id;
+          return (
+            <button key={k.id} onClick={() => setGruppe(k.id)} disabled={k.n === 0 && k.id !== "alle"} style={{
+              background: aktiv ? COLOR.blue : COLOR.surface,
+              color: aktiv ? "#fff" : (k.n === 0 && k.id !== "alle" ? COLOR.textLight : COLOR.text),
+              border: `1px solid ${aktiv ? COLOR.blue : COLOR.border}`,
+              borderRadius: 999, padding: "8px 16px", fontSize: 13.5, fontWeight: 600,
+              cursor: k.n === 0 && k.id !== "alle" ? "default" : "pointer",
+            }}>{k.label} <span style={{ opacity: .7, fontWeight: 400 }}>{k.n}</span></button>
+          );
+        })}
+      </div>
+      {gruppe === "alle" && (
+        <div style={{ fontSize: 12.5, color: "#92400e", marginTop: 10 }}>
+          Achtung: In dieser Ansicht stehen Schüler, Eltern und Lehrkräfte in denselben Zahlen.
+          Für die Schulauswertung ist das die falsche Grundlage.
+        </div>
+      )}
+    </Card>
+  );
+}
+
+/* Gegenueberstellung, immer auf dem vollen Datensatz gerechnet, damit sie
+   unabhaengig vom Schalter oben bleibt. Gezeigt wird, bei wie viel Prozent
+   einer Gruppe ein Wert im Kompass steht. */
+function ElternVergleich({ data, gruppeVon }) {
+  const [offen, setOffen] = useState(true);
+
+  const auswertung = useMemo(() => {
+    const zaehler = { schueler: {}, eltern: {} };
+    const n = { schueler: 0, eltern: 0 };
+    for (const r of data.results) {
+      const g = gruppeVon(r);
+      if (g !== "schueler" && g !== "eltern") continue;
+      if (!Array.isArray(r.all_values)) continue;
+      n[g]++;
+      const gesehen = new Set();
+      for (const v of r.all_values) {
+        const name = v && v.name;
+        if (!name || gesehen.has(name)) continue;
+        gesehen.add(name);
+        zaehler[g][name] = (zaehler[g][name] || 0) + 1;
+      }
+    }
+    if (!n.eltern || !n.schueler) return null;
+    const namen = new Set([...Object.keys(zaehler.schueler), ...Object.keys(zaehler.eltern)]);
+    const zeilen = [...namen].map(name => {
+      const e = 100 * (zaehler.eltern[name] || 0) / n.eltern;
+      const s = 100 * (zaehler.schueler[name] || 0) / n.schueler;
+      return { name, e, s, d: e - s };
+    });
+    return { n, zeilen };
+  }, [data, gruppeVon]);
+
+  if (!auswertung) return null;
+  const { n, zeilen } = auswertung;
+  const top = zeilen.slice().sort((a, b) => Math.abs(b.d) - Math.abs(a.d)).slice(0, 12);
+  const max = Math.max(...top.map(z => Math.max(z.e, z.s)), 1);
+
+  return (
+    <Card style={{ marginBottom: 20 }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
+        <div>
+          <div style={{ fontSize: 17, fontWeight: 800, color: COLOR.blueDark }}>Eltern und Schüler im Vergleich</div>
+          <div style={{ fontSize: 13, color: COLOR.textMuted, marginTop: 2 }}>
+            Die zwölf größten Unterschiede · {n.eltern} Eltern gegen {n.schueler} Schüler
+          </div>
+        </div>
+        <button onClick={() => setOffen(o => !o)} style={{
+          background: COLOR.surface, border: `1px solid ${COLOR.border}`, borderRadius: 8,
+          padding: "6px 14px", fontSize: 12, fontWeight: 600, color: COLOR.text, cursor: "pointer",
+        }}>{offen ? "Einklappen" : "Aufklappen"}</button>
+      </div>
+
+      {offen && (
+        <div style={{ marginTop: 16 }}>
+          <div style={{ display: "flex", gap: 18, flexWrap: "wrap", fontSize: 12.5, color: COLOR.textMuted, marginBottom: 12 }}>
+            <span><span style={{ display: "inline-block", width: 11, height: 11, borderRadius: 3, background: COLOR.blue, marginRight: 6 }} />Eltern</span>
+            <span><span style={{ display: "inline-block", width: 11, height: 11, borderRadius: 3, background: COLOR.orange, marginRight: 6 }} />Schüler</span>
+          </div>
+          {top.map(z => (
+            <div key={z.name} style={{
+              display: "grid", gridTemplateColumns: "minmax(110px, 1.1fr) 3fr", gap: 10,
+              alignItems: "center", padding: "7px 0", borderTop: `1px solid ${COLOR.border}`,
+            }}>
+              <div style={{ fontSize: 13.5, minWidth: 0, overflowWrap: "anywhere" }}>{z.name}</div>
+              <div style={{ display: "grid", gap: 4, minWidth: 0 }}>
+                {[["e", z.e, COLOR.blue], ["s", z.s, COLOR.orange]].map(([k, wert, farbe]) => (
+                  <div key={k} style={{ display: "grid", gridTemplateColumns: "1fr 52px", gap: 8, alignItems: "center" }}>
+                    <div style={{ height: 11, background: "#eef0f4", borderRadius: 3, overflow: "hidden" }}>
+                      <div style={{ height: "100%", width: (100 * wert / max) + "%", background: farbe, borderRadius: 3 }} />
+                    </div>
+                    <div style={{ fontSize: 12.5, color: COLOR.textMuted, textAlign: "right", fontVariantNumeric: "tabular-nums" }}>
+                      {wert.toFixed(1).replace(".", ",")}\u2009%
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ))}
+          <div style={{ fontSize: 12, color: COLOR.textLight, marginTop: 12 }}>
+            Anteil der Personen, bei denen der Wert unter den acht Kompass-Werten steht.
+          </div>
+        </div>
+      )}
+    </Card>
   );
 }
 
