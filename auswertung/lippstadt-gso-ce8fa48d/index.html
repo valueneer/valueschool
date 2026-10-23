@@ -205,11 +205,11 @@ tr.rowsel td{background:#F7F4EC}
 <body>
 <div class="wrap">
 <h1>Gymnasium Schloss Overhagen</h1>
-<p class="sub">Wertearbeit in Lippstadt · Auswertungsstand 09.09.2026</p>
+<p class="sub">Wertearbeit in Lippstadt · Auswertungsstand 09.09.2026, Eltern 23.10.2026</p>
 
 <div class="tabs">
   <button class="tb on" data-t="s">Schülerinnen und Schüler<small>346 · Juni und Juli 2026</small></button>
-  <button class="tb" data-t="e">Eltern<small>62 · seit September 2026</small></button>
+  <button class="tb" data-t="e">Eltern<small>108 · seit September 2026</small></button>
   <button class="tb" data-t="l">Lehrkräfte<small>25 · Februar 2026</small></button>
   <button class="tb" data-t="y">Schule<small>alle drei im Vergleich</small></button>
 </div>
@@ -297,12 +297,12 @@ Wertefarben nach dem Valueverse-Master.</p>
 <h2>Die Erhebung</h2>
 <p class="sub">Eltern spielen den Wertetest seit dem 18. September 2026 von zu Hause, über den Schulcode. Acht Werte je Person, erspielt in direkten Vergleichen zwischen Wertekarten. Dieselbe Mechanik wie bei den Schülerinnen und Schülern, dieselbe Rechnung wie in den anderen Reitern.</p>
 <div class="tiles">
-  <div class="tile"><div class="lab">Eltern</div><div class="num" id="e-n">62</div><div class="note">seit 18.09.2026</div></div>
-  <div class="tile"><div class="lab">Wertenennungen</div><div class="num" id="e-nen">488</div><div class="note">acht je Person</div></div>
-  <div class="tile"><div class="lab">Genannte Werte</div><div class="num" id="e-ver">47</div><div class="note">verschiedene</div></div>
+  <div class="tile"><div class="lab">Eltern</div><div class="num" id="e-n">108</div><div class="note">seit 18.09.2026</div></div>
+  <div class="tile"><div class="lab">Wertenennungen</div><div class="num" id="e-nen">864</div><div class="note">acht je Person</div></div>
+  <div class="tile"><div class="lab">Genannte Werte</div><div class="num" id="e-ver">50</div><div class="note">verschiedene</div></div>
   <div class="tile"><div class="lab">Stufen der Kinder</div><div class="num">5–13</div><div class="note">alle Jahrgänge</div></div>
 </div>
-<p class="hint">Die Eltern geben Geschlecht und Stufe ihres Kindes an, nicht ihre eigenen Daten. 61 der 62 Durchläufe tragen beide Angaben.</p>
+<p class="hint">Die Eltern geben Geschlecht und Stufe ihres Kindes an, nicht ihre eigenen Daten. 106 der 108 Durchläufe tragen beide Angaben vollständig.</p>
 </div>
 
 <div class="card">
@@ -320,7 +320,7 @@ Wertefarben nach dem Valueverse-Master.</p>
 
 <div class="card">
 <h2>Nach Stufe des Kindes</h2>
-<p class="sub">Wie viele Eltern je Stufe mitgemacht haben. Für einen belastbaren Vergleich Stufe für Stufe reichen bisher 5, 6, 7, 10 und 11.</p>
+<p class="sub">Wie viele Eltern je Stufe mitgemacht haben. Für einen belastbaren Vergleich Stufe für Stufe reichen bisher die Stufen mit mindestens zehn Eltern: 5, 6, 7, 10 und 11.</p>
 <div id="e-stufen"></div>
 </div>
 
@@ -330,7 +330,7 @@ Wertefarben nach dem Valueverse-Master.</p>
 <div id="e-alle"></div>
 </div>
 
-<p class="foot">Quelle: Wertetest-Datenbank, Stand 30.09.2026, Schulcode GSO2606.<br>
+<p class="foot">Quelle: Wertetest-Datenbank, Stand 23.10.2026, Schulcode GSO2606. Zwei doppelt gespeicherte Durchläufe sind zusammengefasst.<br>
 Die Eltern hängen an der Schule, nicht an einer Klasse, und tauchen deshalb in keiner Klassenauswertung auf.<br>
 Wertefarben nach dem Valueverse-Master.</p>
 </div>
@@ -1051,21 +1051,26 @@ function drawLehrer(){
 render(); drawUmfrage(); drawLehrer(); drawSym(); drawLeitVergleich();
 
 /* ═══════════════════════════════════════════
-   ELTERN  (ergaenzt 30.09.2026)
+   ELTERN  (ergaenzt 30.09.2026, Daten aktualisiert 23.10.2026)
    Eigener Datensatz, eigene Zeichenfunktionen. Ruehrt die Schueler- und
-   Lehrerdaten nicht an. Zahlen aus der Wertetest-Datenbank, Stand 30.09.2026.
+   Lehrerdaten nicht an. Zahlen aus der Wertetest-Datenbank, Stand 23.10.2026:
+   110 Zeilen rolle='eltern', zwei technische Doppelspeicherungen raus
+   (1804d092e2e1, af8c5bc50656), bleiben 108. Stufe 1 (eine Zeile) gibt es
+   am Gymnasium nicht, sie fehlt nur in der Stufenverteilung.
+   Wertefamilien wie im Schuelerreiter ueber KAT (Valueverse-Master), nicht
+   ueber die Spalte dominant: deren Farbcodes stammen aus dem alten Test und
+   sind gegenueber dem Master vertauscht (Mut, Entwicklung = green dort).
    ═══════════════════════════════════════════ */
 const E = {
-  n: 62,
-  lebenswert: {"Familie":20,"Gesundheit":8,"Entwicklung":4,"Glaube":3,"Ehrlichkeit":3,"Empathie":3,"Verantwortung":2,"Bildung":2,"Freiheit":2,"Harmonie":2,"Mut":2,"Respekt":2,"Rücksichtnahme":2,"Loyalität":1,"Mitgefühl":1,"Ausgeglichenheit":1,"Geselligkeit":1,"Disziplin":1,"Treue":1,"Humor":1},
-  superkraft: {"Respekt":16,"Ehrlichkeit":16,"Freundschaft":14,"Gesundheit":12,"Familie":10,"Empathie":9,"Zuverlässigkeit":8,"Freiheit":8,"Rücksichtnahme":8,"Nähe":8,"Mitgefühl":8,"Gerechtigkeit":6,"Humor":6,"Verantwortung":6,"Begeisterung":5},
-  grundwert: {"Empathie":13,"Verantwortung":11,"Respekt":11,"Rücksichtnahme":10,"Zuverlässigkeit":10,"Ehrlichkeit":10,"Loyalität":10,"Authentizität":9,"Mitgefühl":9,"Humor":9,"Harmonie":8,"Mut":8,"Freundschaft":8,"Bildung":7,"Toleranz":7},
-  alle: {"Familie":35,"Respekt":29,"Ehrlichkeit":28,"Gesundheit":27,"Empathie":24,"Freundschaft":22,"Rücksichtnahme":20,"Verantwortung":19,"Zuverlässigkeit":18,"Mitgefühl":18,"Humor":15,"Freiheit":15,"Loyalität":13,"Gerechtigkeit":13,"Nähe":13,"Toleranz":12,"Mut":12,"Bildung":12,"Harmonie":12,"Authentizität":10,"Sicherheit":10,"Entwicklung":10,"Zugehörigkeit":8,"Treue":8,"Zärtlichkeit":7,"Begeisterung":7,"Unabhängigkeit":7,"Kreativität":7,"Glaube":6,"Gelassenheit":6,"Geselligkeit":5,"Freude":5,"Aufgeschlossenheit":4,"Selbstverwirklichung":3,"Innovation":3,"Achtsamkeit":3,"Disziplin":3,"Ausgeglichenheit":3,"Nachhaltigkeit":3,"Anerkennung":2,"Ruhe":2,"Abenteuer":2,"Andersartigkeit":2,"Ehre":2,"Tradition":1,"Spiritualität":1,"Abwechslung":1},
-  dominant: {"pink":52,"green":6,"orange":4},
-  stufen: [[5,10],[6,10],[7,10],[8,4],[9,2],[10,7],[11,10],[12,4],[13,4]]
+  n: 108,
+  lebenswert: {"Familie": 34, "Gesundheit": 25, "Empathie": 4, "Entwicklung": 4, "Glaube": 4, "Respekt": 4, "Bildung": 3, "Ehrlichkeit": 3, "Authentizität": 2, "Freiheit": 2, "Harmonie": 2, "Mitgefühl": 2, "Mut": 2, "Rücksichtnahme": 2, "Selbstverwirklichung": 2, "Verantwortung": 2, "Aufgeschlossenheit": 1, "Ausgeglichenheit": 1, "Disziplin": 1, "Freude": 1, "Freundschaft": 1, "Gerechtigkeit": 1, "Geselligkeit": 1, "Humor": 1, "Loyalität": 1, "Treue": 1, "Unabhängigkeit": 1},
+  superkraft: {"Freundschaft": 28, "Ehrlichkeit": 27, "Respekt": 24, "Gesundheit": 23, "Familie": 21, "Freiheit": 15, "Verantwortung": 12, "Zuverlässigkeit": 12, "Empathie": 11, "Gerechtigkeit": 11, "Mitgefühl": 10, "Rücksichtnahme": 9, "Freude": 8, "Nähe": 8, "Toleranz": 8, "Treue": 8, "Bildung": 7, "Humor": 7, "Loyalität": 6, "Sicherheit": 6, "Begeisterung": 5, "Harmonie": 5, "Disziplin": 4, "Gelassenheit": 4, "Mut": 4, "Unabhängigkeit": 4, "Achtsamkeit": 3, "Aufgeschlossenheit": 3, "Ehre": 3, "Entwicklung": 3, "Zugehörigkeit": 3, "Zärtlichkeit": 3, "Abenteuer": 2, "Ausgeglichenheit": 2, "Geselligkeit": 2, "Glaube": 2, "Kreativität": 2, "Nachhaltigkeit": 2, "Tradition": 2, "Andersartigkeit": 1, "Authentizität": 1, "Innovation": 1, "Leistung": 1, "Selbstverwirklichung": 1},
+  grundwert: {"Empathie": 23, "Respekt": 23, "Ehrlichkeit": 19, "Verantwortung": 19, "Gerechtigkeit": 17, "Zuverlässigkeit": 17, "Mitgefühl": 16, "Rücksichtnahme": 16, "Bildung": 15, "Humor": 15, "Loyalität": 15, "Freundschaft": 13, "Sicherheit": 13, "Mut": 12, "Harmonie": 11, "Toleranz": 11, "Gelassenheit": 10, "Zärtlichkeit": 10, "Authentizität": 9, "Entwicklung": 9, "Geselligkeit": 9, "Gesundheit": 8, "Kreativität": 8, "Nähe": 8, "Familie": 7, "Freude": 7, "Selbstverwirklichung": 7, "Zugehörigkeit": 7, "Disziplin": 6, "Freiheit": 6, "Nachhaltigkeit": 6, "Ruhe": 6, "Achtsamkeit": 5, "Anerkennung": 5, "Aufgeschlossenheit": 5, "Glaube": 5, "Treue": 5, "Ausgeglichenheit": 4, "Ehre": 4, "Unabhängigkeit": 4, "Begeisterung": 3, "Tradition": 3, "Abenteuer": 2, "Andersartigkeit": 2, "Erfolg": 2, "Innovation": 2, "Abwechslung": 1, "Spiritualität": 1, "Spontaneität": 1},
+  alle: {"Familie": 62, "Gesundheit": 56, "Respekt": 51, "Ehrlichkeit": 49, "Freundschaft": 42, "Empathie": 38, "Verantwortung": 33, "Gerechtigkeit": 29, "Zuverlässigkeit": 29, "Mitgefühl": 28, "Rücksichtnahme": 27, "Bildung": 25, "Freiheit": 23, "Humor": 23, "Loyalität": 22, "Sicherheit": 19, "Toleranz": 19, "Harmonie": 18, "Mut": 18, "Entwicklung": 16, "Freude": 16, "Nähe": 16, "Gelassenheit": 14, "Treue": 14, "Zärtlichkeit": 13, "Authentizität": 12, "Geselligkeit": 12, "Disziplin": 11, "Glaube": 11, "Kreativität": 10, "Selbstverwirklichung": 10, "Zugehörigkeit": 10, "Aufgeschlossenheit": 9, "Unabhängigkeit": 9, "Achtsamkeit": 8, "Begeisterung": 8, "Nachhaltigkeit": 8, "Ausgeglichenheit": 7, "Ehre": 7, "Ruhe": 6, "Anerkennung": 5, "Tradition": 5, "Abenteuer": 4, "Andersartigkeit": 3, "Innovation": 3, "Erfolg": 2, "Abwechslung": 1, "Leistung": 1, "Spiritualität": 1, "Spontaneität": 1},
+  stufen: [[5, 19], [6, 13], [7, 13], [8, 9], [9, 9], [10, 14], [11, 15], [12, 8], [13, 6]]
 };
 const E_COLS = {pink:"#E91E8C",orange:"#F7941D",green:"#7CC142",blue:"#00BCD4"};
-const E_LAB  = {pink:"Beziehung",orange:"Sicherheit",green:"Selbstfindung",blue:"Veränderung"};
+const E_LAB  = {pink:"Verbindung",orange:"Sicherheit",green:"Erfüllung",blue:"Veränderung"};
 E.nennungen = Object.values(E.alle).reduce((a,b)=>a+b,0);
 E.verschieden = Object.keys(E.alle).length;
 
@@ -1098,26 +1103,28 @@ function drawEltern(){
     '<div class="eb"><h3>'+titel+'</h3><div class="ebn">'+sub+'</div>'+eBalken(obj, limit, E.n)+'</div>';
   const ebenen = document.getElementById('e-ebenen');
   if(ebenen) ebenen.innerHTML =
-    eb('Lebenswert','der wichtigste Einzelwert, 62 Nennungen', E.lebenswert, 10) +
+    eb('Lebenswert','der wichtigste Einzelwert, '+E.n+' Nennungen', E.lebenswert, 10) +
     eb('Superkräfte','drei je Person', E.superkraft, 10) +
     eb('Grundwerte','vier je Person', E.grundwert, 10);
 
-  const ges = Object.values(E.dominant).reduce((a,b)=>a+b,0);
+  const fam = {pink:0,orange:0,green:0,blue:0};
+  Object.entries(E.alle).forEach(([w,n]) => { const k = eKat(w); if(k && fam[k]!==undefined) fam[k] += n; });
+  const ges = Object.values(fam).reduce((a,b)=>a+b,0);
   const typen = document.getElementById('e-typen');
   if(typen){
     typen.innerHTML = '<div class="mix">' + ['pink','orange','green','blue'].map(k=>{
-      const n = E.dominant[k]||0;
+      const n = fam[k]||0;
       return n? '<i style="width:'+(100*n/ges)+'%;background:'+E_COLS[k]+'" title="'+E_LAB[k]+'"></i>' : '';
     }).join('') + '</div><div style="margin-top:12px">' +
     ['pink','orange','green','blue'].map(k=>{
-      const n = E.dominant[k]||0;
+      const n = fam[k]||0;
       return '<div class="vgb" style="margin:6px 0"><span class="gl" style="min-width:150px;font-size:14px">'+E_LAB[k]+'</span>'+
         '<span class="t"><i style="display:block;height:100%;width:'+(100*n/ges)+'%;background:'+E_COLS[k]+'"></i></span>'+
         '<span style="min-width:74px;text-align:right;font-size:13px;color:var(--mut)">'+n+' · '+(100*n/ges).toFixed(0)+'%</span></div>';
     }).join('') + '</div>';
   }
   const th = document.getElementById('e-typhint');
-  if(th) th.textContent = 'Gezählt ist die dominante Familie je Durchlauf. Keiner der 62 Durchläufe hat Veränderung als dominante Familie.';
+  if(th) th.textContent = 'Aus '+ges+' gewählten Werten von '+E.n+' Eltern. Gezählt werden alle acht Werte je Person, wie bei den Schülerinnen und Schülern.';
 
   const st = document.getElementById('e-stufen');
   if(st){
@@ -1164,7 +1171,7 @@ function drawElternVergleich(nurGemeinsame){
 
   ziel.innerHTML =
     '<div class="hint" style="margin-bottom:10px">'+
-      '<span style="display:inline-block;width:11px;height:11px;border-radius:3px;background:var(--blue);margin-right:6px"></span>Eltern 62'+
+      '<span style="display:inline-block;width:11px;height:11px;border-radius:3px;background:var(--blue);margin-right:6px"></span>Eltern '+E.n+
       '<span style="display:inline-block;width:11px;height:11px;border-radius:3px;background:var(--pink);margin:0 6px 0 16px"></span>Schüler '+nS+
       '<span style="display:inline-block;width:11px;height:11px;border-radius:3px;background:var(--green);margin:0 6px 0 16px"></span>Kollegium '+nL+
     '</div>' +
